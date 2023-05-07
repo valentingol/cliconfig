@@ -47,9 +47,3 @@ def parse(sys_argv: List[str]) -> Tuple[List[str], Dict[str, Any]]:
         else:
             i += 1
     return config_paths, config_cli_params
-
-
-if __name__ == "__main__":
-    import sys
-
-    print(sys.argv)
