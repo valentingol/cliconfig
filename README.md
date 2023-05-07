@@ -7,6 +7,7 @@ if not desired. Finally, it provides helper routines to manage flatten dicts, un
 
 ## Documentation :memo: [here](https://cliconfig.readthedocs.io/en/stable)
 
+[![PyPI version](https://badge.fury.io/py/cliconfig.svg)](https://badge.fury.io/py/cliconfig)
 ![PythonVersion](https://img.shields.io/badge/python-3.7%20%7E%203.11-informational)
 [![License](https://img.shields.io/github/license/valentingol/cliconfig?color=999)](https://stringfixer.com/fr/MIT_license)
 
