@@ -24,19 +24,19 @@ def parse(sys_argv: List[str]) -> Tuple[List[str], Dict[str, Any]]:
     i = 0
     while i < len(sys_argv):
         elem = sys_argv[i]
-        if elem == '--config':
+        if elem == "--config":
             if config_paths:
                 raise ValueError(
                     "Only one '--config ' argument is allowed in CLI (used for "
                     "config merging). If you have a subconfig called 'config', "
                     "use '--config=<val>' (with an '=')."
                 )
-            config_paths = sys_argv[i + 1].split(',')
+            config_paths = sys_argv[i + 1].split(",")
             i += 2
 
-        elif elem.startswith('--'):
-            if '=' in elem:
-                key, value_str = elem.split('=', maxsplit=1)
+        elif elem.startswith("--"):
+            if "=" in elem:
+                key, value_str = elem.split("=", maxsplit=1)
                 i += 1
             else:
                 key, value_str = elem, sys_argv[i + 1]
@@ -49,6 +49,7 @@ def parse(sys_argv: List[str]) -> Tuple[List[str], Dict[str, Any]]:
     return config_paths, config_cli_params
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
+
     print(sys.argv)
