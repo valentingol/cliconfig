@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Tuple
 import yaml
 
 
-def parse(sys_argv: List[str]) -> Tuple[List[str], Dict[str, Any]]:
+def parse_cli(sys_argv: List[str]) -> Tuple[List[str], Dict[str, Any]]:
     """Parser for CLI commands.
 
     Parameters
