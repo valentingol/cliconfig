@@ -166,12 +166,13 @@ def flat_config(config: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def unflat_config(flatten_config: Dict[str, Any]) -> Dict[str, Any]:
-    """Flatten a flat config then return it.
+    """Unflatten a flat config then return it.
 
     Parameters
     ----------
     flatten_config : Dict[str, Any]
-        The configuration to flatten. Must be flat.
+        The configuration to unflatten. Must be a flat config
+        (depth 1 with keys separated by dots).
 
     Raises
     ------
@@ -181,7 +182,7 @@ def unflat_config(flatten_config: Dict[str, Any]) -> Dict[str, Any]:
     Returns
     -------
     config : Dict[str, Any]
-        The flattened config.
+        The unflatten config.
 
     Examples
     --------
@@ -219,7 +220,7 @@ def clean_pre_flat(config: Dict[str, Any], priority: str) -> Dict[str, Any]:
     Raises
     ------
     ValueError
-        If priority is not one of 'flat', 'unflat' or 'nothing'.
+        If priority is not one of 'flat', 'unflat' or 'error'.
 
     Returns
     -------
