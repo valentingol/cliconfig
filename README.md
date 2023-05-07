@@ -3,7 +3,7 @@
 Lightweight library to merge your configs (optionally nested) and set parameters
 from command line.
 
-## Documentation :memo: [here](cliconfig.readthedocs.io)
+## Documentation :memo: [here](https://cliconfig.readthedocs.io/en/stable)
 
 [![PyPI version](https://badge.fury.io/py/cliconfig.svg)](https://badge.fury.io/py/cliconfig)
 ![PythonVersion](https://img.shields.io/badge/python-3.7%20%7E%203.11-informational)
