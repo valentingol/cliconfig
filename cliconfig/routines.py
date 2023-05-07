@@ -347,8 +347,3 @@ def _del_key(
     if not found_key:
         raise ValueError(f"Key '{flat_key}' not found in config.")
     return config
-
-
-if __name__ == "__main__":
-    config = clean_pre_flat({"a.b": 1, "a": {"b": 2}, "c": 3}, priority="unflat")
-    print(config)
