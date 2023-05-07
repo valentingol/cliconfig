@@ -18,6 +18,23 @@ def parse_cli(sys_argv: List[str]) -> Tuple[List[str], Dict[str, Any]]:
         List of paths to config files to merge.
     config_cli_params : Dict[str, Any]
         Dictionary of parameters from CLI.
+
+    Warning
+    -------
+        The '--config' argument is used for config merging only if
+        **it is followed by a space**. If '--config=' is used, it will
+        be parsed as a regular parameter in the config called 'config'.
+
+    Examples
+    --------
+    .. code-block:: text
+
+        $ python my_script.py --config config.yaml --foo.bar.param [1, 2, 3]
+
+    Will be parsed as `config_paths=['config.yaml']`
+    and `cli_params={'foo.bar.param': [1, 2, 3]}`.
+    It is equivalent to: `{'foo': {'bar': {'param': [1, 2, 3]}}`
+    for :func:`merge_config`.
     """
     config_cli_params: Dict[str, Any] = {}
     config_paths: List[str] = []
