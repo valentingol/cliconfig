@@ -1,6 +1,6 @@
 # Manipulate configs
 
-To merge configs, you can use `cliconfig.merge` function.
+To merge configs, you can use `cliconfig.merge_config` function.
 It supports unflatten (or nested) dicts like `{'a': {'b': 1, 'c': 2}}`,
 flatten dicts like `{'a.b': 1, 'a.c': 2}`, and a mix of both. The dicts will be flatten
 before merging. Sometimes you can have conflicts in flatten operation for instance with
