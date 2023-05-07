@@ -8,8 +8,7 @@ from cliconfig.routines import merge_config, merge_config_file
 
 
 def make_config(
-    *default_config_paths: str,
-    allow_new_keys: bool = False
+    *default_config_paths: str, allow_new_keys: bool = False
 ) -> Dict[str, Any]:
     r"""Make a config from default configs and CLI arguments.
 

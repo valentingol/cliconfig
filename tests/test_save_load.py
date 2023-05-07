@@ -23,7 +23,7 @@ def test_save_load_config() -> None:
         "tests/tmp/config2.yaml",
         default_config_paths=[
             "tests/configs/default1.yaml",
-            "tests/configs/default2.yaml"
+            "tests/configs/default2.yaml",
         ],
         allow_new_keys=False,
     )

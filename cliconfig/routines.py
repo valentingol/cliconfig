@@ -196,8 +196,9 @@ def unflat_config(flatten_config: Dict[str, Any]) -> Dict[str, Any]:
     try:
         config = unflatten(flatten_config, splitter="dot")
     except ValueError as exc:
-        raise ValueError("The config must be flatten before calling "
-                         "unflat_config function.") from exc
+        raise ValueError(
+            "The config must be flatten before calling unflat_config function."
+        ) from exc
     return config
 
 
@@ -264,7 +265,7 @@ def _del_key(
     flat_key: str,
     *,
     keep_flat: bool = False,
-    keep_unflat: bool = False
+    keep_unflat: bool = False,
 ) -> Dict[str, Any]:
     """Remove a value in config dict corresponding to a flat key (e.g. 'a.b.c).
 
@@ -338,6 +339,7 @@ def _del_key(
                 # No key found, return input found_key
                 return found_key
         return found_key
+
     if not keep_unflat:
         # Remove flat_key if it exists in a nested dict
         found_key = recursive_del_key(config, flat_key, found_key=found_key)
@@ -347,6 +349,6 @@ def _del_key(
     return config
 
 
-if __name__ == '__main__':
-    config = clean_pre_flat({'a.b': 1, 'a': {'b': 2}, 'c': 3}, priority='unflat')
+if __name__ == "__main__":
+    config = clean_pre_flat({"a.b": 1, "a": {"b": 2}, "c": 3}, priority="unflat")
     print(config)

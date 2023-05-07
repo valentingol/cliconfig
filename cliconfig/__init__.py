@@ -37,5 +37,5 @@ __all__ = [
     "parse_cli",
     "save_config",
     "show_config",
-    "unflat_config"
+    "unflat_config",
 ]
