@@ -1,0 +1,26 @@
+# Cache
+**_cache
+**.pyc
+*/__pycache__
+# Env
+.env
+.venv
+env
+env.yaml
+environment.yml
+venv
+**.egg-info
+# VScode
+.vscode
+# Temporary files
+**/tmp.py
+**/tmp.ipynb
+# Tests
+.coverage
+tests/tmp
+run.py
+# Setuptools SCM
+cliconfig/_version.py
+# Docs
+docs/_build
+build
