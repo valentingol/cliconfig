@@ -7,18 +7,18 @@ import sys
 
 from setuptools_scm import get_version
 
-sys.path.insert(0, os.path.abspath('../'))
+sys.path.insert(0, os.path.abspath("../"))
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'CLI Config'
-copyright = '2023, Valentin Goldite'  # noqa A001
-author = 'Valentin Goldite'
+project = "CLI Config"
+copyright = "2023, Valentin Goldite"  # noqa A001
+author = "Valentin Goldite"
 try:
     release = get_version()
 except:  # noqa E722
-    release = get_version(root='..', relative_to=__file__)
+    release = get_version(root="..", relative_to=__file__)
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -33,7 +33,7 @@ extensions = [
 ]
 
 master_doc = "index"
-autoapi_type = 'python'
+autoapi_type = "python"
 autoapi_dirs = ["cliconfig"]
 
 autodoc_default_options = {
@@ -50,8 +50,8 @@ intersphinx_mapping = {
     "numpy": ("http://docs.scipy.org/doc/numpy/", None),
 }
 
-templates_path = ['_templates']
-exclude_patterns = ['_build']
+templates_path = ["_templates"]
+exclude_patterns = ["_build"]
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
