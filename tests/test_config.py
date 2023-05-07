@@ -6,21 +6,21 @@ import sys
 import pytest
 import pytest_check as check
 
-from cliconfig import load_config, make_config, merge, save_config
+from cliconfig import load_config, make_config, merge_config, save_config
 
 
-def test_merge() -> None:
-    """Test merge."""
+def test_merge_config() -> None:
+    """Test merge_config."""
     config1 = {"a.b": 1, "a": {"b": 2, "c": 3}}
     config2 = {"a": {"c": 1}, "a.d": 6}
-    config = merge(config1, config2, allow_new_keys=True, priority="flat")
+    config = merge_config(config1, config2, allow_new_keys=True, priority="flat")
     check.equal(config, {"a": {"b": 1, "c": 1, "d": 6}})
-    config = merge(config1, config2, allow_new_keys=True, priority="unflat")
+    config = merge_config(config1, config2, allow_new_keys=True, priority="unflat")
     check.equal(config, {"a": {"b": 2, "c": 1, "d": 6}})
-    with pytest.raises(ValueError, match="New parameter 'a.d' found.*"):
-        merge(config1, config2, allow_new_keys=False)
+    with pytest.raises(ValueError, match="New parameter found 'a.d'.*"):
+        merge_config(config1, config2, allow_new_keys=False)
     with pytest.raises(ValueError, match="Unknown dot_prior 'UNKONWN'.*"):
-        merge(config1, config2, allow_new_keys=True, priority="UNKONWN")
+        merge_config(config1, config2, allow_new_keys=True, priority="UNKONWN")
 
 
 def test_make_config(capsys: pytest.CaptureFixture) -> None:
@@ -119,7 +119,7 @@ def test_save_load_config() -> None:
     # Additional keys when allow_new_keys=False
     config = {"param4": 0}
     save_config(config, "tests/tmp/config3.yaml")
-    with pytest.raises(ValueError, match="New parameter 'param4' found.*"):
+    with pytest.raises(ValueError, match="New parameter found 'param4'.*"):
         load_config(
             "tests/tmp/config3.yaml",
             default_configs=[

@@ -106,7 +106,7 @@ Note that the configurations are native python dicts.
 
 ## Manipulate configs
 
-To merge configs, you can use `cliconfig.merge` function.
+To merge configs, you can use `cliconfig.merge_config` function.
 It supports unflatten (or nested) dicts like `{'a': {'b': 1, 'c': 2}}`,
 flatten dicts like `{'a.b': 1, 'a.c': 2}`, and a mix of both. The dicts will be flatten
 before merging. Sometimes you can have conflicts in flatten operation for instance with
@@ -133,7 +133,7 @@ Please see our [contributing guidelines](CONTRIBUTING.md) for more information ð
 To do:
 
 - [ ] add json and ini support
-- [ ] avoid changing keys order in merge
+- [ ] avoid changing keys order in merge_config
 
 ## License
 

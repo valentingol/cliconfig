@@ -13,7 +13,7 @@ Copyright (C) 2023  Valentin Goldité
 """
 # pylint: disable=wrong-import-position
 from cliconfig._version import __version__, __version_tuple__
-from cliconfig.config import load_config, make_config, merge, save_config
+from cliconfig.config import load_config, make_config, merge_config, save_config
 from cliconfig.show import show_config
 
 __all__ = [
@@ -21,7 +21,7 @@ __all__ = [
     "__version_tuple__",
     "load_config",
     "make_config",
-    "merge",
+    "merge_config",
     "save_config",
     "show_config",
 ]
