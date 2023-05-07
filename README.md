@@ -1,7 +1,9 @@
 # CLI Config
 
-Lightweight library to merge your configs (optionally nested) and set parameters
-from command line.
+Lightweight library that provides routines to merge your configs (optionally nested)
+and set parameters from command line. It also prevents you from adding new parameters
+if not desired. Finally, it provides helper routines to manage flatten dicts, unflatten
+(= nested) dicts or a mix of both, save config, load, display, etc.
 
 ## Documentation :memo: [here](https://cliconfig.readthedocs.io/en/stable)
 
@@ -33,19 +35,18 @@ pip install cliconfig
 ## Quick start
 
 First create a default config that can be split in multiple files that will be merged
-(from left to right in `make_config` function):
+(from left to right in `make_config` function). There is no limit of depth for the
+configurations parameters.
 
 ```yaml
-# default1.yaml
+---  # default1.yaml
 param1: 1
 param2: 0
 letters:
   letter1: a
   letter2: b
-```
 
-```yaml
-# default2.yaml
+---  # default2.yaml
 param1: 1
 param2: 2  # will override param2 from default1.yaml
 letters.letter3: c  # add a new parameter
@@ -62,18 +63,18 @@ show_config(config)
 ```
 
 Then add one or multiple additional config files that will override the default values.
-**Be careful, the additional config files cannot bring new parameters by default**.
-If you want to add new parameters (not advised for retro-compatibility, readability
-and security), you can add `allow_new_keys=True` in `make_config` function.
+**By default the additional config files cannot bring new parameters**.
+It is intended to prevent typos in the config files that would not be detected.
+It also improves the readability of the config files and the retro-compatibility.
+By the way, you can change this behavior with `allow_new_keys=True` in `make_config`
+(be careful).
 
 ```yaml
-# exp1.yaml
+---  # first.yaml
 letters:
   letter3: C
-```
 
-```yaml
-# exp2.yaml
+---  # second.yaml
 param1: -1
 letters.letter1: A
 ```
@@ -85,7 +86,7 @@ will be merged with the additional configurations (from left to right), then the
 parameters will be set.
 
 ```bash
-python main.py --config exp1.yaml,exp2.yaml --param2=-2 --letters.letter2='B'
+python main.py --config first.yaml,second.yaml --param2=-2 --letters.letter2='B'
 ```
 
 Will show:
@@ -104,17 +105,47 @@ Config:
 
 Note that the configurations are native python dicts.
 
+## Edge cases
+
+**Be careful, tuples and sets are not supported by YAML and cannot be used in configs.**
+Use lists instead if possible
+
+`None` is not recognized as a None object by YAML but as a string, you may use `null`
+or `Null` instead if you want to
+set a None object.
+
+Dicts are considered as sub-configs and so you may not be able to change the keys if
+`allow_new_keys=False` (default). If you want to modify a dict keys, you should
+enclose it in a list.
+
+For instance:
+
+```yaml
+--- default.yaml
+logging:
+  metrics: ['train loss', 'val loss']
+  styles: [{'train loss': 'red', 'val loss': 'blue'}]
+--- experiment.yaml
+logging:
+  metrics: ['train loss', 'val loss', 'val acc']
+  styles: [{'train loss': 'red', 'val loss': 'blue', 'val acc': 'cyan'}]
+```
+
 ## Manipulate configs
 
-To merge configs, you can use `cliconfig.merge_config` function.
-It supports unflatten (or nested) dicts like `{'a': {'b': 1, 'c': 2}}`,
-flatten dicts like `{'a.b': 1, 'a.c': 2}`, and a mix of both. The dicts will be flatten
-before merging. Sometimes you can have conflicts in flatten operation for instance with
-`{'a.b': 1, 'a': {'b': 2}}` that have two different values for `a.b`. That's why you
-can use a `priority` parameter to choose which value to keep before merging.
+You are encouraged to use the routines provided by `cliconfig` to manipulate configs
+and even create your own config builder to replace `make_config`. You can use:
 
-You can also save, load and display configs with `cliconfig.save_config`,
-`cliconfig.load_config` and `cliconfig.show_config` functions.
+- `merge_config` and `merge_config_file` to merge your configs
+- `parse_cli` to parse CLI arguments on config files and additional parameters
+- `flat_config` and `unflat_config` to flatten and unflatten your configs
+- `clean_pre_flat` to clean conflicting keys before flattening
+
+You can also save, load and display configs with `save_config`,
+`load_config` and `show_config` functions.
+
+Note that theses functions are aimed to be use with configs but can be used with
+any python dict.
 
 ## How to contribute
 
@@ -132,8 +163,15 @@ Please see our [contributing guidelines](CONTRIBUTING.md) for more information ð
 
 To do:
 
-- [ ] add json and ini support
-- [ ] avoid changing keys order in merge_config
+- [ ] log warning when `None` is used in CLI (considered as string a by PyYAML)
+
+Done:
+
+- [x] add `merge_config_file` to merge from path (= `merge_config` that includes
+  config loading)
+- [x] add `clean_pre_flat` to solve conflicting flatten and unflatten parameters
+  before flattening the config
+- [x] avoid changing keys order in merge_config
 
 ## License
 
