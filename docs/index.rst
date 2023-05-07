@@ -19,7 +19,7 @@ Make a default config file in your project (configs are merged from left to righ
 .. code:: python
 
    # main.py
-   from cliconfig import make_config, show_config
+   from cliconfig import make_config
 
    config = make_config('default1.yaml', 'default2.yaml')  # it's a dict
 
