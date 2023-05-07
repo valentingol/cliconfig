@@ -42,17 +42,17 @@ def make_config(*default_configs: str, allow_new_keys: bool = False) -> Dict[str
     for default_config_path in default_configs:
         with open(default_config_path, "r", encoding="utf-8") as cfg_file:
             default_config = yaml.safe_load(cfg_file)
-        config = merge(config, default_config, allow_new_keys=True)
+        config = merge_config(config, default_config, allow_new_keys=True)
 
     for config_path in config_paths:
         with open(config_path, "r", encoding="utf-8") as cfg_file:
             additional_config = yaml.safe_load(cfg_file)
-        config = merge(config, additional_config, allow_new_keys=allow_new_keys)
-    config = merge(config, config_cli_params, allow_new_keys=allow_new_keys)
+        config = merge_config(config, additional_config, allow_new_keys=allow_new_keys)
+    config = merge_config(config, config_cli_params, allow_new_keys=allow_new_keys)
     return config
 
 
-def merge(
+def merge_config(
     config1: Dict[str, Any],
     config2: Dict[str, Any],
     *,
@@ -72,8 +72,8 @@ def merge(
         By default True.
     priority : str, optional
         One of 'flat' or 'unflat'.
-        If 'flat', keys with dots at the root like `a.b: ...` (flat keys) have
-        priority over unflat keys like `'a(): {'b': ...}` when there are conflicts.
+        If 'flat', keys with dots at the root like `{'a.b': ...}` (flat keys) have
+        priority over unflat keys like `{'a': {'b': ...}}` when there are conflicts.
         If 'unflat', unflat keys have priority over flat keys when there are conflicts.
 
     Raises
@@ -82,6 +82,20 @@ def merge(
         If priority is not one of 'flat', 'unflat' or 'order'.
     ValueError
         If allow_new_keys is False and config2 has new keys that are not in config1.
+
+    Examples
+    --------
+    ::
+
+        >>> merge_config({'a.b': 1, 'a': {'b': 2}}, {'c': 3}, allow_new_keys=True,
+                         priority='flat')
+        {'a.b': 1, 'c': 3}
+        >>> merge_config({'a.b': 1, 'a': {'b': 2}}, {'c': 3}, allow_new_keys=True,
+                         priority='unflat')
+        {'a.b': 2, 'c': 3}
+        >>> merge_config({'a.b': 1, 'a': {'b': 2}}, {'c': 3}, allow_new_keys=False,
+                         priority='unflat')
+        ValueError: New parameter found 'c' that is not in the original config.
     """
     if priority in ("flat", "unflat"):
         # Split flat and unflat keys
@@ -110,7 +124,7 @@ def merge(
         for key in config2_flat:
             if key not in config1_flat.keys():
                 raise ValueError(
-                    f"New parameter '{key}' found that is not in the original config."
+                    f"New parameter found '{key}' that is not in the original config."
                 )
     # Merge flat configs
     flat_config = {**config1_flat, **config2_flat}
@@ -171,8 +185,8 @@ def load_config(
         for config_path in default_configs:
             with open(config_path, "r", encoding="utf-8") as cfg_file:
                 default_config = yaml.safe_load(cfg_file)
-            config = merge(config, default_config, allow_new_keys=True)
+            config = merge_config(config, default_config, allow_new_keys=True)
     with open(path, "r", encoding="utf-8") as cfg_file:
         loaded_config = yaml.safe_load(cfg_file)
-    config = merge(config, loaded_config, allow_new_keys=allow_new_keys)
+    config = merge_config(config, loaded_config, allow_new_keys=allow_new_keys)
     return config
