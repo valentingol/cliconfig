@@ -146,8 +146,8 @@ def flat_config(config: Dict[str, Any]) -> Dict[str, Any]:
     config : Dict[str, Any]
         The flattened config.
 
-    Notes
-    -----
+    Note
+    ----
         Nested empty dict are ignored even if they are conflicting (see last example).
 
     Examples
