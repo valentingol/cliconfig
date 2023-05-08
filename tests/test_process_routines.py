@@ -11,6 +11,7 @@ from cliconfig.process_routines import (
     merge_flat_processing,
     save_processing,
 )
+from tests.conftest import ProcessAdd1, ProcessKeep
 
 
 def test_processing() -> None:
@@ -29,8 +30,8 @@ def test_processing() -> None:
 
 
 def test_merge_flat_processing(
-    process_add1: Processing,
-    process_keep: Processing
+    process_add1: ProcessAdd1,
+    process_keep: ProcessKeep,
 ) -> None:
     """Test merge_flat_processing."""
     dict1 = {"a": {"b": 1, "c": 2, "d@keep": 3}}
@@ -49,8 +50,8 @@ def test_merge_flat_processing(
 
 
 def test_merge_flat_paths_processing(
-    process_add1: Processing,
-    process_keep: Processing,
+    process_add1: ProcessAdd1,
+    process_keep: ProcessKeep,
 ) -> None:
     """Test merge_flat_paths_processing."""
     dict1 = {"param1@add+1": 0, "param2.param3@keep": 1}
@@ -78,8 +79,8 @@ def test_merge_flat_paths_processing(
 
 
 def test_save_processing(
-    process_add1: Processing,
-    process_keep: Processing,
+    process_add1: ProcessAdd1,
+    process_keep: ProcessKeep,
 ) -> None:
     """Test save_processing."""
     in_dict = {"param1@add+1": 0, "param2.param3@add+1": 1}
@@ -92,8 +93,8 @@ def test_save_processing(
 
 
 def test_load_processing(
-    process_add1: Processing,
-    process_keep: Processing,
+    process_add1: ProcessAdd1,
+    process_keep: ProcessKeep,
 ) -> None:
     """Test load_processing."""
     process_keep.keep_vals = {"param2.param3": 0}
