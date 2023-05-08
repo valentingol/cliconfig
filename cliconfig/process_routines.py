@@ -1,5 +1,5 @@
 """Routines to manipulate dictionaries with processing."""
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 
 from cliconfig.dict_routines import _flat_before_merge, load_dict, merge_flat, save_dict
 
@@ -137,8 +137,8 @@ def merge_flat_processing(
 
 
 def merge_flat_paths_processing(
-    dict_or_path1: Dict[str, Any],
-    dict_or_path2: Dict[str, Any],
+    dict_or_path1: Union[str, Dict[str, Any]],
+    dict_or_path2: Union[str, Dict[str, Any]],
     processing_list: List[Processing],
     *,
     allow_new_keys: bool = True,
