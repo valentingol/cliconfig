@@ -8,7 +8,7 @@ or `Null` instead if you want to
 set a None object.
 
 Dicts are considered as sub-configs and so you may not be able to change the keys if
-`allow_new_keys=False` (default). If you want to modify a dict keys, you should
+`allow_new_keys=False` (default). If you want to modify or add dict keys, you should
 enclose it in a list.
 
 For instance:

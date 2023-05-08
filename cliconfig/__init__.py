@@ -15,27 +15,38 @@ Copyright (C) 2023  Valentin Goldité
 from cliconfig._version import __version__, __version_tuple__
 from cliconfig.build_config import make_config
 from cliconfig.cli_parser import parse_cli
-from cliconfig.routines import (
+from cliconfig.dict_routines import (
     clean_pre_flat,
-    flat_config,
-    merge_config,
-    merge_config_file,
-    unflat_config,
+    flatten,
+    load_dict,
+    merge_flat,
+    merge_flat_paths,
+    save_dict,
+    show_dict,
+    unflatten,
 )
-from cliconfig.save_load import load_config, save_config
-from cliconfig.show import show_config
+from cliconfig.process_routines import (
+    load_processing,
+    merge_flat_paths_processing,
+    merge_flat_processing,
+    save_processing,
+)
 
 __all__ = [
     "__version__",
     "__version_tuple__",
     "clean_pre_flat",
-    "flat_config",
-    "load_config",
+    "flatten",
+    "load_dict",
+    "load_processing",
     "make_config",
-    "merge_config",
-    "merge_config_file",
+    "merge_flat",
+    "merge_flat_paths",
+    "merge_flat_paths_processing",
+    "merge_flat_processing",
     "parse_cli",
-    "save_config",
-    "show_config",
-    "unflat_config",
+    "save_dict",
+    "save_processing",
+    "show_dict",
+    "unflatten",
 ]

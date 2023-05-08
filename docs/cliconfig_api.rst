@@ -1,42 +1,50 @@
 CLI Config API
 ==============
 
-cliconfig.build\_config module
-------------------------------
+cliconfig.build\_config
+-----------------------
 
 .. automodule:: cliconfig.build_config
    :members:
    :undoc-members:
    :show-inheritance:
 
-cliconfig.cli\_parser module
-----------------------------
+cliconfig.cli\_parser
+---------------------
 
 .. automodule:: cliconfig.cli_parser
    :members:
    :undoc-members:
    :show-inheritance:
 
-cliconfig.routines module
--------------------------
+cliconfig.dict\_routines
+------------------------
 
-.. automodule:: cliconfig.routines
+.. automodule:: cliconfig.dict_routines
    :members:
    :undoc-members:
    :show-inheritance:
 
-cliconfig.save\_load module
+cliconfig.process\_routines
 ---------------------------
 
-.. automodule:: cliconfig.save_load
+.. automodule:: cliconfig.process_routines
    :members:
    :undoc-members:
    :show-inheritance:
 
-cliconfig.show module
+cliconfig.processings
 ---------------------
 
-.. automodule:: cliconfig.show
+.. automodule:: cliconfig.processings
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: cliconfig
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,6 +1,6 @@
 # Installation
 
-In a new virtual environment, install simply the package via
+In a new virtual environment, simply install the package via
 [pipy](https://pypi.org/project/cliconfig/):
 
 ```bash

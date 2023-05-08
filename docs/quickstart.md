@@ -2,7 +2,7 @@
 
 First create a default config that can be split in multiple files that will be merged
 (from left to right in `make_config` function). There is no limit of depth for the
-configurations parameters.
+configuration parameters.
 
 ```yaml
 ---  # default1.yaml
@@ -29,11 +29,6 @@ show_config(config)
 ```
 
 Then add one or multiple additional config files that will override the default values.
-**By default the additional config files cannot bring new parameters**.
-It is intended to prevent typos in the config files that would not be detected.
-It also improves the readability of the config files and the retro-compatibility.
-By the way, you can change this behavior with `allow_new_keys=True` in `make_config`
-(be careful).
 
 ```yaml
 ---  # first.yaml
@@ -45,11 +40,16 @@ param1: -1
 letters.letter1: A
 ```
 
+**The additional config files cannot add new parameters that are not in
+default configs**. It is intended to prevent typos in the config files that would
+not be detected. It also improves the readability of the config files and the
+retro-compatibility.
+
 Now you can launch the program with additional configurations and parameters.
 The additional configurations are indicated with `--config` (separate with comma,
-without space) and the parameters with `--<param_name>`. The default configuration
-will be merged with the additional configurations (from left to right), then the
-parameters will be set.
+without space) and the parameters with `--<param_name>` (use dot for nested configs).
+The default configuration will be merged with the additional configurations
+(from left to right), then the parameters will be set.
 
 ```bash
 python main.py --config first.yaml,second.yaml --param2=-2 --letters.letter2='B'

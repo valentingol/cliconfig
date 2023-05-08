@@ -1,10 +1,10 @@
-"""Tests for build_config.py."""
+"""Tests for config.py."""
 import sys
 
 import pytest
 import pytest_check as check
 
-from cliconfig.build_config import make_config
+from cliconfig.build_config import load_config, make_config
 
 
 def test_make_config(capsys: pytest.CaptureFixture) -> None:
@@ -39,18 +39,6 @@ def test_make_config(capsys: pytest.CaptureFixture) -> None:
     check.equal(config, expected_config)
     check.equal(out, expected_out)
 
-    # No default configs
-    config = make_config(allow_new_keys=True)
-    expected_config = {
-        "param1": 4,
-        "param2": 6,
-        "letters": {
-            "letter1": "f",
-            "letter2": "e",
-        },
-    }
-    check.equal(config, expected_config)
-
     # No additional configs
     sys.argv = [
         "tests/test_make_config.py.py",
@@ -70,3 +58,35 @@ def test_make_config(capsys: pytest.CaptureFixture) -> None:
     check.equal(config, expected_config)
 
     sys.argv = sys_argv.copy()
+
+
+def test_load_config() -> None:
+    """Test and load_config."""
+    # With default configs
+    config = load_config(
+        "tests/configs/config2.yaml",
+        default_config_paths=[
+            "tests/configs/default1.yaml",
+            "tests/configs/default2.yaml",
+        ]
+    )
+    expected_config = {
+        "param1": 4,
+        "param2": 2,
+        "param3": 3,
+        "letters": {
+            "letter1": "a",
+            "letter2": "e",
+            "letter3": "c",
+            "letter4": "d",
+        },
+    }
+    check.equal(config, expected_config)
+    # Additional keys when allow_new_keys=False
+    with pytest.raises(ValueError, match="New parameter found 'param3'.*"):
+        load_config(
+            "tests/configs/default2.yaml",
+            default_config_paths=[
+                "tests/configs/default1.yaml",
+            ],
+        )
