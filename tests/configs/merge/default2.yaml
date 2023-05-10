@@ -1,0 +1,4 @@
+config2:
+  param1: 2
+  param2: 3
+config3_path@merge_add: tests/configs/merge/default3.yaml
