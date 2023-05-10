@@ -18,7 +18,10 @@ def test_make_config(capsys: pytest.CaptureFixture) -> None:
         "6",
     ]
     capsys.readouterr()  # Clear stdout and stderr
-    config = make_config("tests/configs/default1.yaml", "tests/configs/default2.yaml")
+    config, _ = make_config(
+        "tests/configs/default1.yaml",
+        "tests/configs/default2.yaml"
+    )
     captured = capsys.readouterr()
     out = captured.out
     expected_config = {
@@ -43,7 +46,9 @@ def test_make_config(capsys: pytest.CaptureFixture) -> None:
     sys.argv = [
         "tests/test_make_config.py.py",
     ]
-    config = make_config("tests/configs/default1.yaml", "tests/configs/default2.yaml")
+    config, _ = make_config(
+        "tests/configs/default1.yaml",
+        "tests/configs/default2.yaml")
     expected_config = {
         "param1": 1,
         "param2": 2,
@@ -63,7 +68,7 @@ def test_make_config(capsys: pytest.CaptureFixture) -> None:
 def test_load_config() -> None:
     """Test and load_config."""
     # With default configs
-    config = load_config(
+    config, _ = load_config(
         "tests/configs/config2.yaml",
         default_config_paths=[
             "tests/configs/default1.yaml",

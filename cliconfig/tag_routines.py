@@ -1,4 +1,5 @@
 """Routines to manipulate the tags on the keys of a dict."""
+import copy
 import re
 from typing import Any, Dict, List, Tuple
 
@@ -63,10 +64,11 @@ def clean_all_tags(flat_key: str) -> str:
 def dict_clean_tags(flat_dict: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:
     """Clean a dict from all tags and return the list of keys with tags."""
     items = list(flat_dict.items())
+    clean_dict = copy.deepcopy(flat_dict)
     tagged_keys = []
     for key, value in items:
         if '@' in key:
-            del flat_dict[key]
-            flat_dict[clean_all_tags(key)] = value
+            del clean_dict[key]
+            clean_dict[clean_all_tags(key)] = value
             tagged_keys.append(key)
-    return flat_dict, tagged_keys
+    return clean_dict, tagged_keys

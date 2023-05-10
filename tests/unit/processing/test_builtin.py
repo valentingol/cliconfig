@@ -5,7 +5,12 @@ import pytest
 import pytest_check as check
 
 from cliconfig.dict_routines import flatten
-from cliconfig.processing.builtin import ProcessCopy, ProcessMerge, ProcessTyping
+from cliconfig.processing.builtin import (
+    ProcessCheckTags,
+    ProcessCopy,
+    ProcessMerge,
+    ProcessTyping,
+)
 
 
 def test_process_merge() -> None:
@@ -160,3 +165,28 @@ def test_process_typing() -> None:
         )
     ):
         flat_dict = processing.postmerge({"param": "mystr"}, [processing])
+
+
+def test_process_check_tags() -> None:
+    """Test ProcessCheckTags."""
+    from cliconfig.tag_routines import dict_clean_tags
+    processing = ProcessCheckTags()
+    flat_dict = {
+        "config.param1": 1,
+        "param1": 2,
+    }
+    check.equal(processing.premerge(flat_dict, [processing]), flat_dict)
+
+    flat_dicts = [{'param1@tag': 1}, {'@foo': 2}, {'@': 3}]
+    for flat_dict in flat_dicts:
+        _, tagged_keys = dict_clean_tags(flat_dict)
+        if tagged_keys:
+            print('**', tagged_keys, '**')
+        with pytest.raises(
+            ValueError,
+            match=(
+                "Keys with tags are encountered at the end of "
+                "the pre-merge process.*"
+            )
+        ):
+            processing.premerge(flat_dict, [processing])

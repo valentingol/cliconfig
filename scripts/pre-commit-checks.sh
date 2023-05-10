@@ -38,7 +38,7 @@ score=$(pylint . | sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p'
 echo "Pylint score: ${BOLD}$score/10.0${NORMAL} (details by running: pylint .)\nMinimum authorized score: 8.5\n"
 
 echo "************** Unit tests **************"
-pytest --cov-report term-missing --cov=./cliconfig tests/
+pytest --cov-report term-missing --cov=./cliconfig tests/unit
 check_output "Unit tests"
 
 printf "\n${GREEN}${BOLD}All checks pass${NORMAL}${WHITE}\n\n"

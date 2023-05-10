@@ -1,9 +1,10 @@
 # CLI Config
 
 Lightweight library that provides routines to merge your configs (optionally nested)
-and set parameters from command line. It also prevents you from adding new parameters
-if not desired. Finally, it provides helper routines to manage flatten dicts, unflatten
-(= nested) dicts or a mix of both, save config, load, display, etc.
+and set parameters from command line. It is also provide processing functions
+that can change the whole config before and after each config merge, before config
+saving and after config loading. It also contains many routines to manipulate
+the config as flatten or nested dicts.
 
 ## Documentation :memo: [here](https://cliconfig.readthedocs.io/en/stable)
 
@@ -32,6 +33,8 @@ In a new virtual environment, simply install the package with:
 pip install cliconfig
 ```
 
+This package is OS independent and supported on Linux, macOS and Windows.
+
 ## Quick start
 
 First create a default config that can be split in multiple files that will be merged
@@ -58,11 +61,12 @@ Now you can set up your program to use the config:
 # main.py
 from cliconfig import make_config, show_config
 
-config = make_config('default1.yaml', 'default2.yaml')
+config, _ = make_config('default1.yaml', 'default2.yaml')
 show_config(config)
 ```
 
-Then add one or multiple additional config files that will override the default values.
+Then add one or multiple additional config files that will be passed on command line
+and that will override the default values.
 
 ```yaml
 ---  # first.yaml
@@ -74,16 +78,19 @@ param1: -1
 letters.letter1: A
 ```
 
-**The additional config files cannot add new parameters that are not in
+**Be careful, The additional config files cannot add new parameters that are not in
 default configs**. It is intended to prevent typos in the config files that would
 not be detected. It also improves the readability of the config files and the
 retro-compatibility.
 
 Now you can launch the program with additional configurations and parameters.
-The additional configurations are indicated with `--config` (separate with comma,
-without space) and the parameters with `--<param_name>` (use dot for nested configs).
-The default configuration will be merged with the additional configurations
-(from left to right), then the parameters will be set.
+The additional configuration paths are indicated with `--config` followed by a
+whitespace. If there are several paths, they should be separate with comma,
+without space. Then, you can set individual parameters with `--<subconfig.param_name>`
+(use dot for nested configs).
+
+The default configuration will be merged to the default configs with the additional
+configurations (from left to right), then the parameters will be set. For example:
 
 ```bash
 python main.py --config first.yaml,second.yaml --param2=-2 --letters.letter2='B'
@@ -103,19 +110,78 @@ Config:
         letter3: C
 ```
 
-Note that the configurations are native python dicts.
+Note that the configurations are native python dicts at each step of the process.
+
+## Use tags
+
+By default, the package provides some "tags" that are strings starting with `@`
+and placed at the end of a key containing a parameter. It will change the way
+the configuration is processed.
+
+The default tags are:
+
+* `@merge_add`, `@merge_before` and `@merge_after` to merge the dict loaded from the
+  value (should be a yaml path!) to the current configuration. `@merge_add` allow
+  only new keys and is useful to split sub-configurations in multiple files.
+  `@merge_before` will merge the current dict on the loaded one and `@merge_after`
+  will merge the loaded dict on the current one. With theses tags, you can dynamically
+  merge configurations depending on the paths you set as values.
+* `@copy` Copy a parameter from another key. The value should be a string containing
+  this flatten key
+* `@type:<my type>` To check if the key is of the type `<my type>` at each update
+  even if the tag is no longer present. It supports basic type (except tuple and sets
+  that are not handled by yaml) as well as union (with "Union" or "|"), optional,
+  lists and dicts.
+
+The tags are applied in this order: `@merge`, `@copy` then `@type`.
+
+Note that the tags are only used to trigger internal processing and will be
+automatically removed from the key after the processing.
+
+You can also combine the tags, example:
+
+```yaml
+---  # main.yaml
+path_1@merge_add: sub1.yaml
+path_2@merge_add: sub2.yaml
+--- # sub1.yaml
+config1:
+  param@copy@type:int: config1.param2
+  param2@type:int: 1
+--- # sub2.yaml
+config2.param@type:None|int: 2
+```
+
+Here `main.yaml` is interpreted like:
+
+```yaml
+path_1: sub1.yaml
+path_2: sub2.yaml
+config1:
+    param: 1
+    param2: 1
+config2:
+    param: 2
+```
+
+and now, all the parameters have a forced type.
+
+The point is that you can easily create your own processing associated to your own tags.
+They provide a large number of possibilities to customize the configuration process
+and are describe in the
+[*Processing*](https://cliconfig.readthedocs.io/en/latest/processing.html) section
+of the documentation.
 
 ## Edge cases
 
-**Be careful, tuples and sets are not supported by YAML and cannot be used in configs.**
-Use lists instead if possible
+**Be careful, tuples and sets are not supported by YAML and cannot be used in yaml files.**
+Use lists instead if possible.
 
 `None` is not recognized as a None object by YAML but as a string, you may use `null`
-or `Null` instead if you want to
-set a None object.
+or `Null` instead if you want to set a None object.
 
-Dicts are considered as sub-configs and so you may not be able to change the keys if
-`allow_new_keys=False` (default). If you want to modify or add dict keys, you should
+Dicts are considered as sub-configs and so you may not be able to change
+the keys in the additional configs. If you want to modify or add dict keys, you should
 enclose it in a list.
 
 For instance:
@@ -131,22 +197,6 @@ logging:
   styles: [{'train loss': 'red', 'val loss': 'blue', 'val acc': 'cyan'}]
 ```
 
-## Manipulate configs
-
-You are encouraged to use the routines provided by `cliconfig` to manipulate configs
-and even create your own config builder to replace `make_config`. You can use:
-
-- `merge_config` and `merge_config_file` to merge your configs
-- `parse_cli` to parse CLI arguments on config files and additional parameters
-- `flat_config` and `unflat_config` to flatten and unflatten your configs
-- `clean_pre_flat` to clean conflicting keys before flattening
-
-You can also save, load and display configs with `save_config`,
-`load_config` and `show_config` functions.
-
-Note that theses functions are aimed to be use with configs but can be used with
-any python dict.
-
 ## How to contribute
 
 For **development**, install the package dynamically and dev requirements with:
@@ -159,24 +209,23 @@ pip install -r requirements-dev.txt
 Everyone can contribute to CLI Config, and we value everyone’s contributions.
 Please see our [contributing guidelines](CONTRIBUTING.md) for more information 🤗
 
-### Todo
+## Todo
 
 Priority:
 
-- [ ] add a routine to check if a tag is in a key and robust to all other tags possible
-- [ ] add an integration test with all built-in processing (and more)
-- [ ] add `ProcessCleanTags` that raise en error when a tag is encountered in a key on
-  postmerge.
+* [ ] allow passing new arguments by CLI (with warning and no actual merge)
+* [ ] add a routine to check if a tag is in a key and robust to all other possible tags
+* [ ] add an integration test with all built-in processing (and more)
 
 Secondary:
 
-- [ ] add `make_processing_cond` to make a processing that ensure a condition on
-  a parameter across merged configs
-- [ ] add `make_processing_keep_status` to make a processing that keep the status of
-  a parameter across merged configs. The status can be any python object returned by
+* [ ] add `make_processing_keep_status` to make a processing that keep the status of
+  a parameter across merged configs. The status is any python object returned by
   a function that takes the parameter as input
-- [ ] add `ProcessSelect` (with tag "@select") to select a subconfig (or parameter)
-  and delete the others configs at the same level (to clean the global config)
+* [ ] add `ProcessSelect` (with tag "@select") to select a subconfig (or parameter)
+  and delete the others configs at the same level (to cure the resulting config)
+* [ ] allow nested types in `ProcessTyping`
+* [ ] add DefaultProcessing that add default processing to list of processing
 
 ## License
 

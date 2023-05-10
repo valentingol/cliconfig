@@ -33,18 +33,15 @@ cliconfig.process\_routines
    :undoc-members:
    :show-inheritance:
 
-cliconfig.processings
----------------------
+cliconfig.tag\_routines
+-----------------------
 
-.. automodule:: cliconfig.processings
+.. automodule:: cliconfig.tag_routines
    :members:
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
+.. toctree::
+   :maxdepth: 4
 
-.. automodule:: cliconfig
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   cliconfig.processing

@@ -7,4 +7,4 @@ In a new virtual environment, simply install the package via
 pip install cliconfig
 ```
 
-This package is supported on Linux, macOS and Windows.
+This package is OS independent and supported on Linux, macOS and Windows.
