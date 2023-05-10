@@ -4,7 +4,7 @@ Classes to apply pre-merge, post-merge, pre-save and post-load modifications
 to dict with processing routines (found in cliconfig.process_routines).
 """
 # pylint: disable=unused-argument
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from cliconfig.process_routines import (
     merge_flat_paths_processing,
@@ -12,7 +12,7 @@ from cliconfig.process_routines import (
 )
 from cliconfig.processing._type_parser import _parse_type
 from cliconfig.processing.base import Processing
-from cliconfig.tag_routines import clean_all_tags, clean_tag
+from cliconfig.tag_routines import clean_all_tags, clean_tag, dict_clean_tags
 
 
 class ProcessMerge(Processing):
@@ -48,13 +48,13 @@ class ProcessMerge(Processing):
 
     Before merging, the config1 is interpreted as the dict:
 
-    .. code-block:: python
+    ::
 
         {'a': {'b': 2, 'b_path': 'config2.yaml'}, 'c_path': 'config3.yaml', 'c': 3}`
 
     If you replace '@merge_after' by '@merge_before', it will be:
 
-    .. code-block:: python
+    ::
 
         {'a': {'b': 1, 'b_path': 'config2.yaml'}, 'c_path': 'config3.yaml', 'c': 3}`
 
@@ -65,6 +65,10 @@ class ProcessMerge(Processing):
     def __init__(self) -> None:
         super().__init__()
         self.premerge_order = -20.0
+        # NOTE: Any processing that apply a processing routine must contain
+        # a processing list attribute to be updated before and after each processing
+        # routines
+        self.processing_list: List[Processing] = []
 
     def premerge(
         self,
@@ -72,6 +76,7 @@ class ProcessMerge(Processing):
         processing_list: list,
     ) -> Dict[str, Any]:
         """Pre-merge processing."""
+        self.processing_list = processing_list
         items = list(flat_dict.items())
         for flat_key, val in items:
             end_key = flat_key.split('.')[-1]
@@ -89,13 +94,15 @@ class ProcessMerge(Processing):
                 # NOTE: we allow new keys with security because the merge
                 # following this pre-merge will avoid the creation of
                 # new keys if needed.
-                flat_dict = merge_flat_paths_processing(
+                flat_dict, processing_list = merge_flat_paths_processing(
                     flat_dict,
                     val,
                     processing_list=processing_list,
                     allow_new_keys=True,
                     preprocess_first=False,  # Already processed
                 )
+                self.processing_list = processing_list
+
             elif "@merge_before" in end_key:
                 if not isinstance(val, str) or not val.endswith('.yaml'):
                     raise ValueError(
@@ -107,13 +114,15 @@ class ProcessMerge(Processing):
                 del flat_dict[flat_key]
                 flat_dict[clean_tag(flat_key, 'merge_before')] = val
                 # Merge + process the dicts
-                flat_dict = merge_flat_paths_processing(
+                flat_dict, processing_list = merge_flat_paths_processing(
                     val,
                     flat_dict,
                     processing_list=processing_list,
                     allow_new_keys=True,
                     preprocess_second=False,  # Already processed
                 )
+                self.processing_list = processing_list
+
             elif "@merge_add" in end_key:
                 if not isinstance(val, str) or not val.endswith('.yaml'):
                     raise ValueError(
@@ -125,7 +134,7 @@ class ProcessMerge(Processing):
                 del flat_dict[flat_key]
                 flat_dict[clean_tag(flat_key, 'merge_add')] = val
                 # Pre-merge process the dict
-                flat_dict_to_merge = merge_flat_paths_processing(
+                flat_dict_to_merge, processing_list = merge_flat_paths_processing(
                     {},
                     val,
                     processing_list=processing_list,
@@ -133,6 +142,7 @@ class ProcessMerge(Processing):
                     preprocess_first=False,  # Already processed
                     postprocess=False,
                 )
+                self.processing_list = processing_list
                 for key in flat_dict_to_merge:
                     if key in flat_dict:
                         raise ValueError(
@@ -142,7 +152,7 @@ class ProcessMerge(Processing):
                             "want to merge this key, or check your key names."
                         )
                 # Merge the dicts (order is not important by construction)
-                flat_dict = merge_flat_processing(
+                flat_dict, processing_list = merge_flat_processing(
                     flat_dict,
                     flat_dict_to_merge,
                     processing_list=processing_list,
@@ -151,6 +161,7 @@ class ProcessMerge(Processing):
                     preprocess_second=False,  # Already processed
                     postprocess=True,
                 )
+                self.processing_list = processing_list
         return flat_dict
 
 
@@ -274,4 +285,41 @@ class ProcessTyping(Processing):
                     f"value: {flat_dict[key]} of type {type(flat_dict[key])} "
                     f"at key: {key}"
                 )
+        return flat_dict
+
+
+class ProcessCheckTags(Processing):
+    """Raise an error if a tag is present in a key after pre-merging processes.
+
+    This security processing is applied after all pre-merge process and
+    checks for "@" in the keys. It raises an error if one is found.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        # NOTE: this processing is a special meta-processing that must be
+        # applied after all other pre-merge processing to ensure security.
+        # That why it has a very high pre-merge order and it is not a
+        # good idea to make pre-merge processing with higher order.
+        self.premerge_order = 1000.0
+
+    def premerge(
+        self,
+        flat_dict: Dict[str, Any],
+        processing_list: list,  # noqa: ARG002
+    ) -> Dict[str, Any]:
+        """Post-merge processing."""
+        _, tagged_keys = dict_clean_tags(flat_dict)
+        if tagged_keys:
+            keys_message = "\n".join(tagged_keys[:5])
+            raise ValueError(
+                "Keys with tags are encountered at the end of "
+                "the pre-merge process. It is probably a mistake due to:\n"
+                "- a typo in tag name\n"
+                "- a missing processing in processing_list\n"
+                "- the use of an 'at' ('@') in a parameter name\n"
+                "- the use of a custom processing that does not remove a tag\n\n"
+                "The tagged keys encountered (5 first if more than 5) are:\n"
+                f"{keys_message}"
+            )
         return flat_dict
