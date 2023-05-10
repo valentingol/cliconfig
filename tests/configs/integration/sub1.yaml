@@ -1,0 +1,3 @@
+config1:
+  param@copy@type:int: config1.param2
+  param2@type:int: 1

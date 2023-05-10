@@ -1,0 +1,2 @@
+path_1@merge_add: "tests/configs/integration/sub1.yaml"
+path_2@merge_add: "tests/configs/integration/sub2.yaml"
