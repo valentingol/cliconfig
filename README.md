@@ -161,17 +161,22 @@ Please see our [contributing guidelines](CONTRIBUTING.md) for more information ð
 
 ### Todo
 
-To do:
+Priority:
 
-- [ ] log warning when `None` is used in CLI (considered as string a by PyYAML)
+- [ ] add a routine to check if a tag is in a key and robust to all other tags possible
+- [ ] add an integration test with all built-in processing (and more)
+- [ ] add `ProcessCleanTags` that raise en error when a tag is encountered in a key on
+  postmerge.
 
-Done:
+Secondary:
 
-- [x] add `merge_config_file` to merge from path (= `merge_config` that includes
-  config loading)
-- [x] add `clean_pre_flat` to solve conflicting flatten and unflatten parameters
-  before flattening the config
-- [x] avoid changing keys order in merge_config
+- [ ] add `make_processing_cond` to make a processing that ensure a condition on
+  a parameter across merged configs
+- [ ] add `make_processing_keep_status` to make a processing that keep the status of
+  a parameter across merged configs. The status can be any python object returned by
+  a function that takes the parameter as input
+- [ ] add `ProcessSelect` (with tag "@select") to select a subconfig (or parameter)
+  and delete the others configs at the same level (to clean the global config)
 
 ## License
 
