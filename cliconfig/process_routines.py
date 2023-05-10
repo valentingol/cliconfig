@@ -1,5 +1,5 @@
 """Routines to manipulate dictionaries with processing."""
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Tuple, Union
 
 from cliconfig.dict_routines import _flat_before_merge, load_dict, merge_flat, save_dict
 from cliconfig.processing.base import Processing
@@ -14,7 +14,7 @@ def merge_flat_processing(
     preprocess_first: bool = True,
     preprocess_second: bool = True,
     postprocess: bool = True,
-) -> Dict[str, Any]:
+) -> Tuple[Dict[str, Any], List[Processing]]:
     """Flatten, merge dict2 into dict1 and apply pre and post processing.
 
     Similar to :func:`cliconfig.dict_routines.merge_flat` but with processing
@@ -54,6 +54,8 @@ def merge_flat_processing(
     -------
     flat_dict : Dict[str, Any]
         The flat dict (all keys are at the root and separated by dots).
+    processing_list : List[Processing]
+        The updated processing list.
     """
     # Get the pre-merge and post-merge order
     pre_order_list = sorted(processing_list, key=lambda x: x.premerge_order)
@@ -64,15 +66,24 @@ def merge_flat_processing(
     for processing in pre_order_list:
         if preprocess_first:
             flat_dict1 = processing.premerge(flat_dict1, processing_list)
+            if hasattr(processing, "processing_list"):
+                # Get the eventually updated list from attribute
+                processing_list = processing.processing_list
         if preprocess_second:
             flat_dict2 = processing.premerge(flat_dict2, processing_list)
+            if hasattr(processing, "processing_list"):
+                # Get the eventually updated list from attribute
+                processing_list = processing.processing_list
     # Merge the dictionaries
     flat_dict = merge_flat(flat_dict1, flat_dict2, allow_new_keys=allow_new_keys)
     # Apply the postmerge processing
     for processing in post_order_list:
         if postprocess:
             flat_dict = processing.postmerge(flat_dict, processing_list)
-    return flat_dict
+            if hasattr(processing, "processing_list"):
+                # Get the eventually updated list from attribute
+                processing_list = processing.processing_list
+    return flat_dict, processing_list
 
 
 def merge_flat_paths_processing(
@@ -84,7 +95,7 @@ def merge_flat_paths_processing(
     preprocess_first: bool = True,
     preprocess_second: bool = True,
     postprocess: bool = True,
-) -> Dict[str, Any]:
+) -> Tuple[Dict[str, Any], List[Processing]]:
     """Flatten, merge and apply processing to two dictionaries or their yaml paths.
 
     Similar to :func:`cliconfig.dict_routines.merge_flat_paths` but with processing
@@ -125,6 +136,8 @@ def merge_flat_paths_processing(
     -------
     flat_dict : Dict[str, Any]
         The flat dict (all keys are at the root and separated by dots).
+    processing_list : List[Processing]
+        The updated processing list.
     """
     dicts = []
     for dict_or_path in [dict_or_path1, dict_or_path2]:
@@ -134,7 +147,7 @@ def merge_flat_paths_processing(
             _dict = dict_or_path
         dicts.append(_dict)
     dict1, dict2 = dicts[0], dicts[1]
-    flat_dict = merge_flat_processing(
+    flat_dict, processing_list = merge_flat_processing(
         dict1,
         dict2,
         processing_list,
@@ -143,7 +156,7 @@ def merge_flat_paths_processing(
         preprocess_second=preprocess_second,
         postprocess=postprocess,
     )
-    return flat_dict
+    return flat_dict, processing_list
 
 
 def save_processing(
