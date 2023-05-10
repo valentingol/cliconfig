@@ -5,11 +5,11 @@ from typing import Any, Dict, List, Optional
 from cliconfig.cli_parser import parse_cli
 from cliconfig.dict_routines import unflatten
 from cliconfig.process_routines import (
-    Processing,
     load_processing,
     merge_flat_paths_processing,
     merge_flat_processing,
 )
+from cliconfig.processing.base import Processing
 
 
 def make_config(

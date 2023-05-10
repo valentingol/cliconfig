@@ -5,12 +5,12 @@ import pytest_check as check
 import yaml
 
 from cliconfig.process_routines import (
-    Processing,
     load_processing,
     merge_flat_paths_processing,
     merge_flat_processing,
     save_processing,
 )
+from cliconfig.processing.base import Processing
 from tests.conftest import ProcessAdd1, ProcessKeep
 
 
@@ -35,7 +35,7 @@ def test_merge_flat_processing(
 ) -> None:
     """Test merge_flat_processing."""
     dict1 = {"a": {"b": 1, "c": 2, "d@keep": 3}}
-    dict2 = {"a": {"b": 2, "c@add+1": 3, "d": 4}}
+    dict2 = {"a": {"b": 2, "c@add1": 3, "d": 4}}
     flat_dict = merge_flat_processing(
         dict1,
         dict2,
@@ -54,7 +54,7 @@ def test_merge_flat_paths_processing(
     process_keep: ProcessKeep,
 ) -> None:
     """Test merge_flat_paths_processing."""
-    dict1 = {"param1@add+1": 0, "param2.param3@keep": 1}
+    dict1 = {"param1@add1": 0, "param2.param3@keep": 1}
     dict2 = {"param2.param3": 3}
     expected_dict = {"param1": 1, "param2.param3": 1}
     check.equal(
@@ -83,7 +83,7 @@ def test_save_processing(
     process_keep: ProcessKeep,
 ) -> None:
     """Test save_processing."""
-    in_dict = {"param1@add+1": 0, "param2.param3@add+1": 1}
+    in_dict = {"param1@add1": 0, "param2.param3@add1": 1}
     save_processing(in_dict, "tests/tmp/config.yaml", [process_add1, process_keep])
     with open("tests/tmp/config.yaml", "r", encoding="utf-8") as yaml_file:
         loaded_dict = yaml.safe_load(yaml_file)

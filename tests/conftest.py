@@ -3,11 +3,11 @@ from typing import Any, Dict
 
 import pytest
 
-from cliconfig.process_routines import Processing
+from cliconfig.processing.base import Processing
 
 
 class ProcessAdd1(Processing):
-    """Add 1 to values with tag "@add+1"."""
+    """Add 1 to values with tag "@add1"."""
 
     # pylint: disable=unused-argument
     def premerge(
@@ -18,8 +18,8 @@ class ProcessAdd1(Processing):
         """Pre-merge processing."""
         items = list(flat_dict.items())
         for key, value in items:
-            if key.endswith("@add+1"):
-                flat_dict[key[:-6]] = value + 1
+            if key.endswith("@add1"):
+                flat_dict[key[:-5]] = value + 1
                 del flat_dict[key]
         return flat_dict
 
@@ -59,7 +59,7 @@ class ProcessKeep(Processing):
     def postmerge(
         self,
         flat_dict: Dict[str, Any],
-        processing_list: list, # noqa
+        processing_list: list,  # noqa
     ) -> Dict[str, Any]:
         """Post-merge processing."""
         for key, value in self.keep_vals.items():
@@ -82,7 +82,7 @@ class ProcessKeep(Processing):
 
 @pytest.fixture()
 def process_add1() -> ProcessAdd1:
-    """Return a processing object that adds 1 on tag "@add+1"."""
+    """Return a processing object that adds 1 on tag "@add1"."""
     return ProcessAdd1()
 
 

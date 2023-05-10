@@ -1,0 +1,2 @@
+a.b: 2
+c_path@merge_after: tests/configs/merge/additional3.yaml

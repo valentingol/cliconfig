@@ -1,4 +1,4 @@
-"""CLI Config.
+"""CLI Config: build your configuration from CLI by merging with processing.
 
 Copyright (C) 2023  Valentin Goldité
 
