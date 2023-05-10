@@ -1,5 +1,9 @@
 # CLI Config
 
+<p align="center">
+  <img src="docs/_static/logo.png" />
+</p>
+
 Lightweight library that provides routines to merge your configs (optionally nested)
 and set parameters from command line. It is also provide processing functions
 that can change the whole config before and after each config merge, before config
@@ -78,10 +82,10 @@ param1: -1
 letters.letter1: A
 ```
 
-**Be careful, The additional config files cannot add new parameters that are not in
-default configs**. It is intended to prevent typos in the config files that would
-not be detected. It also improves the readability of the config files and the
-retro-compatibility.
+**Be careful, The additional config files cannot add new parameters that are
+not in default configs**. It is intended to prevent typos in the config files
+that would not be detected. It also improves the readability of the config
+files and the retro-compatibility.
 
 Now you can launch the program with additional configurations and parameters.
 The additional configuration paths are indicated with `--config` followed by a
@@ -120,17 +124,18 @@ the configuration is processed.
 
 The default tags are:
 
-* `@merge_add`, `@merge_before` and `@merge_after` to merge the dict loaded from the
-  value (should be a yaml path!) to the current configuration. `@merge_add` allow
-  only new keys and is useful to split sub-configurations in multiple files.
-  `@merge_before` will merge the current dict on the loaded one and `@merge_after`
-  will merge the loaded dict on the current one. With theses tags, you can dynamically
-  merge configurations depending on the paths you set as values.
+* `@merge_add`, `@merge_before` and `@merge_after` to merge the dict loaded
+  from the value (should be a yaml path!) to the current configuration.
+  `@merge_add` allow only new keys and is useful to split sub-configurations
+  in multiple files. `@merge_before` will merge the current dict on the loaded
+  one and `@merge_after` will merge the loaded dict on the current one. With
+  theses tags, you can dynamically merge configurations depending on the paths
+  you set as values.
 * `@copy` Copy a parameter from another key. The value should be a string containing
   this flatten key
 * `@type:<my type>` To check if the key is of the type `<my type>` at each update
-  even if the tag is no longer present. It supports basic type (except tuple and sets
-  that are not handled by yaml) as well as union (with "Union" or "|"), optional,
+  even if the tag is no longer present. It supports basic type (except tuple and
+  sets that are not handled by yaml) as well as union (with "Union" or "|"), optional,
   lists and dicts.
 
 The tags are applied in this order: `@merge`, `@copy` then `@type`.
@@ -166,15 +171,16 @@ config2:
 
 and now, all the parameters have a forced type.
 
-The point is that you can easily create your own processing associated to your own tags.
-They provide a large number of possibilities to customize the configuration process
-and are describe in the
+The point is that you can easily create your own processing associated to your
+own tags. They provide a large number of possibilities to customize the
+configuration process and are describe in the
 [*Processing*](https://cliconfig.readthedocs.io/en/latest/processing.html) section
 of the documentation.
 
 ## Edge cases
 
-**Be careful, tuples and sets are not supported by YAML and cannot be used in yaml files.**
+**Be careful, tuples and sets are not supported by YAML and cannot be used in
+yaml files.**
 Use lists instead if possible.
 
 `None` is not recognized as a None object by YAML but as a string, you may use `null`
@@ -214,14 +220,15 @@ Please see our [contributing guidelines](CONTRIBUTING.md) for more information ð
 Priority:
 
 * [ ] allow passing new arguments by CLI (with warning and no actual merge)
-* [ ] add a routine to check if a tag is in a key and robust to all other possible tags
+* [ ] add a routine to check if a tag is in a key and robust to all other
+  possible tags
 * [ ] add an integration test with all built-in processing (and more)
 
 Secondary:
 
-* [ ] add `make_processing_keep_status` to make a processing that keep the status of
-  a parameter across merged configs. The status is any python object returned by
-  a function that takes the parameter as input
+* [ ] add `make_processing_keep_status` to make a processing that keep the
+  status of a parameter across merged configs. The status is any python object
+  returned by a function that takes the parameter as input
 * [ ] add `ProcessSelect` (with tag "@select") to select a subconfig (or parameter)
   and delete the others configs at the same level (to cure the resulting config)
 * [ ] allow nested types in `ProcessTyping`

@@ -1,7 +1,17 @@
 CLI Config
 ==========
 
-Lightweight library that provides routines to merge nested and flat configs
+|
+
+.. image:: _static/logo_extend.png
+  :align: center
+  :width: 1000
+  :alt: CLI config logo
+
+|
+|
+
+*CLI Config*: Lightweight library that provides routines to merge nested and flat configs
 and set parameters from command line. It is also provide processing functions
 that can change the whole configuration before and after each config merge, config
 saving and config loading. It also contains many routines to manipulate
