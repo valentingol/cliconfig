@@ -203,14 +203,15 @@ class ProcessCopy(Processing):
         for flat_key, val in items:
             key = flat_key.split(".")[-1]
             if "@copy" in key:
-                if not isinstance(val, str) or val not in flat_dict:
+                clean_dict, _ = dict_clean_tags(flat_dict)
+                if not isinstance(val, str) or val not in clean_dict:
                     raise ValueError(
                         "Key with '@copy' tag must be associated "
                         "to a string corresponding to an existing flat key. "
                         f"The problem occurs at key: {flat_key} with value: {val}"
                     )
                 # Remove the tag and update the dict
-                flat_dict[clean_tag(flat_key, "copy")] = flat_dict[val]
+                flat_dict[clean_tag(flat_key, "copy")] = clean_dict[val]
                 del flat_dict[flat_key]
         return flat_dict
 
