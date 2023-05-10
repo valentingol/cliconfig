@@ -145,8 +145,9 @@ You can also combine the tags, example:
 path_1@merge_add: sub1.yaml
 path_2@merge_add: sub2.yaml
 --- # sub1.yaml
-config1.param@copy@type:int: config1.param2
-config1.param2@type:int: 1
+config1:
+  param@copy@type:int: config1.param2
+  param2@type:int: 1
 --- # sub2.yaml
 config2.param@type:None|int: 2
 ```
