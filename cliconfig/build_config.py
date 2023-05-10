@@ -59,7 +59,7 @@ def make_config(
     ::
 
         # main.py
-        config = make_config('data.yaml', 'model.yaml', 'train.yaml')
+        config, _ = make_config('data.yaml', 'model.yaml', 'train.yaml')
 
     .. code-block:: text
 
