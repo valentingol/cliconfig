@@ -36,7 +36,7 @@ def test_merge_flat_processing(
     """Test merge_flat_processing."""
     dict1 = {"a": {"b": 1, "c": 2, "d@keep": 3}}
     dict2 = {"a": {"b": 2, "c@add1": 3, "d": 4}}
-    flat_dict = merge_flat_processing(
+    flat_dict, processing_list = merge_flat_processing(
         dict1,
         dict2,
         processing_list=[process_add1, process_keep],
@@ -46,6 +46,7 @@ def test_merge_flat_processing(
         flat_dict,
         {"a.b": 2, "a.c": 4, "a.d": 3},
     )
+    check.equal(processing_list, [process_add1, process_keep])
     check.equal(process_keep.keep_vals, {})
 
 
@@ -64,7 +65,7 @@ def test_merge_flat_paths_processing(
             [process_add1, process_keep],
             allow_new_keys=False,
         ),
-        expected_dict,
+        (expected_dict, [process_add1, process_keep]),
     )
     check.equal(
         merge_flat_paths_processing(
@@ -73,7 +74,7 @@ def test_merge_flat_paths_processing(
             [process_add1, process_keep],
             allow_new_keys=False,
         ),
-        expected_dict,
+        (expected_dict, [process_add1, process_keep]),
     )
     check.equal(process_keep.keep_vals, {})
 
