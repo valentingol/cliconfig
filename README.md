@@ -61,7 +61,7 @@ Now you can set up your program to use the config:
 # main.py
 from cliconfig import make_config, show_config
 
-config = make_config('default1.yaml', 'default2.yaml')
+config, _ = make_config('default1.yaml', 'default2.yaml')
 show_config(config)
 ```
 
@@ -168,7 +168,7 @@ and now, all the parameters have a forced type.
 The point is that you can easily create your own processing associated to your own tags.
 They provide a large number of possibilities to customize the configuration process
 and are describe in the
-[*Processing*]((https://cliconfig.readthedocs.io/en/latest/manipulate.html).) section
+[*Processing*](https://cliconfig.readthedocs.io/en/latest/processing.html) section
 of the documentation.
 
 ## Edge cases
