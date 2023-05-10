@@ -1,4 +1,6 @@
 """Integration test for multiple tags."""
+import sys
+
 import pytest
 import pytest_check as check
 
@@ -8,6 +10,8 @@ from cliconfig.process_routines import merge_flat_processing
 
 def test_multiple_tags() -> None:
     """Integration test for multiple tags."""
+    sys_argv = sys.argv.copy()
+    sys.argv = ["test_inte_multiple_tags.py"]
     config, processing_list = make_config("tests/configs/integration/main.yaml")
     expected_config = {
         "path_1": "tests/configs/integration/sub1.yaml",
@@ -26,3 +30,4 @@ def test_multiple_tags() -> None:
         match="Key previously tagged with '@type:None|int'.*"
     ):
         merge_flat_processing(config, {'config2.param': 5.6}, processing_list)
+    sys.argv = sys_argv
