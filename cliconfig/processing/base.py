@@ -1,4 +1,5 @@
 """Base class for processing."""
+# pylint: disable=attribute-defined-outside-init
 from typing import Any, Dict
 
 
@@ -10,6 +11,8 @@ class Processing():
         self.postmerge_order = 0.0
         self.presave_order = 0.0
         self.postload_order = 0.0
+        # Create a list_processing attribute if your processing needs to use
+        # processing routines (merge_flat_processing, save_processing, load_processing)
 
     # pylint: disable=unused-argument
     def premerge(
@@ -22,6 +25,9 @@ class Processing():
         Function that can be applied to the flat dict to modify it
         before merging . It takes a flat dict and returns a flat dict.
         """
+        if hasattr(self, 'list_processing'):
+            # Update the list processing to pass it to the next processing
+            self.list_processing = processing_list  # noqa
         return flat_dict
 
     # pylint: disable=unused-argument
@@ -35,6 +41,9 @@ class Processing():
         Function that can be applied to the flat dict to modify it
         after merging . It takes a flat dict and returns a flat dict.
         """
+        if hasattr(self, 'list_processing'):
+            # Update the list processing to pass it to the next processing
+            self.list_processing = processing_list
         return flat_dict
 
     # pylint: disable=unused-argument
@@ -48,6 +57,9 @@ class Processing():
         Function applied to the flat dict to modify it before
         saving it. It takes a flat dict and returns a flat dict.
         """
+        if hasattr(self, 'list_processing'):
+            # Update the list processing to pass it to the next processing
+            self.list_processing = processing_list
         return flat_dict
 
     # pylint: disable=unused-argument
@@ -61,4 +73,7 @@ class Processing():
         Function applied to the flat dict to modify it after
         loading it. It takes a flat dict and returns a flat dict.
         """
+        if hasattr(self, 'list_processing'):
+            # Update the list processing to pass it to the next processing
+            self.list_processing = processing_list
         return flat_dict
