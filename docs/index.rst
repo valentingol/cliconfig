@@ -1,10 +1,11 @@
 CLI Config
 ==========
 
-Lightweight library that provides routines to merge your configs (optionally nested)
-and set parameters from command line. It also prevents you from adding new parameters
-if not desired. Finally, it provides helper routines to manage flatten dicts,
-unflatten (= nested) dicts or a mix of both, save config, load, display, etc.
+Lightweight library that provides routines to merge nested and flat configs
+and set parameters from command line. It is also provide processing functions
+that can change the whole configuration before and after each config merge, config
+saving and config loading. It also contains many routines to manipulate
+the config as flatten or nested dicts.
 
 |PyPI version| |PythonVersion| |License|
 
@@ -21,7 +22,7 @@ Make a default config file in your project (configs are merged from left to righ
    # main.py
    from cliconfig import make_config
 
-   config = make_config('default1.yaml', 'default2.yaml')  # it's a dict
+   config, _ = make_config('default1.yaml', 'default2.yaml')  # it's a dict
 
 Then launch your script with additional config(s) file(s) and parameters.
 By default, these additional configs cannot add new parameters to the default config
@@ -30,6 +31,8 @@ By default, these additional configs cannot add new parameters to the default co
 .. code:: bash
 
    python main.py --config first.yaml,second.yaml --param1 1 --subconfig.param2 'foo'
+
+See *Quickstart* section for more details and *Processing* section for advanced usage.
 
 .. |PyPI version| image:: https://badge.fury.io/py/cliconfig.svg
    :target: https://badge.fury.io/py/cliconfig
@@ -64,7 +67,7 @@ By default, these additional configs cannot add new parameters to the default co
    installation
    quickstart
    edge_cases
-   manipulate
+   processing
    cliconfig_api
    contribute
    license
