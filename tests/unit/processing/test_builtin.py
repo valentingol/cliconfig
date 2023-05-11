@@ -206,7 +206,6 @@ def test_process_typing() -> None:
 
 def test_process_check_tags() -> None:
     """Test ProcessCheckTags."""
-    from cliconfig.tag_routines import dict_clean_tags
     processing = ProcessCheckTags()
     flat_dict = {
         "config.param1": 1,
@@ -216,9 +215,6 @@ def test_process_check_tags() -> None:
 
     flat_dicts = [{'param1@tag': 1}, {'@foo': 2}, {'@': 3}]
     for flat_dict in flat_dicts:
-        _, tagged_keys = dict_clean_tags(flat_dict)
-        if tagged_keys:
-            print('**', tagged_keys, '**')
         with pytest.raises(
             ValueError,
             match=(
