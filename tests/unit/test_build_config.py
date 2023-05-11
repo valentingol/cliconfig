@@ -14,8 +14,9 @@ def test_make_config(capsys: pytest.CaptureFixture) -> None:
         "tests/test_make_config.py.py",
         "--config",
         "tests/configs/config1.yaml,tests/configs/config2.yaml",
-        "--param2",
-        "6",
+        "--unknown",
+        "--param2=6",
+        "--unknown2=8",  # check that not error but a warning in console
     ]
     capsys.readouterr()  # Clear stdout and stderr
     config, _ = make_config(
@@ -36,8 +37,11 @@ def test_make_config(capsys: pytest.CaptureFixture) -> None:
         },
     }
     expected_out = (
-        "[CONFIG] Merge 2 default configs, "
-        "2 additional configs and 1 CLI parameter(s).\n"
+        "[CONFIG] Warning: New keys found in CLI parameters that will not be merged:\n"
+        "  - unknown\n"
+        "  - unknown2\n"
+        "[CONFIG] Info: Merged 2 default config(s), "
+        "2 additional config(s) and 1 CLI parameter(s).\n"
     )
     check.equal(config, expected_config)
     check.equal(out, expected_out)
