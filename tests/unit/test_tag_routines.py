@@ -25,7 +25,15 @@ def test_clean_tag(key1: str, key2: str) -> None:
         "abc.def@tag_2.ghi",
     )
     check.equal(
+        clean_tag(key1, "@tag"),
+        "abc.def@tag_2.ghi",
+    )
+    check.equal(
         clean_tag(key2, "tag"),
+        "abc@hashtag@tagg@tag 2@ag.def@tag _.jkl.mno"
+    )
+    check.equal(
+        clean_tag(key2, "@tag"),
         "abc@hashtag@tagg@tag 2@ag.def@tag _.jkl.mno"
     )
 
