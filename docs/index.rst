@@ -9,7 +9,6 @@ CLI Config
   :alt: CLI config logo
 
 |
-|
 
 *CLI Config*: Lightweight library that provides routines to merge nested and flat configs
 and set parameters from command line. It is also provide processing functions
@@ -44,9 +43,9 @@ By default, these additional configs cannot add new parameters to the default co
 
 See *Quickstart* section for more details and *Processing* section for advanced usage.
 
-.. |PyPI version| image:: https://badge.fury.io/py/cliconfig.svg
-   :target: https://badge.fury.io/py/cliconfig
-.. |PythonVersion| image:: https://img.shields.io/badge/python-3.7%20%7E%203.11-informational
+.. |PyPI version| image:: https://img.shields.io/github/v/tag/valentingol/cliconfig?label=Pypi&logo=pypi&logoColor=yellow
+   :target: https://pypi.org/project/cliconfig/
+.. |PythonVersion| image:: https://img.shields.io/badge/Python-3.7%20%7E%203.11-informational
 .. |License| image:: https://img.shields.io/github/license/valentingol/cliconfig?color=999
    :target: https://stringfixer.com/fr/MIT_license
 .. |Ruff_logo| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v1.json
