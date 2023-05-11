@@ -25,7 +25,7 @@ write_to = "cliconfig/_version.py"
 Source = "https://github.com/valentingol/cliconfig"
 
 [tool.setuptools.dynamic]
-readme = { file = ["README.md"] , content-type = "text/markdown" }
+readme = { file = ["README_pypi.md"] , content-type = "text/markdown" }
 dependencies = { file = ["requirements.txt"] }
 
 [tool.coverage.run]
