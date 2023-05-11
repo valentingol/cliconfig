@@ -40,7 +40,7 @@ class _ProcessingValue(Processing):
         return flat_dict
 
 
-class ProcessingValuePersistent(Processing):
+class _ProcessingValuePersistent(Processing):
     """Processing class for make_processing_value. Persistent version."""
 
     def __init__(
@@ -150,5 +150,5 @@ def create_processing_value(
             raise ValueError("You must provide a tag or a regex "
                              "(to trigger the value update).")
     if persistent:
-        return ProcessingValuePersistent(regex, tag_name, order, func)
+        return _ProcessingValuePersistent(regex, tag_name, order, func)
     return _ProcessingValue(regex, tag_name, order, func)
