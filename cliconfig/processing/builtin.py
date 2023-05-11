@@ -210,6 +210,7 @@ class ProcessCopy(Processing):
         self.postmerge_order = 10.0
         self.presave_order = 10.0
         self.keys_to_copy: Dict[str, str] = {}
+        self.current_value: Dict[str, Any] = {}
 
     def premerge(
         self,
@@ -235,8 +236,9 @@ class ProcessCopy(Processing):
                         f"{flat_key} with value: {val}, previous value to copy: "
                         f"{self.keys_to_copy[clean_key]}"
                     )
-                # Store the key to copy
+                # Store the key to copy and value
                 self.keys_to_copy[clean_key] = val
+                self.current_value[clean_key] = val
                 # Remove the tag and update the dict
                 flat_dict[clean_tag(flat_key, "copy")] = val
                 del flat_dict[flat_key]
@@ -255,7 +257,7 @@ class ProcessCopy(Processing):
                         f"Key to copy not found in config: {val}. "
                         f"The problem occurs with key: {key}"
                     )
-                if flat_dict[key] not in (flat_dict[val], val):
+                if flat_dict[key] != self.current_value[key]:
                     # The key has been modified
                     raise ValueError(
                         "Found attempt to modify a key with '@copy' tag. The key is "
@@ -264,6 +266,8 @@ class ProcessCopy(Processing):
                         f"{flat_dict[key]} that copy {val} of value {flat_dict[val]}")
                 # Copy the value
                 flat_dict[key] = flat_dict[val]
+                # Update the current value
+                self.current_value[key] = flat_dict[val]
         return flat_dict
 
     def presave(
