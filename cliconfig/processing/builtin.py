@@ -20,7 +20,10 @@ class ProcessMerge(Processing):
 
     Tag your key with '@merge_after', '@merge_before' or @merge_add to load
     the dict corresponding to the value (path) and merge it just before or after
-    the current dict.
+    the current dict. The merged dicts will be processed with pre-merge but
+    not post-merge to ensure that merged configurations are all processed with
+    pre-merge before applying a post-merge processing. It allows the merged
+    configs to make references to each other (typically for copy).
 
     * '@merge_add' merges the dict corresponding to the path by allowing ONLY new keys
       It is a security check when you want to add a dict completely new
@@ -100,6 +103,7 @@ class ProcessMerge(Processing):
                     processing_list=processing_list,
                     allow_new_keys=True,
                     preprocess_first=False,  # Already processed
+                    postprocess=False,
                 )
                 self.processing_list = processing_list
 
@@ -120,6 +124,7 @@ class ProcessMerge(Processing):
                     processing_list=processing_list,
                     allow_new_keys=True,
                     preprocess_second=False,  # Already processed
+                    postprocess=False,
                 )
                 self.processing_list = processing_list
 
@@ -143,8 +148,10 @@ class ProcessMerge(Processing):
                     postprocess=False,
                 )
                 self.processing_list = processing_list
-                for key in flat_dict_to_merge:
-                    if key in flat_dict:
+                clean_dict, _ = dict_clean_tags(flat_dict)
+                clean_dict_to_merge, _ = dict_clean_tags(flat_dict_to_merge)
+                for key in clean_dict_to_merge:
+                    if clean_all_tags(key) in clean_dict:
                         raise ValueError(
                             f"@merge_add doest not allow to add already "
                             f"existing keys but key '{key}' is found in both "
@@ -159,19 +166,27 @@ class ProcessMerge(Processing):
                     allow_new_keys=True,
                     preprocess_first=False,  # Already processed
                     preprocess_second=False,  # Already processed
-                    postprocess=True,
+                    postprocess=False,
                 )
                 self.processing_list = processing_list
         return flat_dict
 
 
 class ProcessCopy(Processing):
-    """Copy a value with '@copy' tag.
+    """Copy a value with '@copy' tag. The copy is protected from updates.
 
     Tag your key with '@copy' and with value the name of the flat key to copy.
-    This processing is a pre-merge processing only and occurs after most of
-    the other pre-merge processing.
-    Pre-merge order: 10.0
+    Then, the value will be a copy of the corresponding value forever.
+    The pre-merge processing will remove the tag. The post-merge processing
+    will set the value and occurs after most processing. The pre-save processing
+    restore the tag and the key to copy to keep the information on future loads.
+
+    The copy key is protected against any modification and will raise an error
+    if you try to modify it.
+
+    Pre-merge order: 0.0
+    Post-merge order: 10.0
+    Pre-save order: 10.0
 
     Examples
     --------
@@ -191,28 +206,79 @@ class ProcessCopy(Processing):
 
     def __init__(self) -> None:
         super().__init__()
-        self.premerge_order = 10.0
+        self.premerge_order = 0.0
+        self.postmerge_order = 10.0
+        self.presave_order = 10.0
+        self.keys_to_copy: Dict[str, str] = {}
 
     def premerge(
         self,
         flat_dict: Dict[str, Any],
-        processing_list: list,  # noqa
+        processing_list: list,  # noqa ARG002
     ) -> Dict[str, Any]:
         """Pre-merge processing."""
         items = list(flat_dict.items())
         for flat_key, val in items:
             key = flat_key.split(".")[-1]
             if "@copy" in key:
-                clean_dict, _ = dict_clean_tags(flat_dict)
-                if not isinstance(val, str) or val not in clean_dict:
+                if not isinstance(val, str):
                     raise ValueError(
                         "Key with '@copy' tag must be associated "
-                        "to a string corresponding to an existing flat key. "
+                        "to a string corresponding to a flat key. "
                         f"The problem occurs at key: {flat_key} with value: {val}"
                     )
+                clean_key = clean_all_tags(flat_key)
+                if (clean_key in self.keys_to_copy
+                        and self.keys_to_copy[clean_key] != val):
+                    raise ValueError(
+                        "Key with '@copy' has change its value to copy. Found key: "
+                        f"{flat_key} with value: {val}, previous value to copy: "
+                        f"{self.keys_to_copy[clean_key]}"
+                    )
+                # Store the key to copy
+                self.keys_to_copy[clean_key] = val
                 # Remove the tag and update the dict
-                flat_dict[clean_tag(flat_key, "copy")] = clean_dict[val]
+                flat_dict[clean_tag(flat_key, "copy")] = val
                 del flat_dict[flat_key]
+        return flat_dict
+
+    def postmerge(
+        self,
+        flat_dict: Dict[str, Any],
+        processing_list: list,  # noqa ARG002
+    ) -> Dict[str, Any]:
+        """Post-merge processing."""
+        for key, val in self.keys_to_copy.items():
+            if key in flat_dict:
+                if val not in flat_dict:
+                    raise ValueError(
+                        f"Key to copy not found in config: {val}. "
+                        f"The problem occurs with key: {key}"
+                    )
+                if flat_dict[key] not in (flat_dict[val], val):
+                    # The key has been modified
+                    raise ValueError(
+                        "Found attempt to modify a key with '@copy' tag. The key is "
+                        "then protected against updates (except the copied value or "
+                        f"the original key to copy). Found key: {key} of value "
+                        f"{flat_dict[key]} that copy {val} of value {flat_dict[val]}")
+                # Copy the value
+                flat_dict[key] = flat_dict[val]
+        return flat_dict
+
+    def presave(
+        self,
+        flat_dict: Dict[str, Any],
+        processing_list: list,  # noqa ARG002
+    ) -> Dict[str, Any]:
+        """Pre-save processing."""
+        # Restore the tag with the key to copy to keep the information
+        # on further loading
+        for key, val in self.keys_to_copy.items():
+            if key in flat_dict:
+                new_key = key + "@copy"
+                del flat_dict[key]
+                flat_dict[new_key] = val
         return flat_dict
 
 
@@ -221,16 +287,25 @@ class ProcessTyping(Processing):
 
     Allow basic types (none, any, bool, int, float, str, list, dict), nested lists,
     nested dicts, unions (with Union or the '|' symbol) and Optional.
-    It checks and store the type in premerge and check alls forced types on postmerge.
-    It always occurs last in premerge and postmerge.
-    Pre-merge order: 20.0
+    It store the type in pre-merge and check alls forced types on post-merge.
+    It restore the tag in pre-save to keep the information on future loads.
+    It always occurs last in post-merge.
+    Pre-merge order: 0.0
     Post-merge order: 20.0
+    Pre-save order: 0.0
+
+    Note
+    ----
+        The type is not checked on pre-merge to allow the parameter to be
+        updated (by a copy or a merge for instance). The goal of this
+        processing is to ensure the type at the end of the post-merge.
     """
 
     def __init__(self) -> None:
         super().__init__()
-        self.premerge_order = 20.0
+        self.premerge_order = 0.0
         self.postmerge_order = 20.0
+        self.presave_order = 0.0
         self.forced_types: Dict[str, tuple] = {}
         self.type_desc: Dict[str, str] = {}  # For error messages
 
@@ -257,16 +332,10 @@ class ProcessTyping(Processing):
                         f"{self.type_desc[clean_key]}. "
                         f"Find problem at key: {flat_key}"
                     )
-                if not isinstance(val, expected_type):
-                    raise ValueError(
-                        f"Key with '@type:{type_desc}' tag must be associated "
-                        f"to a value of type {type_desc}. Find the value: {val} "
-                        f"at key: {flat_key}"
-                    )
                 # Remove the tag
                 del flat_dict[flat_key]
                 flat_dict[clean_tag(flat_key, f'type:{type_desc}')] = val
-                # Add the forced type
+                # Store the forced type
                 self.forced_types[clean_key] = expected_type
                 self.type_desc[clean_key] = type_desc
         return flat_dict
@@ -286,6 +355,21 @@ class ProcessTyping(Processing):
                     f"value: {flat_dict[key]} of type {type(flat_dict[key])} "
                     f"at key: {key}"
                 )
+        return flat_dict
+
+    def presave(
+        self,
+        flat_dict: Dict[str, Any],
+        processing_list: list,  # noqa ARG002
+    ) -> Dict[str, Any]:
+        """Pre-save processing."""
+        # Restore the tag with the type to keep the information
+        # on further loading
+        for key, val in self.type_desc.items():
+            if key in flat_dict:
+                new_key = key + f"@type:{val}"
+                flat_dict[new_key] = flat_dict[key]
+                del flat_dict[key]
         return flat_dict
 
 

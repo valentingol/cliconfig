@@ -12,12 +12,11 @@ def clean_tag(flat_key: str, tag_name: str) -> str:
     flat_key : str
         The flat key to clean.
     tag_name : str
-        The name of the tag to remove, without the '@' prefix.
+        The name of the tag to remove, with or without the '@' prefix.
 
     Note
     ----
-        `tag_name` is supposed to be the exact name of the tag and without
-        the '@' prefix.
+        `tag_name` is supposed to be the exact name of the tag.
 
     Examples
     --------
@@ -26,6 +25,8 @@ def clean_tag(flat_key: str, tag_name: str) -> str:
         >>> clean_tag('abc@tag.def@tag_2.ghi@tag', 'tag')
         abc.def@tag_2.ghi
     """
+    if tag_name[0] == "@":
+        tag_name = tag_name[1:]
     # Replace "@tag@other_tag" by "@other_tag"
     parts = flat_key.split(f'@{tag_name}@')
     flat_key = "@".join(parts)

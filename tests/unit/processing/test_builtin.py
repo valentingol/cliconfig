@@ -99,17 +99,57 @@ def test_process_copy() -> None:
         "config2.param2@copy": 'config1.param1',
     }
     flat_dict = processing.premerge(flat_dict, [processing])
+    check.equal(flat_dict, {"config1.param1": 1, "config2.param2": 'config1.param1'})
+    flat_dict = processing.postmerge(flat_dict, [processing])
     check.equal(flat_dict, {"config1.param1": 1, "config2.param2": 1})
+    flat_dict = processing.presave(flat_dict, [processing])
+    check.equal(
+        flat_dict,
+        {"config1.param1": 1, "config2.param2@copy": 'config1.param1'}
+    )
+    # Reset copy processing
+    processing.keys_to_copy = {}
     # Case of wrong key
     with pytest.raises(
         ValueError,
         match=(
             "Key with '@copy' tag must be associated "
-            "to a string corresponding to an existing flat key. "
-            "The problem occurs at key: a@copy with value: b"
+            "to a string corresponding to a flat key. "
+            "The problem occurs at key: a@copy with value: True"
         )
     ):
-        flat_dict = processing.premerge({"a@copy": "b"}, [processing])
+        flat_dict = processing.premerge({"a@copy": True}, [processing])
+    # Case of already existing @copy but associated to an other key
+    processing.keys_to_copy = {"a": "b"}
+    with pytest.raises(
+        ValueError,
+        match=(
+            "Key with '@copy' has change its value to copy. Found key: a@copy@tag "
+            "with value: c, previous value to copy: b"
+        )
+    ):
+        flat_dict = processing.premerge({"a@copy@tag": "c"}, [processing])
+    # Case of non-existing key (on post-merge)
+    processing.keys_to_copy = {"a": "b"}
+    with pytest.raises(
+        ValueError,
+        match=(
+            "Key to copy not found in config: b. "
+            "The problem occurs with key: a"
+        )
+    ):
+        flat_dict = processing.postmerge({"a": "b"}, [processing])
+    # Case overwriting a key
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "Found attempt to modify a key with '@copy' tag. The key is "
+            "then protected against updates (except the copied value or "
+            "the original key to copy). Found key: a of value c that copy "
+            "b of value 1"
+        )
+    ):
+        flat_dict = processing.postmerge({"a": "c", "b": 1}, [processing])
 
 
 def test_process_typing() -> None:
@@ -127,19 +167,13 @@ def test_process_typing() -> None:
     check.equal(flat_dict, {"param1": 3, "param2.a": None, "param2.b": 1})
     check.equal(processing.forced_types, {"param1": (int, ), "param2": (list, dict)})
     check.equal(processing.type_desc, {"param1": "int", "param2": "List|Dict"})
+    flat_dict = processing.presave(flat_dict, [processing])
+    check.equal(flat_dict, {"param1@type:int": 3, "param2.a": None, "param2.b": 1})
     processing.forced_types = {}  # Reset forced types
     processing.type_desc = {}  # Reset type description
 
-    # Case of wrong type in premerge
-    with pytest.raises(
-        ValueError,
-        match=(
-            "Key with '@type:int' tag must be associated "
-            "to a value of type int. Find the value: str "
-            "at key: param@type:int"
-        )
-    ):
-        flat_dict = processing.premerge({"param@type:int": "str"}, [processing])
+    # Case of different type on pre-merge: do not raise error!
+    flat_dict = processing.premerge({"param@type:int": "str"}, [processing])
 
     # Case of already existing type and othere in premerge
     processing.forced_types = {"param": (int,)}

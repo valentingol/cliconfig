@@ -1,6 +1,12 @@
 CLI Config API
 ==============
 
+.. toctree::
+   :maxdepth: 4
+
+   cliconfig.processing
+
+
 cliconfig.build\_config
 -----------------------
 
@@ -40,8 +46,3 @@ cliconfig.tag\_routines
    :members:
    :undoc-members:
    :show-inheritance:
-
-.. toctree::
-   :maxdepth: 4
-
-   cliconfig.processing

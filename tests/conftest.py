@@ -4,6 +4,7 @@ from typing import Any, Dict
 import pytest
 
 from cliconfig.processing.base import Processing
+from cliconfig.tag_routines import clean_all_tags, clean_tag
 
 
 class ProcessAdd1(Processing):
@@ -17,10 +18,11 @@ class ProcessAdd1(Processing):
     ) -> Dict[str, Any]:
         """Pre-merge processing."""
         items = list(flat_dict.items())
-        for key, value in items:
-            if key.endswith("@add1"):
-                flat_dict[key[:-5]] = value + 1
-                del flat_dict[key]
+        for flat_key, value in items:
+            end_key = flat_key.split(".")[-1]
+            if "@add1" in end_key:
+                flat_dict[clean_tag(flat_key, "add1")] = value + 1
+                del flat_dict[flat_key]
         return flat_dict
 
     def presave(
@@ -47,12 +49,13 @@ class ProcessKeep(Processing):
     ) -> Dict[str, Any]:
         """Pre-merge processing."""
         items = list(flat_dict.items())
-        for key, value in items:
-            if key.endswith("@keep"):
-                new_key = key[:-5]
+        for flat_key, value in items:
+            end_key = flat_key.split(".")[-1]
+            if "@keep" in end_key:
+                new_key = clean_tag(flat_key, "keep")
                 flat_dict[new_key] = value
-                del flat_dict[key]
-                self.keep_vals[new_key] = value
+                del flat_dict[flat_key]
+                self.keep_vals[clean_all_tags(flat_key)] = value
         return flat_dict
 
     # pylint: disable=unused-argument
@@ -63,7 +66,8 @@ class ProcessKeep(Processing):
     ) -> Dict[str, Any]:
         """Post-merge processing."""
         for key, value in self.keep_vals.items():
-            flat_dict[key] = value
+            if key in flat_dict:
+                flat_dict[key] = value
         self.keep_vals = {}
         return flat_dict
 
