@@ -23,10 +23,10 @@ with `make_config`:
 
 ```python
 # main.py
-from cliconfig import make_config, show_config
+from cliconfig import make_config, show_dict
 
 config, _ = make_config('default1.yaml', 'default2.yaml')
-show_config(config)  # print the config to check it
+show_dict(config)  # print the config to check it
 ```
 
 Then you can add one or multiple additional config files that will be passed on
