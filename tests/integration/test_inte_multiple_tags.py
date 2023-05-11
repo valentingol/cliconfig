@@ -17,7 +17,7 @@ def test_multiple_tags() -> None:
         "path_1": "tests/configs/integration/sub1.yaml",
         "path_2": "tests/configs/integration/sub2.yaml",
         "config1": {
-            "param": 1,
+            "param": 2,
             "param2": 1,
         },
         "config2": {
@@ -29,5 +29,10 @@ def test_multiple_tags() -> None:
         ValueError,
         match="Key previously tagged with '@type:None|int'.*"
     ):
-        merge_flat_processing(config, {'config2.param': 5.6}, processing_list)
+        merge_flat_processing(
+            config,
+            {'config2.param': 5.6},
+            processing_list,
+            preprocess_first=False,
+        )
     sys.argv = sys_argv
