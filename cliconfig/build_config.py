@@ -78,8 +78,8 @@ def make_config(
         processing_list_: List[Processing] = []
     if add_default_processing:
         processing_list_.extend([
-            ProcessTyping(),
             ProcessCheckTags(),
+            ProcessTyping(),
             ProcessCopy(),
             ProcessMerge(),
         ])
