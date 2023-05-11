@@ -1,49 +1,51 @@
 # Processing
 
-Processing are powerful tools to modify the config at each steps of the life of a
-configuration. More precisely, you can use processing to modify the full configuration
-before and after each merge, after loading and before saving the config.
+Processings are powerful tools to modify the config at each step of the lifecycle of
+a configuration. More precisely, you can use processings to modify the full
+configuration before and after each merge, after loading, and before saving the config.
 
 The processing are applied with a processing class that herits from
-`cliconfig.processing.Processing`. They implement premerge, postmerge, postload and
-presave methods. Each function have the signature:
+`cliconfig.processing.Processing`. They implement `premerge`, `postmerge`, `postload`
+and `presave` methods. Each function have the signature:
 
 ```python
 def premerge(self, flat_dict: Dict[str, Any], processing_list: List[Processing]) -> Dict[str, Any]:
     ...
 ```
 
-They takes a flat dict as input (a dict of depth 1 with dot-separated keys), the list
-of processing (not always needed but useful for more advanced processing,
-it is discussed in an advanced section below) and return the modified flat dict
-(and keep it flat). You can write your own processing objects and add them to the
-`processing_list` argument of `make_config` function to apply it automatically.
-You will see how they work and how to create them in this section.
+They take a flat dict as input (a dict of depth 1 with dot-separated keys), the list
+of processings (not always needed but useful for more advanced processing, as
+discussed in an advanced section below), and return the modified flat dict (while
+keeping it flat). You can write your own processing objects and add them to the
+`processing_list` argument of the `make_config` function to apply them automatically.
+In this section, you will learn how they work and how to create them.
 
 ## Why a flat dict?
 
-The idea is that is that when we build a config, we manipulate dict with both nested
-sub-dicts and flat keys in the same time.To simplify this, the dicts are flatten
-systematically before a merge. It make things mre simple and prevent from duplicated
-key in a same configuration like:
+The idea is that when we construct a config, we manipulate dictionaries that contain
+both nested sub-dicts and flat keys simultaneously. To simplify this process, the
+dictionaries are systematically flattened before merging. This approach makes things
+simpler and prevents duplicated keys within the same configuration, as shown in the
+example:
 
 ```python
 config = {'a': {'b': 1}, 'a.b': 2}
 ```
 
-More generally ALL config modifications are done with flat dicts during config building
-and so it is the case fot the processing too.
+More generally, all config modifications are performed using flat dictionaries
+during config construction, and the same applies to processings.
 
-Of course, after building your config, it will be unflattened to a normal nested config.
+However, it's important to note that after building your config,
+it will be unflattened to its normal nested configuration structure.
 
 ## Processing order
 
-The order of the processing to trigger is actually important because they modify
-the config and so the behavior of the the next processing. That is why
-the Processing classes have 4 float attributes that are the order of the 4 processing
-methods (premerge, postmerge, postload and presave).
+The order in which the processings are triggered is crucial because they modify
+the config and consequently affect the behavior of subsequent processings.
+To manage this order, the Processing classes have four float attributes representing
+the order of the four processing methods: premerge, postmerge, postload, and presave.
 
-An example to illustrate the importance of the order:
+Here's an example to illustrate the significance of the order:
 
 ```yaml
 --- # config.yaml
@@ -51,80 +53,86 @@ param1@type:int@copy: 'param2'
 param2@type:int: 1
 ```
 
-Here, we decide to force the type of the parameters. The `param1` is also the copy
-of `param2` and naturally have the same type.
+In this example, we want to enforce the types of the parameters. Additionally, `param1`
+is intended to be a copy of `param2` and naturally should have the same type.
 
-On pre-merge, the processing will remove the tags and get the information of the
-forced types and the copy. Then, we make a merge (considering to simplify that none of
-our params are modified at this point), the the post-merge processing will be applied.
+During the pre-merge processing, the tags are removed, and information about the
+enforced types and the copy operation is gathered. Then, a merge is performed (assuming
+no modifications to our parameters at this point), followed by the post-merge processing.
 
-What happen if the type processing triggers before copy processing? It will check the
-value, that is `"param2"` and raise an error because it is not an int. However, if
-the copy processing trigger before the type processing, it will copy the value of
-`param2` to `param1` (so `1`) and then the type processing not raises an error.
+Now, what happens if the type processing triggers before the copy processing? It will
+check the value, which is `"param2"`, and raise an error because it is not an integer.
+However, if the copy processing triggers before the type processing, it will copy the
+value of `param2` (which is `1`) to `param1`, and then the type processing will not
+encounter an error.
 
-Fortunately, the post-merge orders are `20.0` for the type processing and `10.0` for
-the copy processing so the copy triggers first. Take care of the order when you
-create your own processing!
+Fortunately, the post-merge orders are set as follows: `20.0` for the type processing
+and `10.0` for the copy processing. As a result, the copy processing triggers first.
+Therefore, it is crucial to carefully manage the order when creating your own processings.
+
+Ensure you pay attention to the order of your processings to achieve the desired behavior.
 
 ## Create basic processing
 
 ### Pre-merge processing to pass a single value to a function and eventually modify it
 
-The pre-merge processing is kindly the most useful processing because it allows
-to modify the input config written bu the user to create the resulting python dict that
-store the config of your experiment. It is like the interface between the user config
+The pre-merge processing is particularly useful as it allows you to modify the input
+config provided by the user and create the resulting Python dictionary that stores the
+configuration for your experiment. It serves as the interface between the user config
 and the final config.
 
-To do so, you need sometimes to modify the parameters for which the key follows a
-pattern (i.e contains a tag or a particular prefix or suffix) depending on the
-current value.
+In a lot of cases, you may need to modify parameters based on certain patterns in their
+keys, such as the presence of a specific tag, prefix, or suffix, depending on
+their current values.
 
-To do so, we provide the function `cliconfig.create_processing_value` to create such a
-processing quickly. It takes a regex or a tag name (in the latter case, the tag is
-removed after processing), the function to apply on the value to modify it
-and eventually the order of the processing. Finally, it takes a `persistent` bool
-parameter that indicates if encountering the tag (if you have a tag) once will trigger
-the process on all the following keys with the same name even if the tag is absent.
+To simplify this process, we provide the `cliconfig.create_processing_value` function.
+This function allows you to quickly create a processing that matches a regular
+expression or a specific tag name (in which case the tag is removed after processing).
+You can specify the function to be applied on the value to modify it, and optionally,
+the order of the processing. Additionally, there is a persistent parameter, which is
+a boolean value indicating whether encountering the tag (if a tag is used) once will
+trigger the processing on all subsequent keys with the same name, even if the tag is
+absent.
 
-The function return a Processing class that can be directly used in your list
-of processing.
+The create_processing_value function returns a Processing class that can be directly
+used in your list of processings.
 
-For instance:
+Here's an example to illustrate:
 
 ```python
 proc = create_processing_value(lambda x: str(x), tag='convert_str', persistent=True)
 config, _ = make_config(default_config, processing_list=[proc])
 ```
 
-Now, parameters like `{"subconfig.param@convert_str": 1}` will be converted to:
-`{"subconfig.param": "1"}` and the keys `"subconfig.param"` will be converted
-to string forever before every merge.
+In this example, parameters with keys like `{"subconfig.param@convert_str": 1}` will
+be converted to `{"subconfig.param": "1"}`. Moreover, the keys `"subconfig.param"`
+ will be permanently converted to strings before every merge.
 
-Note that you can also use function that make side effect without changing the value
-(to check if a condition is met for instance).
+It's worth noting that you can also use functions that have side effects without
+necessarily changing the value itself. For example, you can use a function to
+check if a certain condition is met.
 
 ## Create your processing classes
 
-To create your own processing classes and unlock more possibilities, you simply need to
-overload the methods of the `Processing` class to modify the config on the timings
-you want. To do so, you often need to manipulate tags.
+To create your own processing classes and unlock more possibilities, you simply
+need to overload the methods of the Processing class to modify the config at the
+desired timings. To do so, you often need to manipulate tags.
 
 ### Manipulate the tags
 
-Tags are useful to trigger a processing as we have seen. However, we need to take care
-because tagging a key modify its name and can make conflicts when you use several
-in a same key. That is why we provide tags routines to manipulate the tags safely,
-available in `cliconfig.tag_routines`. There are:
+Tags are useful for triggering a processing, as we have seen. However, we need
+to be cautious because tagging a key modifies its name and can lead to conflicts
+when using multiple tags within the same key. To address this issue, we provide
+tag routines in `cliconfig.tag_routines`. These routines include:
 
-* `clean_tag` that remove a tag (with the exact name in input) from a key
-* `clean_all_tags` that remove all tags from a key. It is convenient to store the
+* `clean_tag`: Removes a specific tag (based on its exact name) from a key.
+* `clean_all_tags`: Removes all tags from a key. This is helpful for storing the
   actual key name to process it later.
-* `clean_dict_tags` that remove all tags from a dict and return the cleaned dict and
-  the list of keys containing tags.
+* `clean_dict_tags`: Removes all tags from a dictionary and returns the cleaned
+  dict along with a list of keys that contained tags.
 
-With these tools, we can write for instance a processing that look for a tag "@keep"
-and that restore the value of a parameter after the merge if it was updated.
+With these tools, we can write a processing, for example, that searches for the
+tag `"@keep"` and restores the value of a parameter after the merge if it was updated.
 
 ```python
 class ProcessKeep(Processing):
@@ -163,40 +171,43 @@ class ProcessKeep(Processing):
                 flat_dict[key] = value
         self.keep_vals = {}  # reset the values
         return flat_dict
+
+
+# Use it:
+config, _ = make_config("main.yaml", processing_list=[ProcessKeep()])
 ```
 
-If you not reset `self.keep_vals`, the internal state of the processing will be
-kept and you are able to protect a key forever if it is tagged with
-"@keep" once (in default config for instance). This can be an useful processing!
+If you don't reset `self.keep_vals`, the internal state of the processing will
+be retained, allowing you to protect a key indefinitely if it has been tagged with
+`"@keep"` before (for example, in the default config). This can be a useful processing!
 
-**Note: Always clean the tag after (or before) using it! If some tags are still present
-after all pre-merge operations, it will trigger a security processing that raise
-an error (for security reasons).**
+Note: Always remember to clean the tag after (or before) using it! If any tags
+remain present after all pre-merge operations, it will trigger a security processing
+that raises an error (for security reasons).
 
-### Manage the list of processing to create complex processing (Advanced)
+### Manage the list of processings to create complex processing (Advanced)
 
 The key concept is that the elementary operations on the config are not actually
-merge, save and load but actually:
+limited to merge, save, and load, but rather:
 
-* apply premerge processing on two configs, merge the two configs then apply
-  postmerge processing to the output
-* apply presave processing then save a config
-* load a config then apply postload processing
+* Applying premerge processing, merging and postmerge processing to the output.
+* Applying presave processing and then saving a config.
+* Loading a config and then applying postload processing.
 
-Theses three operations are `cliconfig.merge_processing`, `cliconfig.save_processing`
-and `cliconfig.load_processing` and they naturally take the list of processing as
-input and return the modified list of processing (to keep the internal values
-of the processing).
+These three operations are in `cliconfig.process_routines` and called
+`merge_processing`, `save_processing`, and `load_processing`, respectively. They take
+the list of processing as input and return the modified list of processing to
+maintain the internal values of the processing.
 
-Now the trick is that sometimes we want to apply these operations on processing
+Now, the trick is that sometimes we want to apply these operations to the processing
 themselves, particularly when we want to modify a part of the configuration instead
-of only one parameter (typically by merging two configurations). That is why we sometimes
-need the list of processing in input of the processing.
+of just a single parameter (such as merging two configurations). This is why we
+sometimes need the list of processing as input for the processing.
 
-An example with the tag "@merge_add", a processing that is triggered
-before merging and that merge the config loaded from a path (the value)
-to the current config. We want to see what happens if we merge a config that
-has also a "@merge_add" tag in it.
+For example, consider the tag "@merge_add," which triggers a processing before
+merging and merges the config loaded from a specified path (the value) into the
+current config. We may want to see what happens if we merge a config that also
+contains an "@merge_add" tag within it:
 
 ```yaml
 --- # main.yaml
@@ -208,42 +219,44 @@ config_path2@merge_add: path2.yaml
 param2: 2
 ```
 
-Now, considering that we want to merge the config `main.yaml` with another config.
-The pre-merge processing will be applied and find the tag `@merge_add`.
-It will remove the tag, merge the config found at `path1.yaml` to the config `main.yaml`.
-But it is not a simple merge, it is a merge *with processing*!
-So before merging `path1.yaml`, it will trigger the pre-merge processing on the config,
-find the key `config_path2@merge_add` and merge the config `path2.yaml` to `path1.yaml`.
-Then, it will merge `path1.yaml` to `main.yaml`. Finally, the configuration `main.yaml`
-is interpreted as:
+Now, let's consider we want to merge the config `main.yaml` with another config.
+During the pre-merge processing, we encounter the tag `@merge_add`. This tag is
+removed, and the config found at `path1.yaml` will be merged into the `main.yaml`
+config. However before this, it triggers the pre-merging.
+
+Therefore, before the merge `path1.yaml`, the processing discovers the key
+`config_path2@merge_add` and merges the config found at `path2.yaml` into `path1.yaml`.
+Then, `path1.yaml` is merged into `main.yaml`. Finally, the resulting configuration
+can be interpreted as follows:
 
 ```python
 {'param1': 1, 'param2': 2, 'config_path1': 'path1.yaml', 'config_path2': 'path2.yaml'}
 ```
 
-before being merged itself with another config. Note that is not only a processing that allows
-to organize the configuration on multiple files. In fact, it also allows you to choose a
-particular configuration among several ones by setting the path as value of the tagged
-key.
+before being merged itself with another config. Note that is not only a processing that
+allows to organize the configuration on multiple files. In fact, it also allows you to
+choose a particular configuration among several ones by setting the path as value of
+the tagged key.
 
 **Important:**
-To create a processing that merge, save or load a config, it is also necessary to
-update the list of processing after and before each operation to be sure that you use
-the good internal states of the processing. To pass the list of processing to other
-processing, simply make and update a `processing_list` attribute
-in your processing class. You have an example in `processing.builtin.ProcessMerge`.
+To create a processing that performs merging, saving, or loading of a config, it is
+necessary to update the list of processing before and after each operation. This
+ensures that the correct internal states of the processing are used. In order to pass
+the list of processing to other processing classes, you can create and update a
+processing_list attribute within your processing class. An example of this can be
+found in the `processing.builtin.ProcessMerge` class.
 
 ### Change processing list in processing (Still more advanced)
 
-Note that as the processing functions get the list of processing object at input
-and update it in attribute, it also possible to modify manually this list to
-change internal variables, add or remove processing. This allows you to make more
-complex things but this may have unwanted behavior if you do not know exactly what
-you are doing.
+Note that the processing functions receive the list of processing objects as an
+input and update as an attribute of the processing object. This means that it
+is possible to manually modify this list in processing functions to change internal
+variables, add or remove processing. While this flexibility allows for more complex
+operations, it can lead to unintended behavior if not done carefully.
 
-A simple example of use is to make a processing that trigger only once and that adds
-a list of processing to the processing list to avoid passing the full list in
-`make_config`:
+One simple example is creating a processing that triggers only once and adds a
+list of processing to the processing list. This avoids the need to pass the entire
+list in the make_config function.
 
 ```python
 class AddProcessList(Processing):
@@ -253,7 +266,7 @@ class AddProcessList(Processing):
             [processing1, processing2, processing3, ...]
         )
 
-make_config("main.yaml", processing_list=[AddProcess()])
+config, _ = make_config("main.yaml", processing_list=[AddProcess()])
 ```
 
-You can then create named spaces of processing to organize them.
+This way you can then create named spaces of processing to organize them.
