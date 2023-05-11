@@ -40,7 +40,7 @@ By default, these additional configs cannot add new parameters to the default co
 
 .. code:: bash
 
-   python main.py --config first.yaml,second.yaml --param1 1 --subconfig.param2 'foo'
+   python main.py --config first.yaml,second.yaml --param1=1 --subconfig.param2='foo'
 
 See *Quickstart* section for more details and *Processing* section for advanced usage.
 

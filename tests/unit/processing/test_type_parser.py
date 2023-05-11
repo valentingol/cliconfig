@@ -30,4 +30,4 @@ def test_type_parser() -> None:
     desc = ("Dict[str, Union[List[None|float], Dict[bool, Optional[int]]]]|List[Any]|"
             "Dict[List[int], Optional[Dict[str, float]]]|flsoat")  # flsoat != float
     with pytest.raises(ValueError, match=f"Unknown type: '{desc}'"):
-        print(_parse_type(desc))
+        _parse_type(desc)

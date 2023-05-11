@@ -103,10 +103,12 @@ def test_process_copy() -> None:
     flat_dict = processing.postmerge(flat_dict, [processing])
     check.equal(flat_dict, {"config1.param1": 1, "config2.param2": 1})
     flat_dict = processing.presave(flat_dict, [processing])
+    check.equal(processing.current_value, {"config2.param2": 1})
     check.equal(
         flat_dict,
         {"config1.param1": 1, "config2.param2@copy": 'config1.param1'}
     )
+    check.equal(processing.keys_to_copy, {"config2.param2": "config1.param1"})
     # Reset copy processing
     processing.keys_to_copy = {}
     # Case of wrong key
@@ -140,6 +142,7 @@ def test_process_copy() -> None:
     ):
         flat_dict = processing.postmerge({"a": "b"}, [processing])
     # Case overwriting a key
+    processing.current_value = {"a": 2}
     with pytest.raises(
         ValueError,
         match=re.escape(
@@ -203,7 +206,6 @@ def test_process_typing() -> None:
 
 def test_process_check_tags() -> None:
     """Test ProcessCheckTags."""
-    from cliconfig.tag_routines import dict_clean_tags
     processing = ProcessCheckTags()
     flat_dict = {
         "config.param1": 1,
@@ -213,9 +215,6 @@ def test_process_check_tags() -> None:
 
     flat_dicts = [{'param1@tag': 1}, {'@foo': 2}, {'@': 3}]
     for flat_dict in flat_dicts:
-        _, tagged_keys = dict_clean_tags(flat_dict)
-        if tagged_keys:
-            print('**', tagged_keys, '**')
         with pytest.raises(
             ValueError,
             match=(

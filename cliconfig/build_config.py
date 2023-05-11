@@ -3,7 +3,7 @@ import sys
 from typing import Any, Dict, List, Optional, Tuple
 
 from cliconfig.cli_parser import parse_cli
-from cliconfig.dict_routines import unflatten
+from cliconfig.dict_routines import flatten, unflatten
 from cliconfig.process_routines import (
     load_processing,
     merge_flat_paths_processing,
@@ -16,6 +16,7 @@ from cliconfig.processing.builtin import (
     ProcessMerge,
     ProcessTyping,
 )
+from cliconfig.tag_routines import clean_all_tags
 
 
 def make_config(
@@ -64,22 +65,18 @@ def make_config(
     .. code-block:: text
 
         python main.py -- config bestmodel.yaml,mydata.yaml \
-            --architecture.layers.hidden_dim 64
+            --architecture.layers.hidden_dim=64
 
     """
     config: Dict[str, Any] = {}
     config_paths, config_cli_params = parse_cli(sys.argv)
-    print(
-        f"[CONFIG] Merge {len(default_config_paths)} default configs, "
-        f"{len(config_paths)} additional configs and "
-        f"{len(config_cli_params)} CLI parameter(s)."
-    )
+    config_cli_params = flatten(config_cli_params)
     if processing_list is None:
         processing_list_: List[Processing] = []
     if add_default_processing:
         processing_list_.extend([
-            ProcessTyping(),
             ProcessCheckTags(),
+            ProcessTyping(),
             ProcessCopy(),
             ProcessMerge(),
         ])
@@ -103,13 +100,31 @@ def make_config(
             allow_new_keys=False,
             preprocess_first=False,
         )
-    # Disallow new keys for CLI parameters
+    # Allow new keys for CLI parameters but do not merge them and raise
+    # warning.
+    new_keys, keys = [], list(config_cli_params.keys())
+    for key in keys:
+        if clean_all_tags(key) not in config:
+            new_keys.append(clean_all_tags(key))
+            del config_cli_params[key]
+    if new_keys:
+        new_keys_message = "  - " + "\n  - ".join(new_keys)
+        print(
+            "[CONFIG] Warning: New keys found in CLI parameters "
+            f"that will not be merged:\n{new_keys_message}"
+        )
     config, processing_list_ = merge_flat_processing(
         config,
         config_cli_params,
         processing_list_,
         allow_new_keys=False,
-        preprocess_first=False)
+        preprocess_first=False
+    )
+    print(
+        f"[CONFIG] Info: Merged {len(default_config_paths)} default config(s), "
+        f"{len(config_paths)} additional config(s) and "
+        f"{len(config_cli_params)} CLI parameter(s)."
+    )
     # Unflatten the config
     config = unflatten(config)
     return config, processing_list_
