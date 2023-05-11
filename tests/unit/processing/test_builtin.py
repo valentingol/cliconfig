@@ -167,6 +167,8 @@ def test_process_typing() -> None:
     check.equal(flat_dict, {"param1": 3, "param2.a": None, "param2.b": 1})
     check.equal(processing.forced_types, {"param1": (int, ), "param2": (list, dict)})
     check.equal(processing.type_desc, {"param1": "int", "param2": "List|Dict"})
+    flat_dict = processing.presave(flat_dict, [processing])
+    check.equal(flat_dict, {"param1@type:int": 3, "param2.a": None, "param2.b": 1})
     processing.forced_types = {}  # Reset forced types
     processing.type_desc = {}  # Reset type description
 
