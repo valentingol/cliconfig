@@ -20,7 +20,10 @@ class ProcessMerge(Processing):
 
     Tag your key with '@merge_after', '@merge_before' or @merge_add to load
     the dict corresponding to the value (path) and merge it just before or after
-    the current dict.
+    the current dict. The merged dicts will be processed with pre-merge but
+    not post-merge to ensure that merged configurations are all processed with
+    pre-merge before applying a post-merge processing. It allows the merged
+    configs to make references to each other (typically for copy).
 
     * '@merge_add' merges the dict corresponding to the path by allowing ONLY new keys
       It is a security check when you want to add a dict completely new
@@ -100,6 +103,7 @@ class ProcessMerge(Processing):
                     processing_list=processing_list,
                     allow_new_keys=True,
                     preprocess_first=False,  # Already processed
+                    postprocess=False,
                 )
                 self.processing_list = processing_list
 
@@ -120,6 +124,7 @@ class ProcessMerge(Processing):
                     processing_list=processing_list,
                     allow_new_keys=True,
                     preprocess_second=False,  # Already processed
+                    postprocess=False,
                 )
                 self.processing_list = processing_list
 
@@ -161,7 +166,7 @@ class ProcessMerge(Processing):
                     allow_new_keys=True,
                     preprocess_first=False,  # Already processed
                     preprocess_second=False,  # Already processed
-                    postprocess=True,
+                    postprocess=False,
                 )
                 self.processing_list = processing_list
         return flat_dict
@@ -257,6 +262,7 @@ class ProcessCopy(Processing):
                         "then protected against updates (except the copied value or "
                         f"the original key to copy). Found key: {key} of value "
                         f"{flat_dict[key]} that copy {val} of value {flat_dict[val]}")
+                # Copy the value
                 flat_dict[key] = flat_dict[val]
         return flat_dict
 
