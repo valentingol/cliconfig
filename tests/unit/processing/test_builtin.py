@@ -103,10 +103,12 @@ def test_process_copy() -> None:
     flat_dict = processing.postmerge(flat_dict, [processing])
     check.equal(flat_dict, {"config1.param1": 1, "config2.param2": 1})
     flat_dict = processing.presave(flat_dict, [processing])
+    check.equal(processing.current_value, {"config2.param2": 1})
     check.equal(
         flat_dict,
         {"config1.param1": 1, "config2.param2@copy": 'config1.param1'}
     )
+    check.equal(processing.keys_to_copy, {"config2.param2": "config1.param1"})
     # Reset copy processing
     processing.keys_to_copy = {}
     # Case of wrong key
@@ -140,6 +142,7 @@ def test_process_copy() -> None:
     ):
         flat_dict = processing.postmerge({"a": "b"}, [processing])
     # Case overwriting a key
+    processing.current_value = {"a": 2}
     with pytest.raises(
         ValueError,
         match=re.escape(
