@@ -14,6 +14,7 @@ Copyright (C) 2023  Valentin Goldité
 from cliconfig._version import __version__, __version_tuple__
 from cliconfig.build_config import load_config, make_config
 from cliconfig.cli_parser import parse_cli
+from cliconfig.dict_routines import show_dict
 from cliconfig.process_routines import (
     merge_flat_paths_processing,
     merge_flat_processing,
@@ -30,5 +31,6 @@ __all__ = [
     "merge_flat_paths_processing",
     "merge_flat_processing",
     "save_processing",
+    "show_dict",
     "create_processing_value",
 ]

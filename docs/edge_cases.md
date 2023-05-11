@@ -1,15 +1,15 @@
 # Edge cases
 
-**Be careful, tuples and sets are not supported by YAML and cannot be used in configs.**
-Use lists instead if possible
+**Please note that YAML does not support tuples and sets**, and therefore they
+cannot be used in YAML files. If possible, consider using lists instead.
 
-`None` is not recognized as a None object by YAML but as a string, you may use `null`
-or `Null` instead if you want to
-set a None object.
+Moreover, YAML does not recognize "None" as a None object, but interprets it as a
+string. If you wish to set a None object, you can use "null" or "Null" instead.
 
-Dicts are considered as sub-configs and so you may not be able to change the keys if
-`allow_new_keys=False` (default). If you want to modify or add dict keys, you should
-enclose it in a list.
+In the context of this package, dictionaries are treated as sub-configurations,
+which means that modifying or adding keys directly in the additional configs may
+not be possible (because only the merge of default configuration allow adding new keys).
+If you need to modify or add keys within a dictionary, consider enclosing it in a list.
 
 For instance:
 

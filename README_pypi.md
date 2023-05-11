@@ -6,12 +6,12 @@
 </p>
 
 Lightweight library that provides routines to merge your configs (optionally nested)
-and set parameters from command line. It is also provide processing functions
-that can change the whole config before and after each config merge, before config
-saving and after config loading. It also contains many routines to manipulate
-the config as flatten or nested dicts.
+and set parameters from the command line. It also provides processing functions that
+can modify the entire config before and after each config merge, before config saving,
+and after config loading. Additionally, it contains many routines to manipulate the
+config, such as flattening or nesting dicts.
 
-## Documentation :memo: : [here](https://cliconfig.readthedocs.io/en/stable)
+## Documentation: [here](https://cliconfig.readthedocs.io/en/stable)
 
 [![Release](https://img.shields.io/github/v/tag/valentingol/cliconfig?label=Pypi&logo=pypi&logoColor=yellow)](https://pypi.org/project/cliconfig/)
 ![PythonVersion](https://img.shields.io/badge/Python-3.7%20%7E%203.11-informational)
@@ -42,8 +42,8 @@ This package is OS independent and supported on Linux, macOS and Windows.
 
 ## Quick start
 
-First create a default config that can be split in multiple files that will be merged
-(from left to right in `make_config` function). There is no limit of depth for the
+Create a default configuration that can be split across multiple files that will
+be merged in sequence. There is no depth limit for the
 configuration parameters.
 
 ```yaml
@@ -60,18 +60,19 @@ param2: 2  # will override param2 from default1.yaml
 letters.letter3: c  # add a new parameter
 ```
 
-Now you can set up your program to use the config:
+Now you can write these following lines in your python program to use this config
+with `make_config`:
 
 ```python
 # main.py
-from cliconfig import make_config, show_config
+from cliconfig import make_config, show_dict
 
 config, _ = make_config('default1.yaml', 'default2.yaml')
-show_config(config)  # print the config to check it
+show_dict(config)  # print the config to check it
 ```
 
-Then add one or multiple additional config files that will be passed on command line
-and that will override the default values.
+Then you can add one or multiple additional config files that will be passed on
+command line and that will override the default values.
 
 ```yaml
 ---  # first.yaml
@@ -83,14 +84,15 @@ param1: -1
 letters.letter1: A
 ```
 
-**Be careful, the additional config files cannot add new parameters that are
-not in default configs**. It is intended to prevent typos in the config files
-that would not be detected. It also improves the readability of the config
-files and the retro-compatibility.
+**Please note that the additional config files must not introduce new parameters that
+are not in the default configs, as it will result in an error**. This
+restriction is in place to prevent potential typos in the config files from
+going unnoticed. It also enhances the readability of the default config files
+and ensures retro-compatibility.
 
-Now you can launch the program with additional configurations and parameters.
-The additional configs will be merged to the default configs, then the parameters
-will be merged.
+Now you can launch the program with additional configurations and also set
+individual parameters. The additional configs will be merged to the default
+configs, then the parameters will be merged.
 
 For example:
 
@@ -99,10 +101,10 @@ python main.py --config first.yaml,second.yaml --param2=-2 --letters.letter2='B'
 ```
 
 *Note*: the additional configs are detected with `--config` followed by space
-and separated by a comma **without space**. It also possible to pass a list.
+and separated by comma(s) **without space**. It also possible to pass a list.
 The parameters are detected with the pattern `--<param>=<value>` without spaces.
 
-Will show:
+It will show:
 
 ```text
 [CONFIG] Merge 2 default configs, 2 additional configs and 2 CLI parameter(s).
@@ -116,36 +118,39 @@ Config:
         letter3: C
 ```
 
-Note that the configurations are native python dicts at each step of the process.
+Note that the configurations is a native python dict at each step of the process.
 
 ## Use tags
 
-By default, the package provides some "tags" that are strings starting with `@`
-and placed at the end of a key containing a parameter. It will change the way
-the configuration is processed.
+By default, the package provides some "tags" represented as strings that start with
+'@' and are placed at the end of a key containing a parameter. These tags change
+the way the configuration is processed.
 
-The default tags are:
+The default tags include:
 
-* `@merge_add`, `@merge_before` and `@merge_after` to merge the dict loaded
-  from the value (should be a yaml path!) to the current configuration.
-  `@merge_add` allow only new keys and is useful to split sub-configurations
-  in multiple files. `@merge_before` will merge the current dict on the loaded
-  one and `@merge_after` will merge the loaded dict on the current one. With
-  theses tags, you can dynamically merge configurations depending on the paths
-  you set as values.
-* `@copy` Copy a parameter from another key. The value should be a string containing
-  this flatten key
-* `@type:<my type>` To check if the key is of the type `<my type>` at each update
-  even if the tag is no longer present. It supports basic type (except tuple and
-  sets that are not handled by yaml) as well as union (with "Union" or "|"), optional,
-  lists and dicts.
+* `@merge_add`, `@merge_before`, and `@merge_after`: These tags merge the dictionary
+  loaded from the specified value (which should be a YAML path) into the current
+  configuration. `@merge_add` allows only the merging of new keys and is useful for
+  splitting different sub-configurations into multiple files. `@merge_before` merges
+  the current dictionary onto the loaded one, while `@merge_after` merges the loaded
+  dictionary onto the current one. These tags enable dynamic configuration merging
+  on the command line, depending on the specified paths. Note that when multiple
+  `@merge_before` or `@merge_after` tags merge the *same key*, the order of merging
+  is not guaranteed as it depends on the order of the tags in the configuration file.
+* `@copy`: This tag copies a parameter from another key. The value should be a string
+  that represents the flattened key. The copied value is then protected from further
+  updates but will be updated if the copied key change during a merge.
+* `@type:<my type>`: This tag checks if the key matches the specified type `<my type>`
+   after each update, even if the tag is no longer present. It supports basic types
+   (except for tuples and sets, which are not handled by YAML) as well as unions
+   (using "Union" or "|"), optional values, lists, and dictionaries.
 
-The tags are applied in this order: `@merge`, `@copy` then `@type`.
+The tags are applied in the following order: `@merge`, `@copy`, and then `@type`.
 
-Note that the tags are only used to trigger internal processing and will be
-automatically removed from the key after the processing.
+Please note that the tags serve as triggers for internal processing and will be
+automatically removed from the key after processing.
 
-You can also combine the tags, example:
+It is also possible to combine multiple tags. For example:
 
 ```yaml
 ---  # main.yaml
@@ -153,7 +158,7 @@ path_1@merge_add: sub1.yaml
 path_2@merge_add: sub2.yaml
 --- # sub1.yaml
 config1:
-  param@copy@type:int: config1.param2
+  param@copy@type:int: config2.param2
   param2@type:int: 1
 --- # sub2.yaml
 config2.param@type:None|int: 2
@@ -165,32 +170,36 @@ Here `main.yaml` is interpreted like:
 path_1: sub1.yaml
 path_2: sub2.yaml
 config1:
-    param: 1
+    param: 2  # the value of config2.param2
     param2: 1
 config2:
     param: 2
 ```
 
-and now, all the parameters have a forced type.
+Now, all the parameters have a forced type and `config1.param2` will be
+update if `config2.param2` is updated during a merge. These side effects are not
+visible in the config but stored on processing classes. They are objects that
+catch the tags, remove them from config and apply a modification on the config.
+These processing are powerful tools that can be used to highly customize the
+configuration process.
 
-The point is that you can easily create your own processing associated to your
-own tags. They provide a large number of possibilities to customize the
-configuration process and are describe in the
+You can easily create your own processing (associated to a tag or not).
+The way to do it and a further explanation of them is available in the
 [*Processing*](https://cliconfig.readthedocs.io/en/latest/processing.html) section
 of the documentation.
 
 ## Edge cases
 
-**Be careful, tuples and sets are not supported by YAML and cannot be used in
-yaml files.**
-Use lists instead if possible.
+**Please note that YAML does not support tuples and sets**, and therefore they
+cannot be used in YAML files. If possible, consider using lists instead.
 
-`None` is not recognized as a None object by YAML but as a string, you may use `null`
-or `Null` instead if you want to set a None object.
+Moreover, YAML does not recognize "None" as a None object, but interprets it as a
+string. If you wish to set a None object, you can use "null" or "Null" instead.
 
-Dicts are considered as sub-configs and so you may not be able to change
-the keys in the additional configs. If you want to modify or add dict keys, you should
-enclose it in a list.
+In the context of this package, dictionaries are treated as sub-configurations,
+which means that modifying or adding keys directly in the additional configs may
+not be possible (because only the merge of default configuration allow adding new keys).
+If you need to modify or add keys within a dictionary, consider enclosing it in a list.
 
 For instance:
 
