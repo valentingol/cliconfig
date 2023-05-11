@@ -66,7 +66,7 @@ Now you can set up your program to use the config:
 from cliconfig import make_config, show_config
 
 config, _ = make_config('default1.yaml', 'default2.yaml')
-show_config(config)
+show_config(config)  # print the config to check it
 ```
 
 Then add one or multiple additional config files that will be passed on command line
@@ -82,23 +82,24 @@ param1: -1
 letters.letter1: A
 ```
 
-**Be careful, The additional config files cannot add new parameters that are
+**Be careful, the additional config files cannot add new parameters that are
 not in default configs**. It is intended to prevent typos in the config files
 that would not be detected. It also improves the readability of the config
 files and the retro-compatibility.
 
 Now you can launch the program with additional configurations and parameters.
-The additional configuration paths are indicated with `--config` followed by a
-whitespace. If there are several paths, they should be separate with comma,
-without space. Then, you can set individual parameters with `--<subconfig.param_name>`
-(use dot for nested configs).
+The additional configs will be merged to the default configs, then the parameters
+will be merged.
 
-The default configuration will be merged to the default configs with the additional
-configurations (from left to right), then the parameters will be set. For example:
+For example:
 
 ```bash
 python main.py --config first.yaml,second.yaml --param2=-2 --letters.letter2='B'
 ```
+
+*Note*: the additional configs are detected with `--config` followed by space
+and separated by a comma **without space**. It also possible to pass a list.
+The parameters are detected with the pattern `--<param>=<value>` without spaces.
 
 Will show:
 
@@ -219,7 +220,7 @@ Please see our [contributing guidelines](CONTRIBUTING.md) for more information ð
 
 Priority:
 
-* [ ] allow passing new arguments by CLI (with warning and no actual merge)
+* [x] allow passing new arguments by CLI (with warning and no actual merge)
 * [ ] add a routine to check if a tag is in a key and robust to all other
   possible tags
 * [ ] add an integration test with all built-in processing (and more)
