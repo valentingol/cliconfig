@@ -1,7 +1,7 @@
 # CLI Config
 
 <p align="center">
-  <img src="docs/_static/logo.png" />
+  <img src="docs/_static/logo_extend.png" />
 </p>
 
 Lightweight library that provides routines to merge your configs (optionally nested)
