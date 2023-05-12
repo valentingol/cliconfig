@@ -13,7 +13,7 @@ from cliconfig.process_routines import (
 )
 from cliconfig.processing._type_parser import _parse_type
 from cliconfig.processing.base import Processing
-from cliconfig.tag_routines import clean_all_tags, clean_tag, dict_clean_tags
+from cliconfig.tag_routines import clean_all_tags, clean_tag, dict_clean_tags, is_tag_in
 
 
 class ProcessMerge(Processing):
@@ -74,8 +74,7 @@ class ProcessMerge(Processing):
         """Pre-merge processing."""
         items = list(flat_config.dict.items())
         for flat_key, val in items:
-            end_key = flat_key.split('.')[-1]
-            if "@merge_after" in end_key:
+            if is_tag_in(flat_key, "merge_after"):
                 if not isinstance(val, str) or not val.endswith('.yaml'):
                     raise ValueError(
                         "Key with '@merge_after' tag must be associated "
@@ -97,7 +96,7 @@ class ProcessMerge(Processing):
                     postprocess=False,
                 )
 
-            elif "@merge_before" in end_key:
+            elif is_tag_in(flat_key, "merge_before"):
                 if not isinstance(val, str) or not val.endswith('.yaml'):
                     raise ValueError(
                         "Key with '@merge_before' tag must be associated "
@@ -116,7 +115,7 @@ class ProcessMerge(Processing):
                     postprocess=False,
                 )
 
-            elif "@merge_add" in end_key:
+            elif is_tag_in(flat_key, "merge_add"):
                 if not isinstance(val, str) or not val.endswith('.yaml'):
                     raise ValueError(
                         "Key with '@merge_add' tag must be associated "
@@ -204,8 +203,7 @@ class ProcessCopy(Processing):
         """Pre-merge processing."""
         items = list(flat_config.dict.items())
         for flat_key, val in items:
-            key = flat_key.split(".")[-1]
-            if "@copy" in key:
+            if is_tag_in(flat_key, "copy"):
                 if not isinstance(val, str):
                     raise ValueError(
                         "Key with '@copy' tag must be associated "
