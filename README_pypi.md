@@ -127,13 +127,13 @@ Priority:
 
 Secondary:
 
-* [ ] add `make_processing_keep_status` to make a processing that keep the
-  status of a parameter across merged configs. The status is any python object
+* [ ] add `make_processing_keep_property` to make a processing that keep the
+  property of a parameter across merged configs. The property is any python object
   returned by a function that takes the parameter as input
 * [ ] add `ProcessSelect` (with tag "@select") to select a subconfig (or parameter)
   and delete the others configs at the same level (to cure the resulting config)
 * [ ] allow nested types in `ProcessTyping`
-* [ ] add DefaultProcessing that add default processing to list of processing
+* [x] add DefaultProcessings that stores default processing as list of processing
 
 ## License
 
