@@ -11,7 +11,8 @@ from cliconfig.processing.create import create_processing_value
 def test_create_processing_value() -> None:
     """Test create_processing_value."""
     # Persistent
-    proc2 = create_processing_value(lambda x: -x, regex="neg_number.*", order=0.0)
+    proc2 = create_processing_value(lambda x: -x, regex="neg_number.*", order=0.0,
+                                    persistent=True)
     proc1 = create_processing_value(lambda x: x + 1, tag_name="add1", order=1.0,
                                     persistent=True)
     in_dict = {"neg_number1": 1, "neg_number2": 1, "neg_number3@add1": 1}
@@ -23,7 +24,8 @@ def test_create_processing_value() -> None:
     config = config.process_list[0].premerge(config)
     check.equal(in_dict, {"neg_number1": 1, "neg_number2": 1, "neg_number3": 1})
     # Non persistent
-    proc2 = create_processing_value(lambda x: -x, regex="neg_number.*", order=0.0)
+    proc2 = create_processing_value(lambda x: -x, regex="neg_number.*", order=0.0,
+                                    persistent=False)
     proc1 = create_processing_value(lambda x: x + 1, tag_name="add1", order=1.0,
                                     persistent=False)
     in_dict = {"neg_number1": 1, "neg_number2": 1, "neg_number3@add1": 1}
