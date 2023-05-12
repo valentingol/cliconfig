@@ -4,7 +4,7 @@ Classes to apply pre-merge, post-merge, pre-save and post-load modifications
 to dict with processing routines (found in cliconfig.process_routines).
 """
 # pylint: disable=unused-argument
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from cliconfig.base import Config
 from cliconfig.process_routines import (
@@ -372,3 +372,28 @@ class ProcessCheckTags(Processing):
                 f"{keys_message}"
             )
         return flat_config
+
+
+class DefaultProcessings():
+    """Default list of built-in processings.
+
+    To add these processings to a Config instance, use:
+
+    config.process_list += DefaultProcessings().list
+
+    The current default processing list contains:
+     * ProcessCheckTags: protect against '@' in keys at the end of pre-merge)
+     * ProcessMerge (@merge_all, @merge_before, @merge_after): merge multiple
+       files into one.
+     * ProcessCopy (@copy): persistently copy a value from one key to an other
+       and protect it
+     * ProcessTyping (@type:X): force the type of parameter to any type X.
+    """
+
+    def __init__(self) -> None:
+        self.list: List[Processing] = [
+            ProcessCheckTags(),
+            ProcessMerge(),
+            ProcessCopy(),
+            ProcessTyping(),
+        ]
