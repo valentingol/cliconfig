@@ -1,8 +1,9 @@
 """Functions to create new processing quickly."""
 # pylint: disable=unused-argument
 import re
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Callable, Optional, Set
 
+from cliconfig.base import Config
 from cliconfig.processing.base import Processing
 from cliconfig.tag_routines import clean_all_tags, clean_tag
 
@@ -23,21 +24,17 @@ class _ProcessingValue(Processing):
         self.tag_name = tag_name
         self.func = func
 
-    def premerge(
-        self,
-        flat_dict: Dict[str, Any],
-        processing_list: List[Processing],  # noqa: ARG002
-    ) -> Dict[str, Any]:
+    def premerge(self, flat_config: Config) -> Config:
         """Pre-merge processing."""
-        items = list(flat_dict.items())
+        items = list(flat_config.dict.items())
         for flat_key, value in items:
             end_key = flat_key.split('.')[-1]
             if re.match(self.regex, end_key):
                 if self.tag_name:
-                    del flat_dict[flat_key]
+                    del flat_config.dict[flat_key]
                     flat_key = clean_tag(flat_key, self.tag_name)
-                flat_dict[flat_key] = self.func(value)
-        return flat_dict
+                flat_config.dict[flat_key] = self.func(value)
+        return flat_config
 
 
 class _ProcessingValuePersistent(Processing):
@@ -57,23 +54,19 @@ class _ProcessingValuePersistent(Processing):
         self.func = func
         self.matched_keys: Set[str] = set()
 
-    def premerge(
-        self,
-        flat_dict: Dict[str, Any],
-        processing_list: List[Processing],  # noqa: ARG002
-    ) -> Dict[str, Any]:
+    def premerge(self, flat_config: Config) -> Config:
         """Pre-merge processing."""
-        items = list(flat_dict.items())
+        items = list(flat_config.dict.items())
         for flat_key, value in items:
             end_key = flat_key.split('.')[-1]
             if (re.match(self.regex, end_key)
                     or clean_all_tags(flat_key) in self.matched_keys):
                 self.matched_keys.add(clean_all_tags(flat_key))
                 if self.tag_name:
-                    del flat_dict[flat_key]
+                    del flat_config.dict[flat_key]
                     flat_key = clean_tag(flat_key, self.tag_name)
-                flat_dict[flat_key] = self.func(value)
-        return flat_dict
+                flat_config.dict[flat_key] = self.func(value)
+        return flat_config
 
 
 def create_processing_value(

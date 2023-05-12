@@ -10,11 +10,11 @@ CLI Config
 
 |
 
-*CLI Config*: Lightweight library that provides routines to merge nested and flat configs
+*CLI Config*: Lightweight library that provides routines to merge nested configs
 and set parameters from command line. It is also provide processing functions
 that can change the whole configuration before and after each config merge, config
-saving and config loading. It also contains many routines to manipulate
-the config as flatten or nested dicts.
+saving and config loading. It also contains many routines to manipulate the config as
+flatten or nested dicts.
 
 |PyPI version| |PythonVersion| |License|
 
@@ -24,22 +24,62 @@ the config as flatten or nested dicts.
 
 |Tests| |Coverage| |Documentation Status|
 
-Make a default config file in your project (configs are merged from left to right):
+Make default config file(s) in your project (configs are merged from left to right):
 
 .. code:: python
 
    # main.py
    from cliconfig import make_config
 
-   config, _ = make_config('default1.yaml', 'default2.yaml')  # it's a dict
+   config = make_config('default1.yaml', 'default2.yaml')
+   config_dict = config.dict  # native python dict
 
-Then launch your script with additional config(s) file(s) and parameters.
-By default, these additional configs cannot add new parameters to the default config
-(for security and retro-compatibility reasons).
+Then launch your script with additional config(s) file(s) and parameters by command line.
+**By default, these additional configs cannot add new parameters to the default config
+(for security and retro-compatibility reasons).** For instance:
 
 .. code:: bash
 
    python main.py --config first.yaml,second.yaml --param1=1 --subconfig.param2='foo'
+
+With processing
+---------------
+
+The library provide powerfull tools to modify the configuration called "processings".
+One of the possibility they add is to merge multiple configurations,
+copy a parameter on another, enforce type and more. To do so, simply adding the
+corresponding tags to your parameter names (on config files or CLI parameters).
+For instance with these config files:
+
+.. code:: yaml
+
+    ---  # main.yaml
+    path_1@merge_add: sub1.yaml
+    path_2@merge_add: sub2.yaml
+
+    --- # sub1.yaml
+    config1:
+      param@copy@type:int: config2.param
+      param2@type:None|int: 1
+
+    --- # sub2.yaml
+    config2.param@type:int: 2
+
+Here `main.yaml` will be interpreted like:
+
+.. code:: yaml
+
+    path_1: sub1.yaml
+    path_2: sub2.yaml
+    config1:
+        param: 2  # the value of config2.param2
+        param2: 1
+    config2:
+        param: 2
+
+Then, all the parameters have enforced types (`config.param` can also be None)
+and changing `config2.param` will also update `config1.param` accordingly
+(which is protected by direct update).
 
 See *Quickstart* section for more details and *Processing* section for advanced usage.
 

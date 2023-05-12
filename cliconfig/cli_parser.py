@@ -26,7 +26,7 @@ def parse_cli(sys_argv: List[str]) -> Tuple[List[str], Dict[str, Any]]:
     -------
     config_paths : List[str]
         List of paths to config files to merge.
-    config_cli_params : Dict[str, Any]
+    cli_params_dict : Dict[str, Any]
         Dictionary of parameters from CLI.
 
     Examples
@@ -40,7 +40,7 @@ def parse_cli(sys_argv: List[str]) -> Tuple[List[str], Dict[str, Any]]:
     It is equivalent to: `{'foo': {'bar': {'param': [1, 2, 3]}}`
     for :func:`merge_config`.
     """
-    config_cli_params: Dict[str, Any] = {}
+    cli_params_dict: Dict[str, Any] = {}
     config_paths: List[str] = []
     i = 0
     while i < len(sys_argv):
@@ -66,8 +66,8 @@ def parse_cli(sys_argv: List[str]) -> Tuple[List[str], Dict[str, Any]]:
                 value_str = "null"
             key = key[2:]
             value = yaml.safe_load(value_str)
-            config_cli_params[key] = value
+            cli_params_dict[key] = value
             i += 1
         else:  # Not a config parameter
             i += 1
-    return config_paths, config_cli_params
+    return config_paths, cli_params_dict

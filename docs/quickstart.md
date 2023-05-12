@@ -23,10 +23,10 @@ with `make_config`:
 
 ```python
 # main.py
-from cliconfig import make_config, show_dict
+from cliconfig import make_config, show_config
 
-config, _ = make_config('default1.yaml', 'default2.yaml')
-show_dict(config)  # print the config to check it
+config = make_config('default1.yaml', 'default2.yaml')
+show_config(config)  # print the config to check it
 ```
 
 Then you can add one or multiple additional config files that will be passed on
@@ -76,7 +76,7 @@ Config:
         letter3: C
 ```
 
-Note that the configurations is a native python dict at each step of the process.
+Note that the configurations is stored as native python dict at each step of the process.
 
 ## Use tags
 

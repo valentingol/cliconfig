@@ -4,11 +4,11 @@
   <img src="docs/_static/logo_extend.png" />
 </p>
 
-Lightweight library that provides routines to merge your configs (optionally nested)
-and set parameters from the command line. It also provides processing functions that
-can modify the entire config before and after each config merge, before config saving,
-and after config loading. Additionally, it contains many routines to manipulate the
-config, such as flattening or nesting dicts.
+*CLI Config*: Lightweight library that provides routines to merge nested configs
+and set parameters from command line. It is also provide processing functions
+that can change the whole configuration before and after each config merge, config
+saving and config loading. It also contains many routines to manipulate the config as
+flatten or nested dicts.
 
 ## Documentation :memo: [here](https://cliconfig.readthedocs.io/en/stable)
 
@@ -42,7 +42,8 @@ This package is OS independent and supported on Linux, macOS and Windows.
 ## Quick start
 
 Create a default configuration that can be split across multiple files that will
-be merged in sequence. There is no depth limit for the configuration parameters.
+be merged in sequence. There is no depth limit for the
+configuration parameters.
 
 ```yaml
 ---  # default1.yaml
@@ -63,10 +64,10 @@ with `make_config`:
 
 ```python
 # main.py
-from cliconfig import make_config, show_dict
+from cliconfig import make_config, show_config
 
-config, _ = make_config('default1.yaml', 'default2.yaml')
-show_dict(config)  # print the config to check it
+config = make_config('default1.yaml', 'default2.yaml')
+show_config(config)  # print the config to check it
 ```
 
 Then you can add one or multiple additional config files that will be passed on
@@ -75,7 +76,7 @@ command line and that will override the default values.
 ```yaml
 ---  # first.yaml
 letters:
-  letter3: C
+  letter3: C  # equivalent to "letters.letter3: "C"
 
 ---  # second.yaml
 param1: -1
@@ -116,7 +117,7 @@ Config:
         letter3: C
 ```
 
-Note that the configurations is a native python dict at each step of the process.
+Note that the configurations is stored as native python dict at each step of the process.
 
 ## Use tags
 
@@ -162,7 +163,7 @@ config1:
 config2.param@type:None|int: 2
 ```
 
-Here `main.yaml` will be interpreted like:
+Here `main.yaml` is interpreted like:
 
 ```yaml
 path_1: sub1.yaml
@@ -183,7 +184,7 @@ configuration process.
 
 You can easily create your own processing (associated to a tag or not).
 The way to do it and a further explanation of them is available in the
-[*Processing*](https://cliconfig.readthedocs.io/en/latest/processing.html) section
+[*Processing*](https://cliconfig.readthedocs.io/en/stable/processing.html) section
 of the documentation.
 
 ## Edge cases

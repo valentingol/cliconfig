@@ -439,12 +439,14 @@ def load_dict(path: str) -> Dict[str, Any]:
 def show_dict(in_dict: Dict[str, Any], start_indent: int = 1) -> None:
     """Show the input dict in a pretty way.
 
+    The input dict is unflattened before.
+
     Parameters
     ----------
     in_dict : Dict[str, Any]
         The dict to show.
     start_indent : int, optional
-        The starting tab indent (4 spaces), by default 1.
+        The number of starting tab indent (4 spaces), by default 1.
     """
 
     def pretty_print(in_dict: Dict[str, Any], indent: int) -> None:
@@ -458,4 +460,4 @@ def show_dict(in_dict: Dict[str, Any], start_indent: int = 1) -> None:
                 print(f"'{value}'")
             else:
                 print(value)
-    pretty_print(in_dict, start_indent)
+    pretty_print(unflatten(in_dict), start_indent)

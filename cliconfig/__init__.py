@@ -12,25 +12,23 @@ Copyright (C) 2023  Valentin Goldité
     include as well as this copy right notice.
 """
 from cliconfig._version import __version__, __version_tuple__
-from cliconfig.build_config import load_config, make_config
-from cliconfig.cli_parser import parse_cli
-from cliconfig.dict_routines import show_dict
+from cliconfig.base import Config
+from cliconfig.config_routines import load_config, make_config, save_config, show_config
 from cliconfig.process_routines import (
     merge_flat_paths_processing,
     merge_flat_processing,
-    save_processing,
 )
 from cliconfig.processing.create import create_processing_value
 
 __all__ = [
     "__version__",
     "__version_tuple__",
+    "Config",
+    "create_processing_value",
     "make_config",
-    "parse_cli",
     "load_config",
     "merge_flat_paths_processing",
     "merge_flat_processing",
-    "save_processing",
-    "show_dict",
-    "create_processing_value",
+    "save_config",
+    "show_config",
 ]

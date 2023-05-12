@@ -4,8 +4,9 @@ Classes to apply pre-merge, post-merge, pre-save and post-load modifications
 to dict with processing routines (found in cliconfig.process_routines).
 """
 # pylint: disable=unused-argument
-from typing import Any, Dict, List
+from typing import Any, Dict
 
+from cliconfig.base import Config
 from cliconfig.process_routines import (
     merge_flat_paths_processing,
     merge_flat_processing,
@@ -68,19 +69,10 @@ class ProcessMerge(Processing):
     def __init__(self) -> None:
         super().__init__()
         self.premerge_order = -20.0
-        # NOTE: Any processing that apply a processing routine must contain
-        # a processing list attribute to be updated before and after each processing
-        # routines
-        self.processing_list: List[Processing] = []
 
-    def premerge(
-        self,
-        flat_dict: Dict[str, Any],
-        processing_list: list,
-    ) -> Dict[str, Any]:
+    def premerge(self, flat_config: Config) -> Config:
         """Pre-merge processing."""
-        self.processing_list = processing_list
-        items = list(flat_dict.items())
+        items = list(flat_config.dict.items())
         for flat_key, val in items:
             end_key = flat_key.split('.')[-1]
             if "@merge_after" in end_key:
@@ -91,21 +83,19 @@ class ProcessMerge(Processing):
                         f"The problem occurs at key: {flat_key}"
                     )
                 # Remove the tag in the dict
-                del flat_dict[flat_key]
-                flat_dict[clean_tag(flat_key, 'merge_after')] = val
+                del flat_config.dict[flat_key]
+                flat_config.dict[clean_tag(flat_key, 'merge_after')] = val
                 # Merge + process the dicts
                 # NOTE: we allow new keys with security because the merge
                 # following this pre-merge will avoid the creation of
                 # new keys if needed.
-                flat_dict, processing_list = merge_flat_paths_processing(
-                    flat_dict,
+                flat_config = merge_flat_paths_processing(
+                    flat_config,
                     val,
-                    processing_list=processing_list,
                     allow_new_keys=True,
                     preprocess_first=False,  # Already processed
                     postprocess=False,
                 )
-                self.processing_list = processing_list
 
             elif "@merge_before" in end_key:
                 if not isinstance(val, str) or not val.endswith('.yaml'):
@@ -115,18 +105,16 @@ class ProcessMerge(Processing):
                         f"The problem occurs at key: {flat_key}"
                     )
                 # Remove the tag in the dict
-                del flat_dict[flat_key]
-                flat_dict[clean_tag(flat_key, 'merge_before')] = val
+                del flat_config.dict[flat_key]
+                flat_config.dict[clean_tag(flat_key, 'merge_before')] = val
                 # Merge + process the dicts
-                flat_dict, processing_list = merge_flat_paths_processing(
+                flat_config = merge_flat_paths_processing(
                     val,
-                    flat_dict,
-                    processing_list=processing_list,
+                    flat_config,
                     allow_new_keys=True,
                     preprocess_second=False,  # Already processed
                     postprocess=False,
                 )
-                self.processing_list = processing_list
 
             elif "@merge_add" in end_key:
                 if not isinstance(val, str) or not val.endswith('.yaml'):
@@ -136,20 +124,20 @@ class ProcessMerge(Processing):
                         f"The problem occurs at key: {flat_key}"
                     )
                 # Remove the tag in the dict
-                del flat_dict[flat_key]
-                flat_dict[clean_tag(flat_key, 'merge_add')] = val
-                # Pre-merge process the dict
-                flat_dict_to_merge, processing_list = merge_flat_paths_processing(
-                    {},
+                del flat_config.dict[flat_key]
+                flat_config.dict[clean_tag(flat_key, 'merge_add')] = val
+                # Pre-merge process the dict with the process list of
+                # the current config
+                flat_config_to_merge = merge_flat_paths_processing(
+                    Config({}, []),
                     val,
-                    processing_list=processing_list,
+                    additional_process=flat_config.process_list,
                     allow_new_keys=True,
                     preprocess_first=False,  # Already processed
                     postprocess=False,
                 )
-                self.processing_list = processing_list
-                clean_dict, _ = dict_clean_tags(flat_dict)
-                clean_dict_to_merge, _ = dict_clean_tags(flat_dict_to_merge)
+                clean_dict, _ = dict_clean_tags(flat_config.dict)
+                clean_dict_to_merge, _ = dict_clean_tags(flat_config_to_merge.dict)
                 for key in clean_dict_to_merge:
                     if clean_all_tags(key) in clean_dict:
                         raise ValueError(
@@ -159,17 +147,17 @@ class ProcessMerge(Processing):
                             "want to merge this key, or check your key names."
                         )
                 # Merge the dicts (order is not important by construction)
-                flat_dict, processing_list = merge_flat_processing(
-                    flat_dict,
-                    flat_dict_to_merge,
-                    processing_list=processing_list,
+                # NOTE: we delete the process list of the current config
+                # to speed up the process by avoiding redundant processing
+                flat_config = merge_flat_processing(
+                    Config(flat_config.dict, []),
+                    flat_config_to_merge,
                     allow_new_keys=True,
                     preprocess_first=False,  # Already processed
                     preprocess_second=False,  # Already processed
                     postprocess=False,
                 )
-                self.processing_list = processing_list
-        return flat_dict
+        return flat_config
 
 
 class ProcessCopy(Processing):
@@ -212,13 +200,9 @@ class ProcessCopy(Processing):
         self.keys_to_copy: Dict[str, str] = {}
         self.current_value: Dict[str, Any] = {}
 
-    def premerge(
-        self,
-        flat_dict: Dict[str, Any],
-        processing_list: list,  # noqa ARG002
-    ) -> Dict[str, Any]:
+    def premerge(self, flat_config: Config) -> Config:
         """Pre-merge processing."""
-        items = list(flat_dict.items())
+        items = list(flat_config.dict.items())
         for flat_key, val in items:
             key = flat_key.split(".")[-1]
             if "@copy" in key:
@@ -240,50 +224,43 @@ class ProcessCopy(Processing):
                 self.keys_to_copy[clean_key] = val
                 self.current_value[clean_key] = val
                 # Remove the tag and update the dict
-                flat_dict[clean_tag(flat_key, "copy")] = val
-                del flat_dict[flat_key]
-        return flat_dict
+                flat_config.dict[clean_tag(flat_key, "copy")] = val
+                del flat_config.dict[flat_key]
+        return flat_config
 
-    def postmerge(
-        self,
-        flat_dict: Dict[str, Any],
-        processing_list: list,  # noqa ARG002
-    ) -> Dict[str, Any]:
+    def postmerge(self, flat_config: Config) -> Config:
         """Post-merge processing."""
         for key, val in self.keys_to_copy.items():
-            if key in flat_dict:
-                if val not in flat_dict:
+            if key in flat_config.dict:
+                if val not in flat_config.dict:
                     raise ValueError(
                         f"Key to copy not found in config: {val}. "
                         f"The problem occurs with key: {key}"
                     )
-                if flat_dict[key] != self.current_value[key]:
+                if flat_config.dict[key] != self.current_value[key]:
                     # The key has been modified
                     raise ValueError(
                         "Found attempt to modify a key with '@copy' tag. The key is "
                         "then protected against updates (except the copied value or "
                         f"the original key to copy). Found key: {key} of value "
-                        f"{flat_dict[key]} that copy {val} of value {flat_dict[val]}")
+                        f"{flat_config.dict[key]} that copy {val} of value "
+                        f"{flat_config.dict[val]}")
                 # Copy the value
-                flat_dict[key] = flat_dict[val]
+                flat_config.dict[key] = flat_config.dict[val]
                 # Update the current value
-                self.current_value[key] = flat_dict[val]
-        return flat_dict
+                self.current_value[key] = flat_config.dict[val]
+        return flat_config
 
-    def presave(
-        self,
-        flat_dict: Dict[str, Any],
-        processing_list: list,  # noqa ARG002
-    ) -> Dict[str, Any]:
+    def presave(self, flat_config: Config) -> Config:
         """Pre-save processing."""
         # Restore the tag with the key to copy to keep the information
         # on further loading
         for key, val in self.keys_to_copy.items():
-            if key in flat_dict:
+            if key in flat_config.dict:
                 new_key = key + "@copy"
-                del flat_dict[key]
-                flat_dict[new_key] = val
-        return flat_dict
+                del flat_config.dict[key]
+                flat_config.dict[new_key] = val
+        return flat_config
 
 
 class ProcessTyping(Processing):
@@ -313,13 +290,9 @@ class ProcessTyping(Processing):
         self.forced_types: Dict[str, tuple] = {}
         self.type_desc: Dict[str, str] = {}  # For error messages
 
-    def premerge(
-        self,
-        flat_dict: Dict[str, Any],
-        processing_list: list,  # noqa: ARG002
-    ) -> Dict[str, Any]:
+    def premerge(self, flat_config: Config) -> Config:
         """Pre-merge processing."""
-        items = list(flat_dict.items())
+        items = list(flat_config.dict.items())
         for flat_key, val in items:
             end_key = flat_key.split('.')[-1]
             if "@type:" in end_key:
@@ -337,44 +310,37 @@ class ProcessTyping(Processing):
                         f"Find problem at key: {flat_key}"
                     )
                 # Remove the tag
-                del flat_dict[flat_key]
-                flat_dict[clean_tag(flat_key, f'type:{type_desc}')] = val
+                del flat_config.dict[flat_key]
+                flat_config.dict[clean_tag(flat_key, f'type:{type_desc}')] = val
                 # Store the forced type
                 self.forced_types[clean_key] = expected_type
                 self.type_desc[clean_key] = type_desc
-        return flat_dict
+        return flat_config
 
-    def postmerge(
-        self,
-        flat_dict: Dict[str, Any],
-        processing_list: list,  # noqa: ARG002
-    ) -> Dict[str, Any]:
+    def postmerge(self, flat_config: Config) -> Config:
         """Post-merge processing."""
         for key, expected_type in self.forced_types.items():
-            if key in flat_dict and not isinstance(flat_dict[key], expected_type):
+            if (key in flat_config.dict
+                    and not isinstance(flat_config.dict[key], expected_type)):
                 type_desc = self.type_desc[key]
                 raise ValueError(
                     f"Key previously tagged with '@type:{type_desc}' must be "
                     f"associated to a value of type {type_desc}. Find the "
-                    f"value: {flat_dict[key]} of type {type(flat_dict[key])} "
-                    f"at key: {key}"
+                    f"value: {flat_config.dict[key]} of type "
+                    f"{type(flat_config.dict[key])} at key: {key}"
                 )
-        return flat_dict
+        return flat_config
 
-    def presave(
-        self,
-        flat_dict: Dict[str, Any],
-        processing_list: list,  # noqa ARG002
-    ) -> Dict[str, Any]:
+    def presave(self, flat_config: Config) -> Config:
         """Pre-save processing."""
         # Restore the tag with the type to keep the information
         # on further loading
         for key, val in self.type_desc.items():
-            if key in flat_dict:
+            if key in flat_config.dict:
                 new_key = key + f"@type:{val}"
-                flat_dict[new_key] = flat_dict[key]
-                del flat_dict[key]
-        return flat_dict
+                flat_config.dict[new_key] = flat_config.dict[key]
+                del flat_config.dict[key]
+        return flat_config
 
 
 class ProcessCheckTags(Processing):
@@ -392,23 +358,19 @@ class ProcessCheckTags(Processing):
         # good idea to make pre-merge processing with higher order.
         self.premerge_order = 1000.0
 
-    def premerge(
-        self,
-        flat_dict: Dict[str, Any],
-        processing_list: list,  # noqa: ARG002
-    ) -> Dict[str, Any]:
+    def premerge(self, flat_config: Config) -> Config:
         """Post-merge processing."""
-        _, tagged_keys = dict_clean_tags(flat_dict)
+        _, tagged_keys = dict_clean_tags(flat_config.dict)
         if tagged_keys:
             keys_message = "\n".join(tagged_keys[:5])
             raise ValueError(
                 "Keys with tags are encountered at the end of "
                 "the pre-merge process. It is probably a mistake due to:\n"
                 "- a typo in tag name\n"
-                "- a missing processing in processing_list\n"
+                "- a missing processing in process_list\n"
                 "- the use of an 'at' ('@') in a parameter name\n"
                 "- the use of a custom processing that does not remove a tag\n\n"
                 "The tagged keys encountered (5 first if more than 5) are:\n"
                 f"{keys_message}"
             )
-        return flat_dict
+        return flat_config
