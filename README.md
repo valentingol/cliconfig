@@ -230,7 +230,7 @@ Please see our [contributing guidelines](CONTRIBUTING.md) for more information ð
 Priority:
 
 * [x] allow passing new arguments by CLI (with warning and no actual merge)
-* [ ] add a routine to check if a tag is in a key and robust to all other
+* [x] add a routine to check if a tag is in a key and robust to all other
   possible tags
 * [ ] add an integration test with all built-in processing (and more)
 
