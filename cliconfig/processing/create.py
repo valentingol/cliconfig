@@ -5,7 +5,7 @@ from typing import Callable, Optional, Set
 
 from cliconfig.base import Config
 from cliconfig.processing.base import Processing
-from cliconfig.tag_routines import clean_all_tags, clean_tag
+from cliconfig.tag_routines import clean_all_tags, clean_tag, is_tag_in
 
 
 class _ProcessingValue(Processing):
@@ -13,7 +13,7 @@ class _ProcessingValue(Processing):
 
     def __init__(
         self,
-        regex: str,
+        regex: Optional[str],
         tag_name: Optional[str],
         order: float,
         func: Callable,
@@ -23,13 +23,16 @@ class _ProcessingValue(Processing):
         self.regex = regex
         self.tag_name = tag_name
         self.func = func
+        if self.regex:
+            self.is_in_func = lambda key: re.match(self.regex, key.split('.')[-1])
+        else:
+            self.is_in_func = lambda key: is_tag_in(key, self.tag_name)
 
     def premerge(self, flat_config: Config) -> Config:
         """Pre-merge processing."""
         items = list(flat_config.dict.items())
         for flat_key, value in items:
-            end_key = flat_key.split('.')[-1]
-            if re.match(self.regex, end_key):
+            if self.is_in_func(flat_key):  # type: ignore
                 if self.tag_name:
                     del flat_config.dict[flat_key]
                     flat_key = clean_tag(flat_key, self.tag_name)
@@ -42,7 +45,7 @@ class _ProcessingValuePersistent(Processing):
 
     def __init__(
         self,
-        regex: str,
+        regex: Optional[str],
         tag_name: Optional[str],
         order: float,
         func: Callable,
@@ -53,13 +56,16 @@ class _ProcessingValuePersistent(Processing):
         self.tag_name = tag_name
         self.func = func
         self.matched_keys: Set[str] = set()
+        if self.regex:
+            self.is_in_func = lambda key: re.match(self.regex, key.split('.')[-1])
+        else:
+            self.is_in_func = lambda key: is_tag_in(key, self.tag_name)
 
     def premerge(self, flat_config: Config) -> Config:
         """Pre-merge processing."""
         items = list(flat_config.dict.items())
         for flat_key, value in items:
-            end_key = flat_key.split('.')[-1]
-            if (re.match(self.regex, end_key)
+            if (self.is_in_func(flat_key)  # type: ignore
                     or clean_all_tags(flat_key) in self.matched_keys):
                 self.matched_keys.add(clean_all_tags(flat_key))
                 if self.tag_name:
@@ -137,7 +143,6 @@ def create_processing_value(
     if tag_name is not None:
         if regex is not None:
             raise ValueError("You must provide a tag or a regex but not both.")
-        regex = f'.*@{tag_name}.*'
     else:
         if regex is None:
             raise ValueError("You must provide a tag or a regex "
