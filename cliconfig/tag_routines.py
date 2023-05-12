@@ -73,3 +73,35 @@ def dict_clean_tags(flat_dict: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str
             clean_dict[clean_all_tags(key)] = value
             tagged_keys.append(key)
     return clean_dict, tagged_keys
+
+
+def is_tag_in(flat_key: str, tag_name: str, *, full_key: bool = False) -> bool:
+    """Check if a tag is in a flat key.
+
+    The tag name must be the exact name. For instance the tag "@tag" is not
+    found if the key is only tagged with "@tag_2".
+
+    Parameters
+    ----------
+    flat_key : str
+        The flat key to check.
+    tag_name : str
+        The name of the tag to check, with or without the '@' prefix.
+    full_key : bool, optional
+        If True, check for the full key. If False, check for the last part of
+        the flat key (after the last dot) that correspond to the parameter name.
+        By default, False.
+
+    Returns
+    -------
+    bool
+        True if the tag is in the flat key, False otherwise.
+    """
+    if tag_name[0] == "@":
+        tag_name = tag_name[1:]
+    if not full_key:
+        flat_key = flat_key.split('.')[-1]
+    is_in = (flat_key.endswith(f"@{tag_name}")
+             or f"@{tag_name}@" in flat_key
+             or f"@{tag_name}." in flat_key)
+    return is_in
