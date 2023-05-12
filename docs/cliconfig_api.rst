@@ -6,11 +6,10 @@ CLI Config API
 
    cliconfig.processing
 
+cliconfig.config\_routines
+--------------------------
 
-cliconfig.build\_config
------------------------
-
-.. automodule:: cliconfig.build_config
+.. automodule:: cliconfig.config_routines
    :members:
    :undoc-members:
    :show-inheritance:
