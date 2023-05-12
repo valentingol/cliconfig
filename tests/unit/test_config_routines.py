@@ -1,10 +1,13 @@
 """Tests for config.py."""
+import os
+import shutil
 import sys
 
 import pytest
 import pytest_check as check
 
-from cliconfig.build_config import load_config, make_config
+from cliconfig.base import Config
+from cliconfig.config_routines import load_config, make_config, save_config, show_config
 
 
 def test_make_config(capsys: pytest.CaptureFixture) -> None:
@@ -19,7 +22,7 @@ def test_make_config(capsys: pytest.CaptureFixture) -> None:
         "--unknown2=8",  # check that not error but a warning in console
     ]
     capsys.readouterr()  # Clear stdout and stderr
-    config, _ = make_config(
+    config = make_config(
         "tests/configs/default1.yaml",
         "tests/configs/default2.yaml"
     )
@@ -43,14 +46,14 @@ def test_make_config(capsys: pytest.CaptureFixture) -> None:
         "[CONFIG] Info: Merged 2 default config(s), "
         "2 additional config(s) and 1 CLI parameter(s).\n"
     )
-    check.equal(config, expected_config)
+    check.equal(config.dict, expected_config)
     check.equal(out, expected_out)
 
     # No additional configs
     sys.argv = [
         "tests/test_make_config.py.py",
     ]
-    config, _ = make_config(
+    config = make_config(
         "tests/configs/default1.yaml",
         "tests/configs/default2.yaml")
     expected_config = {
@@ -64,7 +67,7 @@ def test_make_config(capsys: pytest.CaptureFixture) -> None:
             "letter4": "d",
         },
     }
-    check.equal(config, expected_config)
+    check.equal(config.dict, expected_config)
 
     sys.argv = sys_argv.copy()
 
@@ -72,7 +75,7 @@ def test_make_config(capsys: pytest.CaptureFixture) -> None:
 def test_load_config() -> None:
     """Test and load_config."""
     # With default configs
-    config, _ = load_config(
+    config = load_config(
         "tests/configs/config2.yaml",
         default_config_paths=[
             "tests/configs/default1.yaml",
@@ -90,7 +93,7 @@ def test_load_config() -> None:
             "letter4": "d",
         },
     }
-    check.equal(config, expected_config)
+    check.equal(config.dict, expected_config)
     # Additional keys when allow_new_keys=False
     with pytest.raises(ValueError, match="New parameter found 'param3'.*"):
         load_config(
@@ -99,3 +102,16 @@ def test_load_config() -> None:
                 "tests/configs/default1.yaml",
             ],
         )
+
+
+def test_show_config() -> None:
+    """Test show_config."""
+    show_config(Config({"a": 1, "b": {"c": 2, "d": 3}, "e": "f"}, []))
+
+
+def test_save_config() -> None:
+    """Test save_config."""
+    config = Config({"a": 1, "b": {"c": 2, "d": 3}, "e": "f"}, [])
+    save_config(config, "tests/tmp/config.yaml")
+    check.is_true(os.path.exists("tests/tmp/config.yaml"))
+    shutil.rmtree("tests/tmp")

@@ -1,213 +1,221 @@
 """Routines to manipulate dictionaries with processing."""
-from typing import Any, Dict, List, Tuple, Union
+from typing import List, Optional, Union
 
-from cliconfig.dict_routines import _flat_before_merge, load_dict, merge_flat, save_dict
+from cliconfig.base import Config
+from cliconfig.dict_routines import (
+    _flat_before_merge,
+    flatten,
+    load_dict,
+    merge_flat,
+    save_dict,
+    unflatten,
+)
 from cliconfig.processing.base import Processing
 
 
 def merge_flat_processing(
-    dict1: Dict[str, Any],
-    dict2: Dict[str, Any],
-    processing_list: List[Processing],
+    config1: Config,
+    config2: Config,
     *,
     allow_new_keys: bool = True,
     preprocess_first: bool = True,
     preprocess_second: bool = True,
     postprocess: bool = True,
-) -> Tuple[Dict[str, Any], List[Processing]]:
-    """Flatten, merge dict2 into dict1 and apply pre and post processing.
+) -> Config:
+    """Flatten, merge config2 into config1 and apply pre and post processing.
 
-    Similar to :func:`cliconfig.dict_routines.merge_flat` but with processing
-    applied before and/or after the merge. Work even if the dicts have
-    a mix of nested and flat dictionaries.
+    Work even if the config dicts have a mix of nested and flat dictionaries.
+    If both arguments are configs, the process lists are merged before applying
+    the processing. The duplicate processings are removed.
 
     Parameters
     ----------
-    dict1 : Dict[str, Any]
-        The first dict. It can be nested, flat or a mix of both.
-    dict2 : Dict[str, Any]
-        The second dict to merge into dict1.
-    processing_list: List[Processing]
-        The list of processing to apply during the merge. Only premerge and
-        postmerge methods are applied. The order of the processing is given
-        by the premerge_order and postmerge_order attributes of the processing.
+    config1 : Config
+        The first config.
+    config2 : Config
+        The second dict to merge into config1.
     allow_new_keys : bool, optional
-        If True, new keys (that are not in dict1) are allowed in dict2.
-        By default True.
+        If True, new keys (that are not in config1) are allowed in config2.
+        Otherwise, it raises an error. By default True.
     preprocess_first : bool, optional
-        If True, apply pre*merge processing to dict1. By default True.
+        If True, apply pre-merge processing to config1. By default True.
     preprocess_second : bool, optional
-        If True, apply pre*merge processing to dict2. By default True.
+        If True, apply pre-merge processing to config2. By default True.
     postprocess : bool, optional
-        If True, apply post*merge processing to the merged dict. By default True.
+        If True, apply post-merge processing to the merged config. By default True.
 
     Raises
     ------
     ValueError
-        If allow_new_keys is False and dict2 has new keys that are not in dict1.
+        If allow_new_keys is False and config2 has new keys that are not in config1.
     ValueError
         If there are conflicting keys when flatten one of the dicts.
-        See last example. You may consider calling :func:`clean_pre_flat` on the input
-        dicts in that case.
 
     Returns
     -------
-    flat_dict : Dict[str, Any]
-        The flat dict (all keys are at the root and separated by dots).
-    processing_list : List[Processing]
-        The updated processing list.
+    flat_config : Config
+        The merged flat config.
     """
-    # Get the pre-merge and post-merge order
-    pre_order_list = sorted(processing_list, key=lambda x: x.premerge_order)
-    post_order_list = sorted(processing_list, key=lambda x: x.postmerge_order)
     # Flatten the dictionaries
-    flat_dict1, flat_dict2 = _flat_before_merge(dict1, dict2)
-    # Apply the premerge processing
-    for processing in pre_order_list:
-        if preprocess_first:
-            flat_dict1 = processing.premerge(flat_dict1, processing_list)
-            if hasattr(processing, "processing_list"):
-                # Get the eventually updated list from attribute
-                processing_list = processing.processing_list
-        if preprocess_second:
-            flat_dict2 = processing.premerge(flat_dict2, processing_list)
-            if hasattr(processing, "processing_list"):
-                # Get the eventually updated list from attribute
-                processing_list = processing.processing_list
+    config1.dict, config2.dict = _flat_before_merge(config1.dict, config2.dict)
+    # Get the process list of the merge
+    process_list = config1.process_list
+    for process in config2.process_list:
+        # NOTE 2 processings are equal if they are the same class and add the same
+        # attributes.
+        if process not in process_list:
+            process_list.append(process)
+    # Apply the pre-merge processing
+    if preprocess_first:
+        config1.process_list = process_list
+        pre_order_list = sorted(process_list, key=lambda x: x.premerge_order)
+        for processing in pre_order_list:
+            config1 = processing.premerge(config1)
+        process_list = config1.process_list
+    if preprocess_second:
+        config2.process_list = process_list
+        pre_order_list = sorted(process_list, key=lambda x: x.premerge_order)
+        for processing in pre_order_list:
+            config2 = processing.premerge(config2)
+        process_list = config2.process_list
     # Merge the dictionaries
-    flat_dict = merge_flat(flat_dict1, flat_dict2, allow_new_keys=allow_new_keys)
+    flat_dict = merge_flat(config1.dict, config2.dict, allow_new_keys=allow_new_keys)
+    # Create the new config
+    flat_config = Config(flat_dict, process_list)
     # Apply the postmerge processing
-    for processing in post_order_list:
-        if postprocess:
-            flat_dict = processing.postmerge(flat_dict, processing_list)
-            if hasattr(processing, "processing_list"):
-                # Get the eventually updated list from attribute
-                processing_list = processing.processing_list
-    return flat_dict, processing_list
+    if postprocess:
+        post_order_list = sorted(process_list, key=lambda x: x.postmerge_order)
+        for processing in post_order_list:
+            flat_config = processing.postmerge(flat_config)
+    return flat_config
 
 
 def merge_flat_paths_processing(
-    dict_or_path1: Union[str, Dict[str, Any]],
-    dict_or_path2: Union[str, Dict[str, Any]],
-    processing_list: List[Processing],
+    config_or_path1: Union[str, Config],
+    config_or_path2: Union[str, Config],
     *,
+    additional_process: Optional[List[Processing]] = None,
     allow_new_keys: bool = True,
     preprocess_first: bool = True,
     preprocess_second: bool = True,
     postprocess: bool = True,
-) -> Tuple[Dict[str, Any], List[Processing]]:
-    """Flatten, merge and apply processing to two dictionaries or their yaml paths.
+) -> Config:
+    """Flatten, merge and apply processing to two configs or their yaml paths.
 
-    Similar to :func:`cliconfig.dict_routines.merge_flat_paths` but with processing
-    applied before and/or after the merge. It is also similar to
-    :func:`merge_flat_processing` but allows to pass dictionaries or yaml paths.
-    Work even if the dicts have a mix of nested and flat dictionaries.
+    Similar to :func:`merge_flat_processing` but allows to pass configs
+    or yaml paths. Work even if the configs have a mix of nested and flat dicts.
+    If both arguments are configs, the process lists are merged before applying
+    the processing. The duplicate processings are removed.
 
     Parameters
     ----------
-    dict_or_path1 : Union[str, Dict[str, Any]]
-        The first dict or its path.
-    dict_or_path2 : Union[str, Dict[str, Any]]
-        The second dict or its path, to merge into first dict.
-    processing_list: List[Processing]
-        The list of processing to apply during the merge. Only premerge and
-        postmerge methods are applied. The order of the processing is given
-        by the premerge_order and postmerge_order attributes of the processing.
+    config_or_path1 : Union[str, Config]
+        The first config or its path.
+    config_or_path2 : Union[str, Config]
+        The second config or its path, to merge into first config.
+    additional_process : Optional[List[Processing]], optional
+        Additional processings to apply to the merged config. It can
+        be useful to merge a config from its path while it has some specific
+        processings.
     allow_new_keys : bool, optional
-        If True, new keys (that are not in dict1) are allowed in dict2.
-        By default True.
+        If True, new keys (that are not in config1) are allowed in config2.
+        Otherwise, it raises an error. By default True.
     preprocess_first : bool, optional
-        If True, apply pre-merge processing to dict1. By default True.
+        If True, apply pre-merge processing to config1. By default True.
     preprocess_second : bool, optional
-        If True, apply pre-merge processing to dict2. By default True.
+        If True, apply pre-merge processing to config2. By default True.
     postprocess : bool, optional
-        If True, apply post-merge processing to the merged dict. By default True.
+        If True, apply post-merge processing to the merged config. By default True.
 
     Raises
     ------
     ValueError
-        If allow_new_keys is False and dict2 has new keys that are not in dict1.
+        If allow_new_keys is False and config2 has new keys that are not in config1.
     ValueError
         If there are conflicting keys when flatten one of the dicts.
-        See last example. You may consider calling :func:`clean_pre_flat` on the input
-        dicts in that case.
 
     Returns
     -------
-    flat_dict : Dict[str, Any]
-        The flat dict (all keys are at the root and separated by dots).
-    processing_list : List[Processing]
-        The updated processing list.
+    flat_config : Config
+        The merged flat config.
     """
-    dicts = []
-    for dict_or_path in [dict_or_path1, dict_or_path2]:
-        if isinstance(dict_or_path, str):
-            _dict = load_dict(dict_or_path)
+    configs = []
+    for config_or_path in [config_or_path1, config_or_path2]:
+        if isinstance(config_or_path, str):
+            config_dict = load_dict(config_or_path)
+            config = Config(config_dict, [])
+        elif isinstance(config_or_path, Config):
+            config = config_or_path
+        elif isinstance(config_or_path, dict):
+            raise ValueError(
+                "config_or_path must be a Config instance or a path to a yaml file "
+                "but you passed a dict. If you want to use it as a valid input, "
+                "you should use Config(<input dict>, []) instead."
+            )
         else:
-            _dict = dict_or_path
-        dicts.append(_dict)
-    dict1, dict2 = dicts[0], dicts[1]
-    flat_dict, processing_list = merge_flat_processing(
-        dict1,
-        dict2,
-        processing_list,
+            raise ValueError(
+                "config_or_path must be a Config instance or a path to a yaml file."
+            )
+        configs.append(config)
+    config1, config2 = configs[0], configs[1]
+    if additional_process is not None:
+        config1.process_list.extend(additional_process)
+        config2.process_list.extend(additional_process)
+    flat_config = merge_flat_processing(
+        config1,
+        config2,
         allow_new_keys=allow_new_keys,
         preprocess_first=preprocess_first,
         preprocess_second=preprocess_second,
         postprocess=postprocess,
     )
-    return flat_dict, processing_list
+    return flat_config
 
 
-def save_processing(
-    in_dict: Dict[str, Any],
-    path: str,
-    processing_list: List[Processing]
-) -> None:
-    """Save a dict and apply pre-save processing before saving.
+def save_processing(config: Config, path: str) -> None:
+    """Save a config and apply pre-save processing before saving.
 
     Parameters
     ----------
-    in_dict : Dict[str, Any]
-        The dict to save.
+    config : Config
+        The config to save.
     path : str
-        The path to the yaml file to save the dict.
-    processing_list: List[Processing]
-        The list of processing to apply before saving. Only presave
-        method is applied. The order of the processing is given
-        by the presave_order attribute of the processing.
+        The path to the yaml file to save the config dict.
     """
+    config.dict = flatten(config.dict)
     # Get the pre-save order
-    order_list = sorted(processing_list, key=lambda x: x.presave_order)
+    order_list = sorted(config.process_list, key=lambda x: x.presave_order)
     # Apply the pre-save processing
     for processing in order_list:
-        in_dict = processing.presave(in_dict, processing_list)
-    # Save the dict
-    save_dict(in_dict, path)
+        config = processing.presave(config)
+    # Unflatten and save the dict
+    config.dict = unflatten(config.dict)
+    save_dict(config.dict, path)
 
 
-def load_processing(path: str, processing_list: List[Processing]) -> Dict[str, Any]:
-    """Load a dict from yaml file and apply post-load processing.
+def load_processing(path: str, process_list: List[Processing]) -> Config:
+    """Load a dict from yaml file path and apply post-load processing.
 
     Parameters
     ----------
     path : str
         The path to the file to load the dict.
-    processing_list: List[Processing]
-        The list of processing to apply after loading. Only postload
-        method is applied. The order of the processing is given
+    process_list: List[Processing]
+        The list of processing to apply after loading. Only post-load
+        processing is applied. The order of the processing is given
         by the postload_order attribute of the processing.
 
     Returns
     -------
-    out_dict: Dict[str, Any]
-        The loaded dict.
+    flat_config : Config
+        The loaded flat config.
     """
+    # Load the dict and flatten it
+    out_dict = flatten(load_dict(path))
+    flat_config = Config(out_dict, process_list)
     # Get the post-load order
-    order_list = sorted(processing_list, key=lambda x: x.postload_order)
-    # Load the dict
-    out_dict = load_dict(path)
+    order_list = sorted(process_list, key=lambda x: x.postload_order)
     # Apply the post-load processing
     for processing in order_list:
-        out_dict = processing.postload(out_dict, processing_list)
-    return out_dict
+        flat_config = processing.postload(flat_config)
+    return flat_config

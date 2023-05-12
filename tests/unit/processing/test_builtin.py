@@ -4,6 +4,7 @@ import re
 import pytest
 import pytest_check as check
 
+from cliconfig.base import Config
 from cliconfig.dict_routines import flatten
 from cliconfig.processing.builtin import (
     ProcessCheckTags,
@@ -22,7 +23,8 @@ def test_process_merge() -> None:
         "config1.param2": 1,
         "config2_path@merge_add": "tests/configs/merge/default2.yaml",
     }
-    flat_dict = processing.premerge(flat_dict, [processing])
+    flat_config = Config(flat_dict, [processing])
+    flat_config = processing.premerge(flat_config)
     expected_dict = {
         "config1.param1": 0,
         "config1.param2": 1,
@@ -33,7 +35,7 @@ def test_process_merge() -> None:
         "config2_path": "tests/configs/merge/default2.yaml",
         "config3_path": "tests/configs/merge/default3.yaml",
     }
-    check.equal(flat_dict, expected_dict)
+    check.equal(flat_config.dict, expected_dict)
 
     # Case of introducing a new key
     flat_dict = {
@@ -49,34 +51,37 @@ def test_process_merge() -> None:
             "already existing keys but key 'config3.param1'.*"
         )
     ):
-        processing.premerge(flat_dict, [processing])
+        processing.premerge(Config(flat_dict, [processing]))
 
     # Test @merge_before and @merge_after
     flat_dict = {
         "a.b": 1,
         "a.b_path@merge_after": "tests/configs/merge/additional2.yaml",
     }
-    flat_dict = processing.premerge(flat_dict, [processing])
+    flat_config = Config(flat_dict, [processing])
+    flat_config = processing.premerge(flat_config)
     expected_dict = {
         "a.b": 2,
         "a.b_path": "tests/configs/merge/additional2.yaml",
         "c_path": "tests/configs/merge/additional3.yaml",
         "c": 3,
     }
-    check.equal(flat_dict, expected_dict)
+    check.equal(flat_config.dict, expected_dict)
     flat_dict = {
         "a.b": 1,
         "a.b_path@merge_before": "tests/configs/merge/additional2.yaml",
         "c": 3,
     }
-    flat_dict = processing.premerge(flat_dict, [processing])
+    flat_config = Config(flat_dict, [processing])
+    flat_config = processing.premerge(flat_config)
     expected_dict = {
         "a.b": 1,
         "a.b_path": "tests/configs/merge/additional2.yaml",
         "c_path": "tests/configs/merge/additional3.yaml",
         "c": 3,
     }
-    check.equal(flat_dict, expected_dict)
+    check.equal(flat_config.dict, expected_dict)
+    check.equal(flat_config.process_list, [processing])
 
     # Not valid path
     for tag in ["merge_before", "merge_after", "merge_add"]:
@@ -88,7 +93,7 @@ def test_process_merge() -> None:
                 f"The problem occurs at key: a@{tag}"
             )
         ):
-            flat_dict = processing.premerge({f'a@{tag}': 'no_yaml'}, [processing])
+            processing.premerge(Config({f'a@{tag}': 'no_yaml'}, [processing]))
 
 
 def test_process_copy() -> None:
@@ -98,17 +103,22 @@ def test_process_copy() -> None:
         "config1.param1": 1,
         "config2.param2@copy": 'config1.param1',
     }
-    flat_dict = processing.premerge(flat_dict, [processing])
-    check.equal(flat_dict, {"config1.param1": 1, "config2.param2": 'config1.param1'})
-    flat_dict = processing.postmerge(flat_dict, [processing])
-    check.equal(flat_dict, {"config1.param1": 1, "config2.param2": 1})
-    flat_dict = processing.presave(flat_dict, [processing])
+    flat_config = Config(flat_dict, [processing])
+    flat_config = processing.premerge(flat_config)
+    check.equal(
+        flat_config.dict,
+        {"config1.param1": 1, "config2.param2": 'config1.param1'}
+    )
+    flat_config = processing.postmerge(flat_config)
+    check.equal(flat_config.dict, {"config1.param1": 1, "config2.param2": 1})
+    flat_config = processing.presave(flat_config)
     check.equal(processing.current_value, {"config2.param2": 1})
     check.equal(
-        flat_dict,
+        flat_config.dict,
         {"config1.param1": 1, "config2.param2@copy": 'config1.param1'}
     )
     check.equal(processing.keys_to_copy, {"config2.param2": "config1.param1"})
+    check.equal(flat_config.process_list, [processing])
     # Reset copy processing
     processing.keys_to_copy = {}
     # Case of wrong key
@@ -120,7 +130,7 @@ def test_process_copy() -> None:
             "The problem occurs at key: a@copy with value: True"
         )
     ):
-        flat_dict = processing.premerge({"a@copy": True}, [processing])
+        processing.premerge(Config({"a@copy": True}, [processing]))
     # Case of already existing @copy but associated to an other key
     processing.keys_to_copy = {"a": "b"}
     with pytest.raises(
@@ -130,7 +140,7 @@ def test_process_copy() -> None:
             "with value: c, previous value to copy: b"
         )
     ):
-        flat_dict = processing.premerge({"a@copy@tag": "c"}, [processing])
+        processing.premerge(Config({"a@copy@tag": "c"}, [processing]))
     # Case of non-existing key (on post-merge)
     processing.keys_to_copy = {"a": "b"}
     with pytest.raises(
@@ -140,7 +150,7 @@ def test_process_copy() -> None:
             "The problem occurs with key: a"
         )
     ):
-        flat_dict = processing.postmerge({"a": "b"}, [processing])
+        processing.postmerge(Config({"a": "b"}, [processing]))
     # Case overwriting a key
     processing.current_value = {"a": 2}
     with pytest.raises(
@@ -152,7 +162,7 @@ def test_process_copy() -> None:
             "b of value 1"
         )
     ):
-        flat_dict = processing.postmerge({"a": "c", "b": 1}, [processing])
+        processing.postmerge(Config({"a": "c", "b": 1}, [processing]))
 
 
 def test_process_typing() -> None:
@@ -162,21 +172,31 @@ def test_process_typing() -> None:
         "param1@type:int": 1,
         "param2@type:List|Dict": [0.0],
     }
-    flat_dict = processing.premerge(flat_dict, [processing])
-    flat_dict['param1'] = 3
-    flat_dict['param2'] = {'a': None, 'b': 1}
-    flat_dict = flatten(flat_dict)
-    flat_dict = processing.postmerge(flat_dict, [processing])
-    check.equal(flat_dict, {"param1": 3, "param2.a": None, "param2.b": 1})
-    check.equal(processing.forced_types, {"param1": (int, ), "param2": (list, dict)})
-    check.equal(processing.type_desc, {"param1": "int", "param2": "List|Dict"})
-    flat_dict = processing.presave(flat_dict, [processing])
-    check.equal(flat_dict, {"param1@type:int": 3, "param2.a": None, "param2.b": 1})
+    flat_config = Config(flat_dict, [processing])
+    flat_config = processing.premerge(flat_config)
+    flat_config.dict['param1'] = 3
+    flat_config.dict['param2'] = {'a': None, 'b': 1}
+    flat_config.dict = flatten(flat_config.dict)
+    flat_config = processing.postmerge(flat_config)
+    check.equal(flat_config.dict, {"param1": 3, "param2.a": None, "param2.b": 1})
+    check.equal(
+        flat_config.process_list[0].forced_types,  # type: ignore
+        {"param1": (int, ), "param2": (list, dict)}
+    )
+    check.equal(
+        flat_config.process_list[0].type_desc,  # type: ignore
+        {"param1": "int", "param2": "List|Dict"}
+    )
+    flat_config = processing.presave(flat_config)
+    check.equal(
+        flat_config.dict,
+        {"param1@type:int": 3, "param2.a": None, "param2.b": 1}
+    )
     processing.forced_types = {}  # Reset forced types
     processing.type_desc = {}  # Reset type description
 
     # Case of different type on pre-merge: do not raise error!
-    flat_dict = processing.premerge({"param@type:int": "str"}, [processing])
+    processing.premerge(Config({"param@type:int": "str"}, [processing]))
 
     # Case of already existing type and othere in premerge
     processing.forced_types = {"param": (int,)}
@@ -188,7 +208,7 @@ def test_process_typing() -> None:
             "to an other type: int. Find problem at key: param@type:str"
         )
     ):
-        flat_dict = processing.premerge({"param@type:str": "str"}, [processing])
+        processing.premerge(Config({"param@type:str": "str"}, [processing]))
 
     # Case of wrong type in postmerge
     processing.forced_types = {"param": (int,)}
@@ -201,7 +221,7 @@ def test_process_typing() -> None:
             "value: mystr of type <class 'str'> at key: param"
         )
     ):
-        flat_dict = processing.postmerge({"param": "mystr"}, [processing])
+        processing.postmerge(Config({"param": "mystr"}, [processing]))
 
 
 def test_process_check_tags() -> None:
@@ -211,7 +231,8 @@ def test_process_check_tags() -> None:
         "config.param1": 1,
         "param1": 2,
     }
-    check.equal(processing.premerge(flat_dict, [processing]), flat_dict)
+    config = Config(flat_dict, [processing])
+    check.equal(processing.premerge(config).dict, flat_dict)
 
     flat_dicts = [{'param1@tag': 1}, {'@foo': 2}, {'@': 3}]
     for flat_dict in flat_dicts:
@@ -222,4 +243,4 @@ def test_process_check_tags() -> None:
                 "the pre-merge process.*"
             )
         ):
-            processing.premerge(flat_dict, [processing])
+            processing.premerge(Config(flat_dict, [processing]))
