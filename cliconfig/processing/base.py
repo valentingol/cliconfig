@@ -1,6 +1,5 @@
 """Base class for processing."""
-# pylint: disable=attribute-defined-outside-init
-from typing import Any, Dict
+from cliconfig.base import Config
 
 
 class Processing():
@@ -11,69 +10,46 @@ class Processing():
         self.postmerge_order = 0.0
         self.presave_order = 0.0
         self.postload_order = 0.0
-        # Create a list_processing attribute if your processing needs to use
-        # processing routines (merge_flat_processing, save_processing, load_processing)
 
-    # pylint: disable=unused-argument
-    def premerge(
-        self,
-        flat_dict: Dict[str, Any],
-        processing_list: list,  # noqa
-    ) -> Dict[str, Any]:
+    def premerge(self, flat_config: Config) -> Config:
         """Pre-merge processing.
 
-        Function that can be applied to the flat dict to modify it
-        before merging . It takes a flat dict and returns a flat dict.
+        Function that can be applied to the flat config to modify it
+        before merging . It takes a flat config and returns a flat config.
         """
-        if hasattr(self, 'list_processing'):
-            # Update the list processing to pass it to the next processing
-            self.list_processing = processing_list  # noqa
-        return flat_dict
+        return flat_config
 
-    # pylint: disable=unused-argument
-    def postmerge(
-        self,
-        flat_dict: Dict[str, Any],
-        processing_list: list,  # noqa
-    ) -> Dict[str, Any]:
+    def postmerge(self, flat_config: Config) -> Config:
         """Post-merge processing.
 
-        Function that can be applied to the flat dict to modify it
-        after merging . It takes a flat dict and returns a flat dict.
+        Function that can be applied to the flat config to modify it
+        after merging . It takes a flat config and returns a flat config.
         """
-        if hasattr(self, 'list_processing'):
-            # Update the list processing to pass it to the next processing
-            self.list_processing = processing_list
-        return flat_dict
+        return flat_config
 
-    # pylint: disable=unused-argument
-    def presave(
-        self,
-        flat_dict: Dict[str, Any],
-        processing_list: list,  # noqa
-    ) -> Dict[str, Any]:
+    def presave(self, flat_config: Config) -> Config:
         """Pre-save processing.
 
-        Function applied to the flat dict to modify it before
-        saving it. It takes a flat dict and returns a flat dict.
+        Function applied to the flat config to modify it before
+        saving it. It takes a flat config and returns a flat config.
         """
-        if hasattr(self, 'list_processing'):
-            # Update the list processing to pass it to the next processing
-            self.list_processing = processing_list
-        return flat_dict
+        return flat_config
 
-    # pylint: disable=unused-argument
-    def postload(
-        self,
-        flat_dict: Dict[str, Any],
-        processing_list: list,  # noqa
-    ) -> Dict[str, Any]:
+    def postload(self, flat_config: Config) -> Config:
         """Post-load processing.
 
-        Function applied to the flat dict to modify it after
-        loading it. It takes a flat dict and returns a flat dict.
+        Function applied to the flat config to modify it after
+        loading it. It takes a flat config and returns a flat config.
         """
-        if hasattr(self, 'list_processing'):
-            # Update the list processing to pass it to the next processing
-            self.list_processing = processing_list
-        return flat_dict
+        return flat_config
+
+    def __eq__(self, __value: object) -> bool:
+        """Equality operator.
+
+        Two processing are equal if they are the same class and add the same
+        attributes (get with __dict__).
+        """
+        equal = (
+            isinstance(__value, self.__class__) and self.__dict__ == __value.__dict__
+        )
+        return equal
