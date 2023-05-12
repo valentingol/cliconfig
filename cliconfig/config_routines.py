@@ -12,12 +12,7 @@ from cliconfig.process_routines import (
     save_processing,
 )
 from cliconfig.processing.base import Processing
-from cliconfig.processing.builtin import (
-    ProcessCheckTags,
-    ProcessCopy,
-    ProcessMerge,
-    ProcessTyping,
-)
+from cliconfig.processing.builtin import DefaultProcessings
 from cliconfig.tag_routines import clean_all_tags
 
 
@@ -75,12 +70,7 @@ def make_config(
     if process_list is None:
         process_list_: List[Processing] = []
     if add_default_processing:
-        process_list_.extend([
-            ProcessCheckTags(),
-            ProcessTyping(),
-            ProcessCopy(),
-            ProcessMerge(),
-        ])
+        process_list_ += DefaultProcessings().list
 
     config = Config({}, process_list_)
 
@@ -88,7 +78,7 @@ def make_config(
     additional_config_paths, cli_params_dict = parse_cli(sys.argv)
     for i, paths in enumerate([default_config_paths, additional_config_paths]):
         # Allow new keys for default configs only
-        allow_new_keys = (i == 0)
+        allow_new_keys = i == 0
         for path in paths:
             config = merge_flat_paths_processing(
                 config,
@@ -169,12 +159,7 @@ def load_config(
     if process_list is None:
         process_list_ = []
     if add_default_processing:
-        process_list_.extend([
-            ProcessTyping(),
-            ProcessCheckTags(),
-            ProcessCopy(),
-            ProcessMerge(),
-        ])
+        process_list_ += DefaultProcessings().list
 
     config = Config({}, process_list_)
     if default_config_paths:
