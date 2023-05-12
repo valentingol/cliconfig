@@ -130,6 +130,9 @@ to be cautious because tagging a key modifies its name and can lead to conflicts
 when using processing. To address this issue, we provide tag routines in
 `cliconfig.tag_routines`. These routines include:
 
+* `is_tag_in`: Checks if a tag is in a key. It look for the exact tag name.
+  If `full_key` is True, it looks for all the fkat key, including sub-configs
+  (default: False)
 * `clean_tag`: Removes a specific tag (based on its exact name) from a key.
   It is helpful to remove the tag after pre-merging.
 * `clean_all_tags`: Removes all tags from a key. This is helpful each time you
@@ -156,8 +159,7 @@ class ProcessProtect(Processing):
         # Browse a freeze version of the dict
         items = list(flat_config.dict.items())
         for flat_key, value in items:
-            end_key = flat_key.split(".")[-1]  # parameter name
-            if "@protect" in end_key:
+            if is_tag_in(flat_key, "protect"):
                 # Remove the tag and update the dict
                 new_key = clean_tag(flat_key, "protect")
                 del flat_config.dict[flat_key]
