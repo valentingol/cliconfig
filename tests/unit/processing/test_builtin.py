@@ -111,13 +111,14 @@ def test_process_copy() -> None:
         flat_config.dict,
         {"config1.param1": 1, "config2.param2": 'config1.param1'}
     )
+    flat_config.dict["config1.param1"] = 2
     flat_config = processing.postmerge(flat_config)
-    check.equal(flat_config.dict, {"config1.param1": 1, "config2.param2": 1})
+    check.equal(flat_config.dict, {"config1.param1": 2, "config2.param2": 2})
     flat_config = processing.presave(flat_config)
-    check.equal(processing.current_value, {"config2.param2": 1})
+    check.equal(processing.current_value, {"config2.param2": 2})
     check.equal(
         flat_config.dict,
-        {"config1.param1": 1, "config2.param2@copy": 'config1.param1'}
+        {"config1.param1": 2, "config2.param2@copy": 'config1.param1'}
     )
     check.equal(processing.keys_to_copy, {"config2.param2": "config1.param1"})
     check.equal(flat_config.process_list, [processing])
