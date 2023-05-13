@@ -4,7 +4,7 @@ Classes to apply pre-merge, post-merge, pre-save and post-load modifications
 to dict with processing routines (found in cliconfig.process_routines).
 """
 # pylint: disable=unused-argument
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Set
 
 from cliconfig.base import Config
 from cliconfig.process_routines import (
@@ -278,6 +278,22 @@ class ProcessTyping(Processing):
         The type is not checked on pre-merge to allow the parameter to be
         updated (by a copy or a merge for instance). The goal of this
         processing is to ensure the type at the end of the post-merge.
+
+    Examples
+    --------
+    ::
+
+        dict1 = {param@type:None|List[int|float]: None}
+        dict2 = {param: [0, 1, 2.0]}  # no error
+        dict3 = {param: [0, 1, 2.0, 'a']}  # error
+
+    Merge configs with dictionnaries dict1 and dict2 raise no error and `param`
+    is forced to be None or a list of int or float forever. Merge dict1
+    and dict3 raise an error on post-merge because of the 'a' value.
+
+    Note that removing "None|" in the type description still doesn't raise an error
+    in the first case because the type checking is evaluated after the merge with
+    dict2.
     """
 
     def __init__(self) -> None:
@@ -341,6 +357,112 @@ class ProcessTyping(Processing):
         return flat_config
 
 
+class ProcessSelect(Processing):
+    """Select a sub-config with and delete the rest of its parent config.
+
+    First look for a parameter tagged with '@select' containing a flat key
+    corresponding to a sub-configurations to keep. The parent configuration
+    is then deleted on pre-merge, except the selected sub-configuration
+    and eventually the tagged parameter (if it is in the same sub-configuration).
+    It is also possible to select multiple keys of a same sub-configuration
+    (meaning that the part before the last dot must be equal) by passing a
+    list of flat keys.
+
+    Examples
+    --------
+    .. code-block:: yaml
+
+        models:
+            model_names@select: [models.model1, models.model3]
+            model1:
+                param1: 1
+                param2: 2
+            model2:
+                param1: 3
+                param2: 4
+            model3:
+                submodel:
+                    param: 5
+            model4:
+                param: 6
+
+    Result in deleting models.model2 (param1 and param2) and models.model4.param,
+    and keeping the rest.
+
+    Warning
+    -------
+
+        For security reasons, it prevents from deleting the configuration at the root
+        (which is the case when the selected key doesn't contain a dot),
+        and raises an error in this case.
+
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        # Slighly negative to prevent the use of tags involving keys to delete
+        self.premerge_order = -5.0
+        self.keys_that_select: Set[str] = set()
+
+    def premerge(self, flat_config: Config) -> Config:
+        """Pre-merge processing."""
+        items = list(flat_config.dict.items())
+        for flat_key, val in items:
+            # NOTE: Check if flat_key is in dict in case of deletion
+            if flat_key in flat_config.dict and is_tag_in(flat_key, "select"):
+                # Remove the tag
+                clean_key = clean_all_tags(flat_key)
+                del flat_config.dict[flat_key]
+                flat_config.dict[clean_tag(flat_key, "select")] = val
+                self.keys_that_select.add(clean_key)
+                if isinstance(val, str):
+                    subconfig = ".".join(flat_key.split(".")[:-1])
+                    keys_to_keep = [clean_key, val]
+                elif isinstance(val, list):
+                    subconfig = ".".join(val[0].split(".")[:-1])
+                    for key in val[1:]:
+                        subconfig2 = ".".join(key.split(".")[:-1])
+                        if subconfig != subconfig2:
+                            raise ValueError(
+                                "The keys in the list of parameters tagged with "
+                                "'@select' must be identical before the last dot "
+                                f"(= on the same subconfig). Find: {subconfig} and "
+                                f"{subconfig2} before the last dot."
+                            )
+                    keys_to_keep = [clean_key] + val
+                else:
+                    raise ValueError(
+                        "The value of parameters tagged with '@select' must be a "
+                        "string or a list of strings representing flat key(s). "
+                    )
+                subconfig = clean_all_tags(subconfig)
+                if subconfig == "":
+                    raise ValueError(
+                        "Find attempt to delete the configuration at the root. You "
+                        "must pass a flat key with a least one dot on parameter "
+                        f"tagged with @select. Find key: {flat_key} with value: {val}"
+                    )
+                # Delete all keys on the subconfig except the ones to keep
+                for key in list(flat_config.dict.keys()):
+                    clean_key = clean_all_tags(key)
+                    if (clean_key.startswith(subconfig)
+                            and not any(clean_key.startswith(key_to_keep)
+                                        for key_to_keep in keys_to_keep)):
+                        del flat_config.dict[key]
+        return flat_config
+
+    def presave(self, flat_config: Config) -> Config:
+        """Pre-save processing."""
+        # Restore the tag with the type to keep the information
+        # on further loading
+        for key in self.keys_that_select:
+            if key in flat_config.dict:
+                new_key = key + "@select"
+                flat_config.dict[new_key] = flat_config.dict[key]
+                del flat_config.dict[key]
+        return flat_config
+
+
 class ProcessCheckTags(Processing):
     """Raise an error if a tag is present in a key after pre-merging processes.
 
@@ -388,6 +510,8 @@ class DefaultProcessings():
      * ProcessCopy (@copy): persistently copy a value from one key to an other
        and protect it
      * ProcessTyping (@type:X): force the type of parameter to any type X.
+     * ProcessSelect (@select): select sub-config(s) to keep and delete the
+       other sub-configs in the same parent config.
     """
 
     def __init__(self) -> None:
@@ -396,4 +520,5 @@ class DefaultProcessings():
             ProcessMerge(),
             ProcessCopy(),
             ProcessTyping(),
+            ProcessSelect()
         ]

@@ -24,6 +24,10 @@ def test_multiple_tags() -> None:
         "config2": {
             "param": 2,
         },
+        "config3": {
+            "select": "config3.param1",
+            "param1": 0,
+        },
     }
     check.equal(config.dict, expected_config)
     with pytest.raises(
