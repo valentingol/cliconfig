@@ -171,27 +171,33 @@ def test_process_typing() -> None:
     processing = ProcessTyping()
     flat_dict = {
         "param1@type:int": 1,
-        "param2@type:List|Dict": [0.0],
+        "param2@type:List[Optional[Dict[str, int|float]]]": [{'a': [0.0]}],
     }
     flat_config = Config(flat_dict, [processing])
     flat_config = processing.premerge(flat_config)
     flat_config.dict['param1'] = 3
-    flat_config.dict['param2'] = {'a': None, 'b': 1}
+    flat_config.dict['param2'] = {'a': None, 'b': [{'c': 1}]}
     flat_config.dict = flatten(flat_config.dict)
     flat_config = processing.postmerge(flat_config)
-    check.equal(flat_config.dict, {"param1": 3, "param2.a": None, "param2.b": 1})
+    check.equal(
+        flat_config.dict,
+        {"param1": 3, "param2.a": None, "param2.b": [{'c': 1}]}
+    )
     check.equal(
         flat_config.process_list[0].forced_types,  # type: ignore
-        {"param1": (int, ), "param2": (list, dict)}
+        {
+            "param1": (int, ),
+            "param2": (('list', ((type(None), ('dict', (str,), (int, float))),)),)
+        }
     )
     check.equal(
         flat_config.process_list[0].type_desc,  # type: ignore
-        {"param1": "int", "param2": "List|Dict"}
+        {"param1": "int", "param2": "List[Optional[Dict[str, int|float]]]"}
     )
     flat_config = processing.presave(flat_config)
     check.equal(
         flat_config.dict,
-        {"param1@type:int": 3, "param2.a": None, "param2.b": 1}
+        {"param1@type:int": 3, "param2.a": None, "param2.b": [{'c': 1}]}
     )
     processing.forced_types = {}  # Reset forced types
     processing.type_desc = {}  # Reset type description
