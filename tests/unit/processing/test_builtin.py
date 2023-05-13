@@ -11,6 +11,7 @@ from cliconfig.processing.builtin import (
     ProcessCheckTags,
     ProcessCopy,
     ProcessMerge,
+    ProcessSelect,
     ProcessTyping,
 )
 
@@ -229,6 +230,62 @@ def test_process_typing() -> None:
         )
     ):
         processing.postmerge(Config({"param": "mystr"}, [processing]))
+
+
+def test_process_select() -> None:
+    """Test ProcessSelect."""
+    processing = ProcessSelect()
+    flat_dict = {
+        "models.model_names@select": ["models.model1", "models.model3"],
+        "models.model1.param1": 1,
+        "models.model1.param2": 2,
+        "models.model2.param1": 3,
+        "models.model2.param2": 4,
+        "models.model3.submodel.param": 5,
+        "models.model4.param": 6,
+    }
+    expected_dict = {
+        "models.model_names": ["models.model1", "models.model3"],
+        "models.model1.param1": 1,
+        "models.model1.param2": 2,
+        "models.model3.submodel.param": 5,
+    }
+    config = Config(flat_dict, [])
+    config = processing.premerge(config)
+    check.equal(config.dict, expected_dict)
+    config = processing.presave(config)
+    check.is_in("models.model_names@select", config.dict)
+    check.equal(
+        config.dict["models.model_names@select"],
+        ["models.model1", "models.model3"]
+    )
+    check.is_not_in("models.model_names", config.dict)
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "The keys in the list of parameters tagged with '@select' must be "
+            "identical before the last dot (= on the same subconfig). Find: "
+            "abab and dede before the last dot."
+        )
+    ):
+        processing.premerge(Config({"p@select": ["abab.cdcd", "dede.fgfg"]}, []))
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "The value of parameters tagged with '@select' must be a string or a "
+            "list of strings representing flat key(s). "
+        )
+    ):
+        processing.premerge(Config({"p@select": 0}, []))
+    with pytest.raises(
+        ValueError,
+        match=(
+            "Find attempt to delete the configuration at the root. You must pass a "
+            "flat key with a least one dot on parameter tagged with @select. "
+            "Find key: p@select with value: root"
+        )
+    ):
+        processing.premerge(Config({"p@select": "root"}, []))
 
 
 def test_process_check_tags() -> None:
