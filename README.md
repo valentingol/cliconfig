@@ -140,10 +140,13 @@ The default tags include:
   that represents the flattened key. The copied value is then protected from further
   updates but will be updated if the copied key change during a merge.
 * `@type:<my type>`: This tag checks if the key matches the specified type `<my type>`
-   after each update, even if the tag is no longer present. It supports basic types
-   (except for tuples and sets, which are not handled by YAML) as well as unions
-   (using "Union" or "|"), optional values, nested list, and nested dict.
-   For instance: `@type:List[Dict[str, int|float]]`.
+  after each update, even if the tag is no longer present. It supports basic types
+  (except for tuples and sets, which are not handled by YAML) as well as unions
+  (using "Union" or "|"), optional values, nested list, and nested dict.
+  For instance: `@type:List[Dict[str, int|float]]`.
+* `@select`: This tag select sub-config(s) to keep and delete the other
+  sub-configs in the same parent config. The tagged key is not deleted if it is
+  in the parent config.
 
 The tags are applied in the following order: `@merge`, `@copy`, and then `@type`.
 
@@ -156,12 +159,18 @@ It is also possible to combine multiple tags. For example:
 ---  # main.yaml
 path_1@merge_add: sub1.yaml
 path_2@merge_add: sub2.yaml
+config3.select@select: "config3.param1"
+
 --- # sub1.yaml
 config1:
   param@copy@type:int: config2.param2
   param2@type:int: 1
+
 --- # sub2.yaml
 config2.param@type:None|int: 2
+config3:
+  param1: 0
+  param2: 1
 ```
 
 Here `main.yaml` is interpreted like:
@@ -170,16 +179,21 @@ Here `main.yaml` is interpreted like:
 path_1: sub1.yaml
 path_2: sub2.yaml
 config1:
-    param: 2  # the value of config2.param2
-    param2: 1
+  param: 2  # the value of config2.param2
+  param2: 1
 config2:
-    param: 2
+  param: 2
+config3:
+  select: "config3.param1"
+  param1: 0
 ```
 
-Now, all the parameters have a forced type and `config1.param2` will be
-update if `config2.param2` is updated during a merge. These side effects are not
-visible in the config but stored on processing classes. They are objects that
-catch the tags, remove them from config and apply a modification on the config.
+Then, all the parameters in `config1` and `config2` have enforced types
+(`config1.param` can also be None) and changing `config2.param` will also update
+`config1.param` accordingly (which is protected by direct update).
+
+These side effects are not visible in the config but stored on processing classes.
+They are objects that find the tags, remove them from config and apply a modification.
 These processing are powerful tools that can be used to highly customize the
 configuration process.
 

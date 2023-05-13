@@ -75,17 +75,21 @@ For instance with these config files:
 ---  # main.yaml
 path_1@merge_add: sub1.yaml
 path_2@merge_add: sub2.yaml
+config3.select@select: "config3.param1"
 
 --- # sub1.yaml
 config1:
-  param@copy@type:int: config2.param
-  param2@type:None|int: 1
+  param@copy@type:int: config2.param2
+  param2@type:int: 1
 
 --- # sub2.yaml
-config2.param@type:int: 2
+config2.param@type:None|int: 2
+config3:
+  param1: 0
+  param2: 1
 ```
 
-Here `main.yaml` will be interpreted like:
+Here `main.yaml` is interpreted like:
 
 ```yaml
 path_1: sub1.yaml
@@ -95,11 +99,14 @@ config1:
   param2: 1
 config2:
   param: 2
+config3:
+  select: "config3.param1"
+  param1: 0
 ```
 
-Then, all the parameters have enforced types (`config.param` can also be None)
-and changing `config2.param` will also update `config1.param` accordingly
-(which is protected by direct update).
+Then, all the parameters in `config1` and `config2` have enforced types
+(`config1.param` can also be None) and changing `config2.param` will also update
+`config1.param` accordingly (which is protected by direct update).
 
 See [*Processing*](https://cliconfig.readthedocs.io/en/stable/processing.html) section
 of the documentation for details on processing and how to create your own.
