@@ -135,7 +135,6 @@ def _isinstance(obj: object, types: Union[Type, Tuple]) -> bool:
 
     Intended to work with the outputs of _parse_type.
     """
-    print(types)
     if isinstance(types, type):
         return isinstance(obj, types)
     if types[0] == 'list' and len(types) == 2:
