@@ -101,7 +101,8 @@ The default tags include:
 * `@type:<my type>`: This tag checks if the key matches the specified type `<my type>`
    after each update, even if the tag is no longer present. It supports basic types
    (except for tuples and sets, which are not handled by YAML) as well as unions
-   (using "Union" or "|"), optional values, lists, and dictionaries.
+   (using "Union" or "|"), optional values, nested list, and nested dict.
+   For instance: `@type:List[Dict[str, int|float]]`.
 
 The tags are applied in the following order: `@merge`, `@copy`, and then `@type`.
 
