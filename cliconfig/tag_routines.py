@@ -78,8 +78,9 @@ def dict_clean_tags(flat_dict: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str
 def is_tag_in(flat_key: str, tag_name: str, *, full_key: bool = False) -> bool:
     """Check if a tag is in a flat key.
 
-    The tag name must be the exact name. For instance the tag "@tag" is not
-    found if the key is only tagged with "@tag_2".
+    The tag name must be the exact name, with or without the "@".
+    It supports the case where there are tags that are prefixes or suffixes of
+    the considered tag.
 
     Parameters
     ----------
