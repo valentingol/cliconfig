@@ -82,18 +82,18 @@ processings!
 
 ## Create basic processing
 
-### Pre-merge processing dealing with a single value at a time
+### Pre-merge processing that modify a single value
 
 The pre-merge processing is particularly useful as it allows you to modify the input
 config provided by the user and create the resulting Python dictionary that stores the
 configuration for your experiment. It serves as the interface between the user config
 and the final config.
 
-In a lot of cases, you may need to get parameters which names match a certain
+In some cases, you may need to get parameters which names match a certain
 patterns (e.g a prefix or a suffix) or contain a specific tag and modify their values
 depending on their current ones.
 
-To simplify this process, we provide the `cliconfig.create_processing_value` function.
+To simplify the creation of such a process, we provide the `cliconfig.create_processing_value` function.
 This function allows you to quickly create a processing that matches a regular
 expression or a specific tag name (in which case the tag is removed after pre-merging).
 You specify the function to be applied on the value to modify it, and optionally,
@@ -117,6 +117,40 @@ It's worth noting that you can also use functions that have side effects without
 necessarily changing the value itself. For example, you can use a function to
 check if a certain condition is met by the value.
 
+### Pre-merge/post-merge processing that protect a property from being modified
+
+An other useful kind of processing is a processing that ensure to keep a certain
+property on the value. For this kind of processing, you can use
+`cliconfig.create_processing_keep_property`. It takes a function that returns
+the property from the value, the regex or the tag name like the previous function,
+and the order of the pre-merge and the post-merge.
+
+The pre-merge processing looks for keys that match the tag or the regex, apply
+the function on the value and store the result (= the "property").
+The post-merge processing will check that the property is the same as the one
+stored during pre-merge. If not, it will raise an error.
+
+Examples:
+
+A processing that enforce the types of all the parameters to be constant
+(equal to the type of the first value encountered):
+
+```python
+create_processing_keep_property(type, regex=".*", premerge_order=15.0,
+                                postmerge_order=15.0)
+```
+
+A processing that protect parameters tagged with @protect from being changed:
+
+```python
+create_processing_keep_property(lambda x: x, tag_name="protect",
+                                premerge_order=15.0, postmerge_order=15.0)
+```
+
+Each time you choose the order `15.0` because it is a good values for processing that
+made checks on the values. Indeed processings that change the values such as
+`ProcessCopy` have an order that is generally <= 10.0.
+
 ## Create your processing classes (Advanced)
 
 To create your own processing classes and unlock more possibilities, you simply
@@ -130,6 +164,9 @@ to be cautious because tagging a key modifies its name and can lead to conflicts
 when using processing. To address this issue, we provide tag routines in
 `cliconfig.tag_routines`. These routines include:
 
+* `is_tag_in`: Checks if a tag is in a key. It look for the exact tag name.
+  If `full_key` is True, it looks for all the fkat key, including sub-configs
+  (default: False)
 * `clean_tag`: Removes a specific tag (based on its exact name) from a key.
   It is helpful to remove the tag after pre-merging.
 * `clean_all_tags`: Removes all tags from a key. This is helpful each time you
@@ -138,49 +175,55 @@ when using processing. To address this issue, we provide tag routines in
   dict along with a list of keys that contained tags. This is helpful to get all
   the parameter names of a full dict with tags.
 
-With these tools, we can write a processing, for example, that searches for the
-tag `"@protect"` and restores the value of a parameter after every merge.
-In other words, the value is protected from being changed by the user.
+With these tools, we can write a processing, for example, that searches for all
+parameters with a tag @look ant that prints their sorted values at the end of
+the post-merging.
 
 ```python
-class ProcessProtect(Processing):
-    """Prevent a value from being changed after merging."""
+class ProcessPrintSorted(Processing):
+    """Print the parameters tagged with "@look", sorted by value on post-merge."""
 
     def __init__(self) -> None:
         super().__init__()
-        self.protected_params: Dict[str, Any] = {}
+        self.looked_keys: Set[str] = set()
+        # Pre-merge just look for the tag so order is not important
+        self.premerge_order = 0.0
+        # Post-merge should be after the copy processing if we want the final values
+        # on post-merge
+        self.postmerge_order = 15.0
 
-    # NOTE: process_list will not be used here
     def premerge(self, flat_config: Config) -> Config:
         """Pre-merge processing."""
-        # Browse a freeze version of the dict
+        # Browse a freeze version of the dict (because we will modify it to remove tags)
         items = list(flat_config.dict.items())
         for flat_key, value in items:
-            end_key = flat_key.split(".")[-1]  # parameter name
-            if "@protect" in end_key:
+            if is_tag_in(flat_key, "look"):  # Check if the key contains the tag
                 # Remove the tag and update the dict
-                new_key = clean_tag(flat_key, "protect")
-                del flat_config.dict[flat_key]
+                new_key = clean_tag(flat_key, "look")
                 flat_config.dict[new_key] = value
-                # Store the value
+                del flat_config.dict[flat_key]
+                # Store the key
                 clean_key = clean_all_tags(key)  # remove all tags = true parameter name
-                self.protected_params[clean_key] = value
+                self.looked_keys.add(clean_key)
         return flat_config
 
     def postmerge(self, flat_config: Config) -> Config:
         """Post-merge processing."""
-        # Restore the values and print a warning if they were modified
-        for key, value in self.protected_params.items():
-            # (`if key in flat_dict:` is important: the dicts seen by the processing
-            # not necessarily contains all the same keys)
+        values = []
+        for key in self.looked_keys:
+            # IMPORTANT
+            # ("if key in flat_config.dict:" is important in case of some keys were
+            # removed or if multiple dicts with different parameters are seen by
+            # the processing)
             if key in flat_config.dict:
-                if flat_config.dict[key] != value:
-                    print(f"WARNING: protected key {key} was modified by the merge")
-                flat_config.dict[key] = value
+                values.append(flat_config.dict[key])
+        print("The sorted looked values are: ", sorted(values))
+        # If we don't want to keep the looked keys for further print:
+        self.looked_keys = set()
+
         return flat_config
 
-
-# Use it:
+# And to use it:
 config = make_config("main.yaml", process_list=[ProcessProtect()])
 ```
 
@@ -246,32 +289,59 @@ as value of the tagged key (as long as this config is on the default configs).
 
 Note that the processing functions receive the list of processing objects as an
 input and update as an attribute of the processing object. This means that it
-is possible to manually modify this list in processing functions to change internal
-variables, add or remove processing.
+is possible to manually modify this list in processing functions.
 
-One simple example is creating a processing that triggers only once and adds a
-list of processing to the processing list. This avoids the need to pass the entire
-list in the make_config function.
+**Disclaimer**: The processing list to apply during pre/post-merge, pre-save and
+post-load are determined before the first processing is applied. Therefore, you can't
+add or remove processing and expect it to be effective during the current merge/save/load.
+However, if you modify their internal variables it will be effective immediately.
+
+Here an example of a processing that remove the type check of a parameter in
+`ProcessTyping` processing. It is then possible for instance to force an other
+type (it is not possible otherwise).
 
 ```python
-class AddProcessList(Processing):
-    def __init__(self):
+from cliconfig.processing.builtin import ProcessTyping
+
+class ProcessBypassTyping(Processing):
+    """Bypass type check of ProcessTyping for parameters tagged with "@bypass_typing".
+
+    In pre-merge it looks for a parameter with the tag "@bypass_typing",
+    removes it and change the internal ProcessTyping variables to avoid
+    checking the type of the parameter with ProcessTyping.
+    """
+
+    def __init__(self) -> None:
         super().__init__()
-        self.process_list = [Process1(), Process2(), ...]
-        self.already_added = False
-        # Ensure that the processing trigger before all processing of the list:
-        self.premerge_order = -100.0
+        self.bypassed_forced_types: Dict[str, tuple] = {}
+        # Before ProcessTyping pre-merge to let it change the type
+        self.premerge_order = 1.0
 
     def premerge(self, flat_config: Config) -> Config:
-        if not self.already_added:
-            self.already_added = True
-            # NOTE: the order of the process list has no importance
-            flat_config.process_list += self.process_list
+        """Pre-merge processing."""
+        items = list(flat_config.dict.items())
+        for flat_key, value in items:
+            if is_tag_in(flat_key, "bypass_typing"):
+                new_key = clean_tag(flat_key, "bypass_typing")
+                flat_config.dict[new_key] = value
+                del flat_config.dict[flat_key]
+                clean_key = clean_all_tags(flat_key)
+                for processing in flat_config.process_list:
+                    if (isinstance(processing, ProcessTyping)
+                            and clean_key in processing.forced_types):
+                        forced_type = processing.forced_types.pop(clean_key)
+                        self.bypassed_forced_types[clean_key] = forced_type
         return flat_config
 
-config = make_config("main.yaml", process_list=[AddProcessList()])
-```
+# Without bypass:
+config1 = Config({"a@type:int": 0}, [ProcessBypassTyping(), ProcessTyping()])
+config2 = Config({"a@bypass_typing@type:str": "a"}, [])
+config = merge_flat_processing(config1, config2)
+# Error: try to change the forced type of "a" from int to str
 
-This way you can then even create named spaces of processing to organize them.
-The processing list is dynamic, use it as you want for more advanced use cases as
-long as you know what you are doing!
+# With bypass:
+config1 = Config({"a@type:int": 0}, [ProcessBypassTyping(), ProcessTyping()])
+config2 = Config({"a@bypass_typing@type:str": "a"}, [])
+config = merge_flat_processing(config1, config2)
+# No error
+```

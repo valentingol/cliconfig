@@ -18,12 +18,20 @@ from cliconfig.process_routines import (
     merge_flat_paths_processing,
     merge_flat_processing,
 )
-from cliconfig.processing.create import create_processing_value
+from cliconfig.processing.base import Processing
+from cliconfig.processing.builtin import DefaultProcessings
+from cliconfig.processing.create import (
+    create_processing_keep_property,
+    create_processing_value,
+)
 
 __all__ = [
     "__version__",
     "__version_tuple__",
     "Config",
+    "DefaultProcessings",
+    "Processing",
+    "create_processing_keep_property",
     "create_processing_value",
     "make_config",
     "load_config",

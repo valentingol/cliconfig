@@ -4,7 +4,7 @@ Classes to apply pre-merge, post-merge, pre-save and post-load modifications
 to dict with processing routines (found in cliconfig.process_routines).
 """
 # pylint: disable=unused-argument
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from cliconfig.base import Config
 from cliconfig.process_routines import (
@@ -13,7 +13,7 @@ from cliconfig.process_routines import (
 )
 from cliconfig.processing._type_parser import _parse_type
 from cliconfig.processing.base import Processing
-from cliconfig.tag_routines import clean_all_tags, clean_tag, dict_clean_tags
+from cliconfig.tag_routines import clean_all_tags, clean_tag, dict_clean_tags, is_tag_in
 
 
 class ProcessMerge(Processing):
@@ -74,8 +74,7 @@ class ProcessMerge(Processing):
         """Pre-merge processing."""
         items = list(flat_config.dict.items())
         for flat_key, val in items:
-            end_key = flat_key.split('.')[-1]
-            if "@merge_after" in end_key:
+            if is_tag_in(flat_key, "merge_after"):
                 if not isinstance(val, str) or not val.endswith('.yaml'):
                     raise ValueError(
                         "Key with '@merge_after' tag must be associated "
@@ -97,7 +96,7 @@ class ProcessMerge(Processing):
                     postprocess=False,
                 )
 
-            elif "@merge_before" in end_key:
+            elif is_tag_in(flat_key, "merge_before"):
                 if not isinstance(val, str) or not val.endswith('.yaml'):
                     raise ValueError(
                         "Key with '@merge_before' tag must be associated "
@@ -116,7 +115,7 @@ class ProcessMerge(Processing):
                     postprocess=False,
                 )
 
-            elif "@merge_add" in end_key:
+            elif is_tag_in(flat_key, "merge_add"):
                 if not isinstance(val, str) or not val.endswith('.yaml'):
                     raise ValueError(
                         "Key with '@merge_add' tag must be associated "
@@ -204,8 +203,7 @@ class ProcessCopy(Processing):
         """Pre-merge processing."""
         items = list(flat_config.dict.items())
         for flat_key, val in items:
-            key = flat_key.split(".")[-1]
-            if "@copy" in key:
+            if is_tag_in(flat_key, "copy"):
                 if not isinstance(val, str):
                     raise ValueError(
                         "Key with '@copy' tag must be associated "
@@ -374,3 +372,28 @@ class ProcessCheckTags(Processing):
                 f"{keys_message}"
             )
         return flat_config
+
+
+class DefaultProcessings():
+    """Default list of built-in processings.
+
+    To add these processings to a Config instance, use:
+
+    config.process_list += DefaultProcessings().list
+
+    The current default processing list contains:
+     * ProcessCheckTags: protect against '@' in keys at the end of pre-merge)
+     * ProcessMerge (@merge_all, @merge_before, @merge_after): merge multiple
+       files into one.
+     * ProcessCopy (@copy): persistently copy a value from one key to an other
+       and protect it
+     * ProcessTyping (@type:X): force the type of parameter to any type X.
+    """
+
+    def __init__(self) -> None:
+        self.list: List[Processing] = [
+            ProcessCheckTags(),
+            ProcessMerge(),
+            ProcessCopy(),
+            ProcessTyping(),
+        ]

@@ -5,7 +5,7 @@ import pytest
 
 from cliconfig.base import Config
 from cliconfig.processing.base import Processing
-from cliconfig.tag_routines import clean_all_tags, clean_tag
+from cliconfig.tag_routines import clean_all_tags, clean_tag, is_tag_in
 
 
 class ProcessAdd1(Processing):
@@ -16,8 +16,7 @@ class ProcessAdd1(Processing):
         """Pre-merge processing."""
         items = list(flat_config.dict.items())
         for flat_key, value in items:
-            end_key = flat_key.split(".")[-1]
-            if "@add1" in end_key:
+            if is_tag_in(flat_key, "add1"):
                 flat_config.dict[clean_tag(flat_key, "add1")] = value + 1
                 del flat_config.dict[flat_key]
         return flat_config
@@ -39,8 +38,7 @@ class ProcessKeep(Processing):
         """Pre-merge processing."""
         items = list(flat_config.dict.items())
         for flat_key, value in items:
-            end_key = flat_key.split(".")[-1]
-            if "@keep" in end_key:
+            if is_tag_in(flat_key, "keep"):
                 new_key = clean_tag(flat_key, "keep")
                 flat_config.dict[new_key] = value
                 del flat_config.dict[flat_key]

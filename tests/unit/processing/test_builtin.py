@@ -7,6 +7,7 @@ import pytest_check as check
 from cliconfig.base import Config
 from cliconfig.dict_routines import flatten
 from cliconfig.processing.builtin import (
+    DefaultProcessings,
     ProcessCheckTags,
     ProcessCopy,
     ProcessMerge,
@@ -244,3 +245,15 @@ def test_process_check_tags() -> None:
             )
         ):
             processing.premerge(Config(flat_dict, [processing]))
+
+
+def test_default_processings() -> None:
+    """Test DefaultProcessings."""
+    config = Config({}, DefaultProcessings().list)
+    for proc in [
+        ProcessCheckTags(),
+        ProcessMerge(),
+        ProcessCopy(),
+        ProcessTyping()
+    ]:
+        check.is_in(proc, config.process_list)
