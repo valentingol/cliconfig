@@ -254,7 +254,7 @@ Secondary:
 * [x] add `make_processing_keep_property` to make a processing that keep the
   property of a parameter across merged configs. The property is any python object
   returned by a function that takes the parameter as input
-* [ ] add `ProcessSelect` (with tag "@select") to select a subconfig (or parameter)
+* [x] add `ProcessSelect` (with tag "@select") to select a subconfig (or parameter)
   and delete the others configs at the same level (to cure the resulting config)
 * [x] allow nested types in `ProcessTyping`
 * [x] add DefaultProcessings that stores default processing as list of processing
