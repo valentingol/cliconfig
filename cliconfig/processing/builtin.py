@@ -11,7 +11,7 @@ from cliconfig.process_routines import (
     merge_flat_paths_processing,
     merge_flat_processing,
 )
-from cliconfig.processing._type_parser import _parse_type
+from cliconfig.processing._type_parser import _isinstance, _parse_type
 from cliconfig.processing.base import Processing
 from cliconfig.tag_routines import clean_all_tags, clean_tag, dict_clean_tags, is_tag_in
 
@@ -319,7 +319,7 @@ class ProcessTyping(Processing):
         """Post-merge processing."""
         for key, expected_type in self.forced_types.items():
             if (key in flat_config.dict
-                    and not isinstance(flat_config.dict[key], expected_type)):
+                    and not _isinstance(flat_config.dict[key], expected_type)):
                 type_desc = self.type_desc[key]
                 raise ValueError(
                     f"Key previously tagged with '@type:{type_desc}' must be "

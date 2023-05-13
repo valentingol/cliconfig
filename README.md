@@ -142,7 +142,8 @@ The default tags include:
 * `@type:<my type>`: This tag checks if the key matches the specified type `<my type>`
    after each update, even if the tag is no longer present. It supports basic types
    (except for tuples and sets, which are not handled by YAML) as well as unions
-   (using "Union" or "|"), optional values, lists, and dictionaries.
+   (using "Union" or "|"), optional values, nested list, and nested dict.
+   For instance: `@type:List[Dict[str, int|float]]`.
 
 The tags are applied in the following order: `@merge`, `@copy`, and then `@type`.
 
@@ -241,7 +242,7 @@ Secondary:
   returned by a function that takes the parameter as input
 * [ ] add `ProcessSelect` (with tag "@select") to select a subconfig (or parameter)
   and delete the others configs at the same level (to cure the resulting config)
-* [ ] allow nested types in `ProcessTyping`
+* [x] allow nested types in `ProcessTyping`
 * [x] add DefaultProcessings that stores default processing as list of processing
 
 ## License
