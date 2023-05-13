@@ -35,12 +35,14 @@ Make default config file(s) in your project (configs are merged from left to rig
    config_dict = config.dict  # native python dict
 
 Then launch your script with additional config(s) file(s) and parameters by command line.
-**By default, these additional configs cannot add new parameters to the default config
-(for security and retro-compatibility reasons).** For instance:
+The additional configs are merge on the default ones then the parameters are set.
 
 .. code:: bash
 
    python main.py --config first.yaml,second.yaml --param1=1 --subconfig.param2='foo'
+
+**By default, these additional configs cannot add new parameters to the default config
+(for security and retro-compatibility reasons).**
 
 With processing
 ---------------
@@ -49,6 +51,7 @@ The library provide powerfull tools to modify the configuration called "processi
 One of the possibility they add is to merge multiple configurations,
 copy a parameter on another, enforce type and more. To do so, simply adding the
 corresponding tags to your parameter names (on config files or CLI parameters).
+
 For instance with these config files:
 
 .. code:: yaml
