@@ -163,7 +163,7 @@ config3.select@select: "config3.param1"
 
 --- # sub1.yaml
 config1:
-  param@copy@type:int: config2.param2
+  param@copy@type:int: config2.param
   param2@type:int: 1
 
 --- # sub2.yaml
@@ -179,17 +179,18 @@ Here `main.yaml` is interpreted like:
 path_1: sub1.yaml
 path_2: sub2.yaml
 config1:
-  param: 2  # the value of config2.param2
+  param: 2  # the value of config2.param
   param2: 1
 config2:
   param: 2
 config3:
   select: "config3.param1"
   param1: 0
+  # param2 is deleted because it is not in the selection
 ```
 
 Then, all the parameters in `config1` and `config2` have enforced types
-(`config1.param` can also be None) and changing `config2.param` will also update
+(`config2.param` can also be None) and changing `config2.param` will also update
 `config1.param` accordingly (which is protected by direct update).
 
 These side effects are not visible in the config but stored on processing classes.
