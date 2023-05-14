@@ -67,10 +67,7 @@ def make_config(
 
     """
     # Create the processing list
-    if process_list is None:
-        process_list_: List[Processing] = []
-    else:
-        process_list_ = process_list
+    process_list_: List[Processing] = [] if process_list is None else process_list
     if add_default_processing:
         process_list_ += DefaultProcessings().list
 
@@ -158,8 +155,7 @@ def load_config(
         routines.
     """
     # Crate process_list
-    if process_list is None:
-        process_list_ = []
+    process_list_: List[Processing] = [] if process_list is None else process_list
     if add_default_processing:
         process_list_ += DefaultProcessings().list
 
@@ -203,7 +199,7 @@ def save_config(config: Config, path: str) -> None:
     save_processing(config, path)
 
 
-def show_config(config: Config, start_indent: int = 1) -> None:
+def show_config(config: Config) -> None:
     """Show the config dict in a pretty way.
 
     The config dict is unflattened before.
@@ -212,7 +208,6 @@ def show_config(config: Config, start_indent: int = 1) -> None:
     ----------
     config : Config
         The config to show.
-    start_indent : int, optional
-        The number of starting tab indent (4 spaces), by default 1.
     """
-    show_dict(config.dict, start_indent)
+    print("Config:")
+    show_dict(config.dict, start_indent=1)
