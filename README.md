@@ -68,6 +68,7 @@ from cliconfig import make_config, show_config
 
 config = make_config('default1.yaml', 'default2.yaml')
 show_config(config)  # print the config to check it
+config.dict  # the configuration as a dict
 ```
 
 Then you can add one or multiple additional config files that will be passed on
@@ -248,20 +249,10 @@ Please see our [contributing guidelines](CONTRIBUTING.md) for more information ð
 
 Priority:
 
-* [x] allow passing new arguments by CLI (with warning and no actual merge)
-* [x] add a routine to check if a tag is in a key and robust to all other
-  possible tags
-* [ ] add an integration test with all built-in processing (and more)
-
 Secondary:
 
-* [x] add `make_processing_keep_property` to make a processing that keep the
-  property of a parameter across merged configs. The property is any python object
-  returned by a function that takes the parameter as input
-* [x] add `ProcessSelect` (with tag "@select") to select a subconfig (or parameter)
-  and delete the others configs at the same level (to cure the resulting config)
-* [x] allow nested types in `ProcessTyping`
-* [x] add DefaultProcessings that stores default processing as list of processing
+* [ ] Add a `@delete` tag to delete a key from the config after pre-merge. Useful to make
+  processing action without introducing new keys in the config.
 
 ## License
 
