@@ -63,7 +63,9 @@ def parse_cli(sys_argv: List[str]) -> Tuple[List[str], Dict[str, Any]]:
                 key, value_str = splits
             else:
                 key = splits[0]
-                value_str = "null"
+                # If no value is provided, use True because it could
+                # be seen as a flag
+                value_str = "true"
             key = key[2:]
             value = yaml.safe_load(value_str)
             cli_params_dict[key] = value

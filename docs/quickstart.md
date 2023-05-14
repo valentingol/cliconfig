@@ -105,9 +105,12 @@ The default tags include:
   For instance: `@type:List[Dict[str, int|float]]`.
 * `@select`: This tag select sub-config(s) to keep and delete the other
   sub-configs in the same parent config
+* `@delete`: This tag deletes the key from the config on pre-merge. It is useful
+  to activate a processing without having a good name for the key to add in
+  the default config.
 
-The tags are applied in the following order: `@merge`, `@select`, `@copy`,
-and then `@type`.
+The tags are applied in the following order: `@merge`, `@select`, `@copy`, `@type`
+and then `@delete`.
 
 Please note that the tags serve as triggers for internal processing and will be
 automatically removed from the key after processing.
@@ -118,7 +121,7 @@ It is also possible to combine multiple tags. For example:
 ---  # main.yaml
 path_1@merge_add: sub1.yaml
 path_2@merge_add: sub2.yaml
-config3.select@select: "config3.param1"
+config3.select@select: config3.param1
 
 --- # sub1.yaml
 config1:
@@ -143,7 +146,7 @@ config1:
 config2:
   param: 2
 config3:
-  select: "config3.param1"
+  select: config3.param1
   param1: 0
   # param2 is deleted because it is not in the selection
 ```

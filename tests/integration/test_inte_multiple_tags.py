@@ -1,5 +1,6 @@
 """Integration test for multiple tags."""
 import random
+import shutil
 import sys
 from copy import deepcopy
 
@@ -10,8 +11,11 @@ from cliconfig import (
     Config,
     create_processing_keep_property,
     create_processing_value,
+    load_config,
     make_config,
+    save_config,
 )
+from cliconfig.dict_routines import load_dict
 from cliconfig.process_routines import merge_flat_processing
 
 
@@ -119,7 +123,7 @@ def test_multiple_tags2() -> None:
             "n_epochs": 20,
             "optimizer": {
                 "type": "Adam",
-                "lr": 0.01,
+                "lr": 0.001,
                 "momentum": 0,
             },
         },
@@ -128,4 +132,37 @@ def test_multiple_tags2() -> None:
     config_dict = deepcopy(config.dict)
     del config_dict["run_id"]
     check.equal(config_dict, expected_dict)
+    save_config(config, "tests/tmp/config.yaml")
+    saved_dict = load_dict("tests/tmp/config.yaml")
+    check.equal(
+        saved_dict["data"]["augmentation@type:List[str]"],
+        ["RandomHorizontalFlip", "RandomVerticalFlip"]
+    )
+    check.equal(
+        saved_dict["models"]["archi_name@type:None|str@select"],
+        "models.vit_b16"
+    )
+    check.equal(
+        saved_dict["models"]["vit_b16"]["in_size@type:int@copy"],
+        "data.data_size"
+    )
+    config = load_config(
+        "tests/tmp/config.yaml",
+        ["tests/configs/integration/test2/default.yaml"],
+        config.process_list
+    )
+    del config.dict["run_id"]
+    check.equal(config.dict, expected_dict)
+    with pytest.raises(
+        ValueError,
+        match="Key previously tagged with '@type:int.*"
+    ):
+        merge_flat_processing(config, Config({'models.vit_b16.n_blocks': 5.6}, []))
+    with pytest.raises(
+        ValueError,
+        match="Found attempt to modify a key with '@copy' tag.*"
+    ):
+        merge_flat_processing(config, Config({'models.vit_b16.in_size': 224}, []))
+
+    shutil.rmtree("tests/tmp")
     sys.argv = sys_argv

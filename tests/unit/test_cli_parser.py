@@ -29,7 +29,7 @@ def test_parse_cli() -> None:
     config_paths, config_cli_params = parse_cli(
         ["main.py", "--unknown", "--a=1", "--unknwon2=2", "--b=3"]
     )
-    val2 = {"unknown": None, "a": 1, "unknwon2": 2, "b": 3}
+    val2 = {"unknown": True, "a": 1, "unknwon2": 2, "b": 3}
     check.equal(config_paths, [])
     check.equal(config_cli_params, val2)
     with pytest.raises(ValueError, match="Only one '--config ' argument is allowed.*"):
