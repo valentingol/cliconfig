@@ -144,16 +144,9 @@ def test_process_copy() -> None:
         )
     ):
         processing.premerge(Config({"a@copy@tag": "c"}, [processing]))
-    # Case of non-existing key (on post-merge)
+    # Case of non-existing key (on post-merge): do not raise error
     processing.keys_to_copy = {"a": "b"}
-    with pytest.raises(
-        ValueError,
-        match=(
-            "Key to copy not found in config: b. "
-            "The problem occurs with key: a"
-        )
-    ):
-        processing.postmerge(Config({"a": "b"}, [processing]))
+    processing.postmerge(Config({"a": "b"}, [processing]))
     # Case overwriting a key
     processing.current_value = {"a": 2}
     with pytest.raises(
@@ -253,6 +246,7 @@ def test_process_select() -> None:
     }
     config = Config(flat_dict, [])
     config = processing.premerge(config)
+    config = processing.postmerge(config)
     check.equal(config.dict, expected_dict)
     config = processing.presave(config)
     check.is_in("models.model_names@select", config.dict)
