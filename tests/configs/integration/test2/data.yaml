@@ -1,0 +1,4 @@
+data:
+  data_size@type:int: 224
+  augmentation@type:List[str]: [RandomHorizontalFlip, RandomVerticalFlip, RandomRotation]
+  standardization@type:bool: True

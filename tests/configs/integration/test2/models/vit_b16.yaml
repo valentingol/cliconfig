@@ -1,0 +1,6 @@
+models.vit_b16:
+  n_blocks@type:int: 12
+  pos_enc_type@pos_enc: relative
+  dropout@type:float|int: 0
+  attn_dropout@type:float|int: 0
+  in_size@copy@type:int: data.data_size

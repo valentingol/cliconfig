@@ -1,0 +1,3 @@
+data.data_size: 512
+data.dataset_path: ../../mydata
+data.augmentation: [RandomHorizontalFlip, RandomVerticalFlip]
