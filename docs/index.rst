@@ -59,7 +59,7 @@ For instance with these config files:
     ---  # main.yaml
     path_1@merge_add: sub1.yaml
     path_2@merge_add: sub2.yaml
-    config3.select@select: "config3.param1"
+    config3.select@select: config3.param1
 
     --- # sub1.yaml
     config1:
@@ -84,7 +84,7 @@ Here `main.yaml` will be interpreted like:
     config2:
       param: 2
     config3:
-      select: "config3.param1"
+      select: config3.param1
       param1: 0
       # param2 is deleted because it is not in the selection
 
