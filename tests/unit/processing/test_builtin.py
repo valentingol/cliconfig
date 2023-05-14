@@ -10,6 +10,7 @@ from cliconfig.processing.builtin import (
     DefaultProcessings,
     ProcessCheckTags,
     ProcessCopy,
+    ProcessDelete,
     ProcessMerge,
     ProcessSelect,
     ProcessTyping,
@@ -281,6 +282,21 @@ def test_process_select() -> None:
         )
     ):
         processing.premerge(Config({"p@select": "root"}, []))
+
+
+def test_process_delete() -> None:
+    """Test ProcessDelete."""
+    processing = ProcessDelete()
+    config = Config(
+        {
+            "@select@delete": "configs.config1",
+            "1@merge_add@delete": "config1.yaml",
+            "2@merge_add@delete": "config2.yaml",
+        },
+        [processing],
+    )
+    config = processing.premerge(config)
+    check.equal(config.dict, {})
 
 
 def test_process_check_tags() -> None:
