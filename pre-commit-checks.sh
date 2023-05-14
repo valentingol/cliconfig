@@ -32,11 +32,6 @@ echo "***************** PEP8 *****************"
 flake8 .
 check_output "PEP8 checks"
 
-echo "*********** Style evaluation ***********"
-score=$(pylint . | sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p')
-
-echo "Pylint score: ${BOLD}$score/10.0${NORMAL} (details by running: pylint .)\nMinimum authorized score: 8.5\n"
-
 echo "************** Integration tests **************"
 pytest tests/integration
 check_output "Integration tests"
@@ -46,3 +41,8 @@ pytest --cov-report term-missing --cov=./cliconfig tests/unit
 check_output "Unit tests"
 
 printf "\n${GREEN}${BOLD}All checks pass${NORMAL}${WHITE}\n\n"
+
+echo "*********** Style evaluation ***********"
+score=$(pylint . | sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p')
+
+echo "Pylint score: ${BOLD}$score${NORMAL}/10.00 (details by running: pylint .)\nMinimum authorized score: 8.5\n"
