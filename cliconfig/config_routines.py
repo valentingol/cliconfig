@@ -69,6 +69,8 @@ def make_config(
     # Create the processing list
     if process_list is None:
         process_list_: List[Processing] = []
+    else:
+        process_list_ = process_list
     if add_default_processing:
         process_list_ += DefaultProcessings().list
 
