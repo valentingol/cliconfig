@@ -127,25 +127,6 @@ pip install -r requirements-dev.txt
 Everyone can contribute to CLI Config, and we value everyone’s contributions.
 Please see our [contributing guidelines](CONTRIBUTING.md) for more information 🤗
 
-## Todo
-
-Priority:
-
-* [x] allow passing new arguments by CLI (with warning and no actual merge)
-* [ ] add a routine to check if a tag is in a key and robust to all other
-  possible tags
-* [ ] add an integration test with all built-in processing (and more)
-
-Secondary:
-
-* [ ] add `make_processing_keep_property` to make a processing that keep the
-  property of a parameter across merged configs. The property is any python object
-  returned by a function that takes the parameter as input
-* [ ] add `ProcessSelect` (with tag "@select") to select a subconfig (or parameter)
-  and delete the others configs at the same level (to cure the resulting config)
-* [ ] allow nested types in `ProcessTyping`
-* [x] add DefaultProcessings that stores default processing as list of processing
-
 ## License
 
 Copyright (C) 2023  Valentin Goldité

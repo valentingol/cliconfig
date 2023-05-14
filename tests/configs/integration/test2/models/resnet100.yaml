@@ -1,0 +1,5 @@
+models.resnet100:
+  layer_channels@type:List[int]: [64, 128, 256, 512, 1024]
+  dropout@type:float|int: 0
+  res_connect@type:bool: True
+  in_size@copy@type:int: data.data_size

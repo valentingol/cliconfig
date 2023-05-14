@@ -1,0 +1,7 @@
+models.archi_name@select: models.vit_b16
+models.vit_b16:
+  pos_enc_type: absolute
+  attn_dropout: 0.2
+  dropout: 0.1
+  in_size@copy@type:int: data.data_size
+train.n_epochs: 30

@@ -1,0 +1,16 @@
+project_name@protect: ImageClassif
+run_id@type:None|int: Null
+models:
+  archi_name@type:None|str: Null
+  resnet50_cfg_path@merge_add: tests/configs/integration/test2/models/resnet50.yaml
+  resnet100_cfg_path@merge_add: tests/configs/integration/test2/models/resnet100.yaml
+  vit_b16_cfg_path@merge_add: tests/configs/integration/test2/models/vit_b16.yaml
+data:
+  dataset_path@type:str: ../data
+  dataset_cfg_path@merge_add: tests/configs/integration/test2/data.yaml
+train:
+  n_epochs@type:int: 10
+  optimizer:
+    type@optim_type: SGD
+    lr@type:float: 0.01
+    momentum@type:float|int: 0.9

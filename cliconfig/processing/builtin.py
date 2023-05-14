@@ -3,7 +3,6 @@
 Classes to apply pre-merge, post-merge, pre-save and post-load modifications
 to dict with processing routines (found in cliconfig.process_routines).
 """
-# pylint: disable=unused-argument
 from typing import Any, Dict, List, Set
 
 from cliconfig.base import Config
@@ -165,8 +164,9 @@ class ProcessCopy(Processing):
     Tag your key with '@copy' and with value the name of the flat key to copy.
     Then, the value will be a copy of the corresponding value forever.
     The pre-merge processing will remove the tag. The post-merge processing
-    will set the value and occurs after most processing. The pre-save processing
-    restore the tag and the key to copy to keep the information on future loads.
+    will set the value (if the copied key exists) and occurs after most processing.
+    The pre-save processing restore the tag and the key to copy to keep the
+    information on future loads.
 
     The copy key is protected against any modification and will raise an error
     if you try to modify it.
@@ -189,6 +189,12 @@ class ProcessCopy(Processing):
     .. code-block:: python
 
         {'a': {'b': 1, 'c': 1}}
+
+    Note
+    ----
+        If the key to copy does not exist in the config on post-merge, the
+        processing will NOT raise an error to let the user the possibility
+        to add the key later via merge. However, the key still be protected.
     """
 
     def __init__(self) -> None:
@@ -229,19 +235,16 @@ class ProcessCopy(Processing):
     def postmerge(self, flat_config: Config) -> Config:
         """Post-merge processing."""
         for key, val in self.keys_to_copy.items():
-            if key in flat_config.dict:
-                if val not in flat_config.dict:
-                    raise ValueError(
-                        f"Key to copy not found in config: {val}. "
-                        f"The problem occurs with key: {key}"
-                    )
+            # NOTE: Do not raise an error if the key to copy does not exist
+            # yet because it can be added later in a future merge
+            if key in flat_config.dict and val in flat_config.dict:
                 if flat_config.dict[key] != self.current_value[key]:
                     # The key has been modified
                     raise ValueError(
-                        "Found attempt to modify a key with '@copy' tag. The key is "
-                        "then protected against updates (except the copied value or "
-                        f"the original key to copy). Found key: {key} of value "
-                        f"{flat_config.dict[key]} that copy {val} of value "
+                        "Found attempt to modify a key with '@copy' tag. The key "
+                        "is then protected against updates (except the copied "
+                        f"value or the original key to copy). Found key: {key} of "
+                        f"value {flat_config.dict[key]} that copy {val} of value "
                         f"{flat_config.dict[val]}")
                 # Copy the value
                 flat_config.dict[key] = flat_config.dict[val]
@@ -360,13 +363,15 @@ class ProcessTyping(Processing):
 class ProcessSelect(Processing):
     """Select a sub-config with and delete the rest of its parent config.
 
-    First look for a parameter tagged with '@select' containing a flat key
-    corresponding to a sub-configurations to keep. The parent configuration
-    is then deleted on pre-merge, except the selected sub-configuration
+    First look in pre-merge for a parameter tagged with '@select' containing a
+    flat key corresponding to a sub-configurations to keep. The parent configuration
+    is then deleted on post-merge, except the selected sub-configuration
     and eventually the tagged parameter (if it is in the same sub-configuration).
     It is also possible to select multiple keys of a same sub-configuration
     (meaning that the part before the last dot must be equal) by passing a
     list of flat keys.
+    Pre-merge order: 0.0
+    Post-merge order: 0.0
 
     Examples
     --------
@@ -400,16 +405,15 @@ class ProcessSelect(Processing):
 
     def __init__(self) -> None:
         super().__init__()
-        # Slighly negative to prevent the use of tags involving keys to delete
-        self.premerge_order = -5.0
         self.keys_that_select: Set[str] = set()
+        self.subconfigs_to_delete: Set[str] = set()
+        self.keys_to_keep: Set[str] = set()
 
     def premerge(self, flat_config: Config) -> Config:
         """Pre-merge processing."""
         items = list(flat_config.dict.items())
         for flat_key, val in items:
-            # NOTE: Check if flat_key is in dict in case of deletion
-            if flat_key in flat_config.dict and is_tag_in(flat_key, "select"):
+            if is_tag_in(flat_key, "select"):
                 # Remove the tag
                 clean_key = clean_all_tags(flat_key)
                 del flat_config.dict[flat_key]
@@ -442,14 +446,23 @@ class ProcessSelect(Processing):
                         "must pass a flat key with a least one dot on parameter "
                         f"tagged with @select. Find key: {flat_key} with value: {val}"
                     )
-                # Delete all keys on the subconfig except the ones to keep
-                for key in list(flat_config.dict.keys()):
-                    clean_key = clean_all_tags(key)
-                    if (clean_key.startswith(subconfig)
-                            and not any(clean_key.startswith(key_to_keep)
-                                        for key_to_keep in keys_to_keep)):
-                        del flat_config.dict[key]
+                self.subconfigs_to_delete.add(subconfig)
+                self.keys_to_keep.update(keys_to_keep)
         return flat_config
+
+    def postmerge(self, flat_config: Config) -> Config:
+        """Post-merge processing."""
+        def _is_in_subconfig(key: str, subconfig: str) -> bool:
+            """Check if a key is in a subconfig with the exact name."""
+            return key == subconfig or key.startswith(subconfig + ".")
+        # Delete all keys on the subconfigs except the ones to keep
+        for subconfig in self.subconfigs_to_delete:
+            for key in list(flat_config.dict.keys()):
+                if (_is_in_subconfig(key, subconfig)
+                        and not any(_is_in_subconfig(key, key_to_keep)
+                                    for key_to_keep in self.keys_to_keep)):
+                    del flat_config.dict[key]
+        return super().postmerge(flat_config)
 
     def presave(self, flat_config: Config) -> Config:
         """Pre-save processing."""

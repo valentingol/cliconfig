@@ -1,0 +1,3 @@
+path_1@merge_add: "tests/configs/integration/test1/sub1.yaml"
+path_2@merge_add: "tests/configs/integration/test1/sub2.yaml"
+config3.select@select: "config3.param1"
