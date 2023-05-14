@@ -256,11 +256,13 @@ class ProcessCopy(Processing):
         """Pre-save processing."""
         # Restore the tag with the key to copy to keep the information
         # on further loading
-        for key, val in self.keys_to_copy.items():
-            if key in flat_config.dict:
+        keys = list(flat_config.dict.keys())
+        for key in keys:
+            clean_key = clean_all_tags(key)
+            if clean_key in self.keys_to_copy:
                 new_key = key + "@copy"
                 del flat_config.dict[key]
-                flat_config.dict[new_key] = val
+                flat_config.dict[new_key] = self.keys_to_copy[clean_key]
         return flat_config
 
 
@@ -352,9 +354,11 @@ class ProcessTyping(Processing):
         """Pre-save processing."""
         # Restore the tag with the type to keep the information
         # on further loading
-        for key, val in self.type_desc.items():
-            if key in flat_config.dict:
-                new_key = key + f"@type:{val}"
+        keys = list(flat_config.dict.keys())
+        for key in keys:
+            clean_key = clean_all_tags(key)
+            if clean_key in self.type_desc:
+                new_key = key + f"@type:{self.type_desc[clean_key]}"
                 flat_config.dict[new_key] = flat_config.dict[key]
                 del flat_config.dict[key]
         return flat_config
@@ -468,10 +472,66 @@ class ProcessSelect(Processing):
         """Pre-save processing."""
         # Restore the tag with the type to keep the information
         # on further loading
-        for key in self.keys_that_select:
-            if key in flat_config.dict:
+        keys = list(flat_config.dict.keys())
+        for key in keys:
+            clean_key = clean_all_tags(key)
+            if clean_key in self.keys_that_select:
                 new_key = key + "@select"
                 flat_config.dict[new_key] = flat_config.dict[key]
+                del flat_config.dict[key]
+        return flat_config
+
+
+class ProcessDelete(Processing):
+    """Delete the parameters tagged with @delete on pre-merge.
+
+    This processing is applied late on pre-merge to allow the others processing
+    to be applied before deleting the parameters. It is usefull to activate a
+    processing without add an additional parameter in the default configuration
+    to void the error on merge with allow_new_keys=False.
+
+    Examples
+    --------
+    .. code-block:: yaml
+
+        # main.yaml
+        1@select@delete: configs.config1
+        2@merge_add@delete: config1.yaml
+        3@merge_add@delete: config2.yaml
+
+        --- # config1.yaml
+        configs.config1.param: 1
+        configs.config1.param2: 2
+
+        --- # config2.yaml
+        configs.config2.param: 3
+        configs.config2.param: 4
+
+    Here we want to merge two config files and select one sub-config.
+    We use the corresponding tags but we don't have a good name for the keys
+    and instead of adding a new parameter in the default configuration with
+    random names like "1", "2", "3", we use the @delete tag to delete the
+    keys after the pre-merge processing.
+    Pre-merge processing: 25.0
+
+    Warning
+    -------
+        The parameter is deleted on pre-merge so if the parameter already exists
+        on the other configuration during merge, this parameter will be remain
+        as it is. This processing is more used to delete parameter that is NOT
+        present in the default configuration.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        # After all pre-merge processing
+        self.premerge_order = 25.0
+
+    def premerge(self, flat_config: Config) -> Config:
+        """Pre-merge processing."""
+        keys = list(flat_config.dict.keys())
+        for key in keys:
+            if is_tag_in(key, "delete"):
                 del flat_config.dict[key]
         return flat_config
 
@@ -525,6 +585,8 @@ class DefaultProcessings():
      * ProcessTyping (@type:X): force the type of parameter to any type X.
      * ProcessSelect (@select): select sub-config(s) to keep and delete the
        other sub-configs in the same parent config.
+     * ProcessDelete (@delete): delete the parameter tagged with @delete on
+       pre-merge.
     """
 
     def __init__(self) -> None:
@@ -533,5 +595,6 @@ class DefaultProcessings():
             ProcessMerge(),
             ProcessCopy(),
             ProcessTyping(),
-            ProcessSelect()
+            ProcessSelect(),
+            ProcessDelete(),
         ]
