@@ -8,9 +8,10 @@ import pytest_check as check
 
 from cliconfig.base import Config
 from cliconfig.config_routines import load_config, make_config, save_config, show_config
+from cliconfig.processing.base import Processing
 
 
-def test_make_config(capsys: pytest.CaptureFixture) -> None:
+def test_make_config(capsys: pytest.CaptureFixture, process_add1: Processing) -> None:
     """Test make_config."""
     sys_argv = sys.argv.copy()
     sys.argv = [
@@ -18,19 +19,20 @@ def test_make_config(capsys: pytest.CaptureFixture) -> None:
         "--config",
         "tests/configs/config1.yaml,tests/configs/config2.yaml",
         "--unknown",
-        "--param2=6",
+        "--param2@add1=6",
         "--unknown2=8",  # check that not error but a warning in console
     ]
     capsys.readouterr()  # Clear stdout and stderr
     config = make_config(
         "tests/configs/default1.yaml",
-        "tests/configs/default2.yaml"
+        "tests/configs/default2.yaml",
+        process_list=[process_add1],
     )
     captured = capsys.readouterr()
     out = captured.out
     expected_config = {
         "param1": 4,
-        "param2": 6,
+        "param2": 7,
         "param3": 3,
         "letters": {
             "letter1": "f",
@@ -68,11 +70,14 @@ def test_make_config(capsys: pytest.CaptureFixture) -> None:
         },
     }
     check.equal(config.dict, expected_config)
+    config = make_config(add_default_processing=False)
+    check.equal(config.dict, {})
+    check.equal(config.process_list, [])
 
     sys.argv = sys_argv.copy()
 
 
-def test_load_config() -> None:
+def test_load_config(process_add1: Processing) -> None:
     """Test and load_config."""
     # With default configs
     config = load_config(
@@ -80,7 +85,8 @@ def test_load_config() -> None:
         default_config_paths=[
             "tests/configs/default1.yaml",
             "tests/configs/default2.yaml",
-        ]
+        ],
+        process_list=[process_add1],
     )
     expected_config = {
         "param1": 4,
