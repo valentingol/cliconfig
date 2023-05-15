@@ -260,7 +260,7 @@ Priority:
 * [x] Continue `test_multi_tags2` integration test with cases that raise errors, and
   pre-save processing.
 * [x] Support multi-files in yaml file (with separator "---")
-* [ ] Fix spelling mistakes in all docstrings
+* [ ] Fix mistakes in all docstrings (🚧  in progress)
 
 Secondary:
 
