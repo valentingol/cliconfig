@@ -55,7 +55,7 @@ the order of the four processing methods: premerge, postmerge, postload, and pre
 Here's a basic example to illustrate the significance of the order:
 
 ```yaml
---- # config.yaml
+# config.yaml
 param1@type:int@copy: 'param2'
 param2@type:int: 1
 ```
@@ -100,7 +100,7 @@ You specify the function to be applied on the value to modify it, and optionally
 the order of the processing. Additionally, there is a `persistent` argument, which is
 a boolean value indicating whether encountering the tag (if a tag is used) once in
 a parameter name will continue to trigger the processing for this parameter
-even after the tag is removed.
+even after the tag is removed. By default, it is `True`.
 
 Here's an example to illustrate:
 
@@ -257,12 +257,12 @@ current config. We may want to see what happens if we merge a config that also
 contains an "@merge_add" tag within it:
 
 ```yaml
---- # main.yaml
+# main.yaml
 config_path1@merge_add: path1.yaml
---- # path1.yaml
+# path1.yaml
 param1: 1
 config_path2@merge_add: path2.yaml
---- # path2.yaml
+# path2.yaml
 param2: 2
 ```
 
