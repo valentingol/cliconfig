@@ -320,5 +320,12 @@ def test_process_check_tags() -> None:
 def test_default_processings() -> None:
     """Test DefaultProcessings."""
     config = Config({}, DefaultProcessings().list)
-    for proc in [ProcessCheckTags(), ProcessMerge(), ProcessCopy(), ProcessTyping()]:
+    for proc in [
+        ProcessCheckTags(),
+        ProcessMerge(),
+        ProcessCopy(),
+        ProcessTyping(),
+        ProcessDelete(),
+        ProcessSelect()
+    ]:
         check.is_in(proc, config.process_list)
