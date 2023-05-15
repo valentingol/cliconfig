@@ -161,8 +161,23 @@ def test_save_load_dict() -> None:
     dict2 = load_dict("tests/tmp/config.yaml")
     check.equal(dict1, dict2)
     # Case multiple files and yaml tags
-    out_dict = load_dict("tests/configs/multi_files.yaml")
-    check.equal(out_dict, dict1)
+    out_dict = load_dict("tests/configs/multi_files_with_tags.yaml")
+    expected_dict = {
+        "config@cfg": {
+            "param1@par@other": 1,
+            "param2": {"a": 1.0, "b@par2": 2.1},
+        },
+        "config2": {
+            "param3@par3": 3.2,
+            "param4@par4": [4, 5, {'6': 6}],
+            "param5": [True, 8]
+        },
+        "config3@cfg3": {
+            "param6": {"param7@par7": None}, "param8": "True"
+        },
+        "config4@cfg4": {"config5@cfg5": {"param9": "11"}}
+    }
+    check.equal(out_dict, expected_dict)
     shutil.rmtree("tests/tmp")
 
 
