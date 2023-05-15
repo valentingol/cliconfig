@@ -184,6 +184,9 @@ config3:
   param2: 1
 ```
 
+Note that can also use YAML tags separated with "@" (like `key: !tag@tag2 value`)
+to add tags instead of putting them in the parameter name (like `key@tag@tag2: value`).
+
 Here `main.yaml` is interpreted like:
 
 ```yaml
@@ -259,6 +262,7 @@ Please see our [contributing guidelines](CONTRIBUTING.md) for more information ð
 
 Priority:
 
+* [ ] Add end-build processing that trigger at the end of `make_config` and `load_config`.
 * [x] Continue `test_multi_tags2` integration test with cases that raise errors, and
   pre-save processing.
 * [x] Support multi-files in yaml file (with separator "---")
@@ -269,10 +273,7 @@ Secondary:
 * [x] Add a `@delete` tag to delete a key from the config after pre-merge. Useful to make
   processing action without introducing new keys in the config.
 * [x] Set a default value to True if no value are specified for parameter in command line.
-
-Only if PR from other people:
-
-* [ ] Support yaml tags "!tag" in config files.
+* [x] Support yaml tags "!tag" in config files.
 
 ## License
 
