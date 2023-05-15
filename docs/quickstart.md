@@ -5,14 +5,14 @@ be merged in sequence. There is no depth limit for the
 configuration parameters.
 
 ```yaml
----  # default1.yaml
+# default1.yaml
 param1: 1
 param2: 0
 letters:
   letter1: a
   letter2: b
 
----  # default2.yaml
+# default2.yaml
 param1: 1
 param2: 2  # will override param2 from default1.yaml
 letters.letter3: c  # add a new parameter
@@ -33,11 +33,11 @@ Then you can add one or multiple additional config files that will be passed on
 command line and that will override the default values.
 
 ```yaml
----  # first.yaml
+# first.yaml
 letters:
   letter3: C
 
----  # second.yaml
+# second.yaml
 param1: -1
 letters.letter1: A
 ```
@@ -77,6 +77,10 @@ Config:
 ```
 
 Note that the configurations is stored as native python dict at each step of the process.
+
+You can also use multiple documents in a single YAML file with the `---` separator. In
+this case, the configs of the documents are merged in sequence and the file is interpreted
+as a single additional config file containing this merged configuration.
 
 ## Use tags
 
@@ -118,17 +122,17 @@ automatically removed from the key after processing.
 It is also possible to combine multiple tags. For example:
 
 ```yaml
----  # main.yaml
+# main.yaml
 path_1@merge_add: sub1.yaml
 path_2@merge_add: sub2.yaml
 config3.select@select: config3.param1
 
---- # sub1.yaml
+# sub1.yaml
 config1:
   param@copy@type:int: config2.param
   param2@type:int: 1
 
---- # sub2.yaml
+# sub2.yaml
 config2.param@type:None|int: 2
 config3:
   param1: 0

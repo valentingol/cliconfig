@@ -52,7 +52,7 @@ def test_process_merge() -> None:
         match=(
             "@merge_add doest not allow to add "
             "already existing keys but key 'config3.param1'.*"
-        )
+        ),
     ):
         processing.premerge(Config(flat_dict, [processing]))
 
@@ -94,9 +94,9 @@ def test_process_merge() -> None:
                 f"Key with '@{tag}' tag must be associated "
                 "to a string corresponding to a *yaml* file."
                 f"The problem occurs at key: a@{tag}"
-            )
+            ),
         ):
-            processing.premerge(Config({f'a@{tag}': 'no_yaml'}, [processing]))
+            processing.premerge(Config({f"a@{tag}": "no_yaml"}, [processing]))
 
 
 def test_process_copy() -> None:
@@ -104,13 +104,12 @@ def test_process_copy() -> None:
     processing = ProcessCopy()
     flat_dict = {
         "config1.param1": 1,
-        "config2.param2@copy": 'config1.param1',
+        "config2.param2@copy": "config1.param1",
     }
     flat_config = Config(flat_dict, [processing])
     flat_config = processing.premerge(flat_config)
     check.equal(
-        flat_config.dict,
-        {"config1.param1": 1, "config2.param2": 'config1.param1'}
+        flat_config.dict, {"config1.param1": 1, "config2.param2": "config1.param1"}
     )
     flat_config.dict["config1.param1"] = 2
     flat_config = processing.postmerge(flat_config)
@@ -118,8 +117,7 @@ def test_process_copy() -> None:
     flat_config = processing.presave(flat_config)
     check.equal(processing.current_value, {"config2.param2": 2})
     check.equal(
-        flat_config.dict,
-        {"config1.param1": 2, "config2.param2@copy": 'config1.param1'}
+        flat_config.dict, {"config1.param1": 2, "config2.param2@copy": "config1.param1"}
     )
     check.equal(processing.keys_to_copy, {"config2.param2": "config1.param1"})
     check.equal(flat_config.process_list, [processing])
@@ -132,7 +130,7 @@ def test_process_copy() -> None:
             "Key with '@copy' tag must be associated "
             "to a string corresponding to a flat key. "
             "The problem occurs at key: a@copy with value: True"
-        )
+        ),
     ):
         processing.premerge(Config({"a@copy": True}, [processing]))
     # Case of already existing @copy but associated to an other key
@@ -142,7 +140,7 @@ def test_process_copy() -> None:
         match=(
             "Key with '@copy' has change its value to copy. Found key: a@copy@tag "
             "with value: c, previous value to copy: b"
-        )
+        ),
     ):
         processing.premerge(Config({"a@copy@tag": "c"}, [processing]))
     # Case of non-existing key (on post-merge): do not raise error
@@ -157,7 +155,7 @@ def test_process_copy() -> None:
             "then protected against updates (except the copied value or "
             "the original key to copy). Found key: a of value c that copy "
             "b of value 1"
-        )
+        ),
     ):
         processing.postmerge(Config({"a": "c", "b": 1}, [processing]))
 
@@ -167,33 +165,32 @@ def test_process_typing() -> None:
     processing = ProcessTyping()
     flat_dict = {
         "param1@type:int": 1,
-        "param2@type:List[Optional[Dict[str, int|float]]]": [{'a': [0.0]}],
+        "param2@type:List[Optional[Dict[str, int|float]]]": [{"a": [0.0]}],
     }
     flat_config = Config(flat_dict, [processing])
     flat_config = processing.premerge(flat_config)
-    flat_config.dict['param1'] = 3
-    flat_config.dict['param2'] = {'a': None, 'b': [{'c': 1}]}
+    flat_config.dict["param1"] = 3
+    flat_config.dict["param2"] = {"a": None, "b": [{"c": 1}]}
     flat_config.dict = flatten(flat_config.dict)
     flat_config = processing.postmerge(flat_config)
     check.equal(
-        flat_config.dict,
-        {"param1": 3, "param2.a": None, "param2.b": [{'c': 1}]}
+        flat_config.dict, {"param1": 3, "param2.a": None, "param2.b": [{"c": 1}]}
     )
     check.equal(
         flat_config.process_list[0].forced_types,  # type: ignore
         {
-            "param1": (int, ),
-            "param2": (('list', ((type(None), ('dict', (str,), (int, float))),)),)
-        }
+            "param1": (int,),
+            "param2": (("list", ((type(None), ("dict", (str,), (int, float))),)),),
+        },
     )
     check.equal(
         flat_config.process_list[0].type_desc,  # type: ignore
-        {"param1": "int", "param2": "List[Optional[Dict[str, int|float]]]"}
+        {"param1": "int", "param2": "List[Optional[Dict[str, int|float]]]"},
     )
     flat_config = processing.presave(flat_config)
     check.equal(
         flat_config.dict,
-        {"param1@type:int": 3, "param2.a": None, "param2.b": [{'c': 1}]}
+        {"param1@type:int": 3, "param2.a": None, "param2.b": [{"c": 1}]},
     )
     processing.forced_types = {}  # Reset forced types
     processing.type_desc = {}  # Reset type description
@@ -209,7 +206,7 @@ def test_process_typing() -> None:
         match=(
             "Find the tag '@type:str' on a key that has already been associated "
             "to an other type: int. Find problem at key: param@type:str"
-        )
+        ),
     ):
         processing.premerge(Config({"param@type:str": "str"}, [processing]))
 
@@ -222,7 +219,7 @@ def test_process_typing() -> None:
             "Key previously tagged with '@type:int' must be "
             "associated to a value of type int. Find the "
             "value: mystr of type <class 'str'> at key: param"
-        )
+        ),
     ):
         processing.postmerge(Config({"param": "mystr"}, [processing]))
 
@@ -252,8 +249,7 @@ def test_process_select() -> None:
     config = processing.presave(config)
     check.is_in("models.model_names@select", config.dict)
     check.equal(
-        config.dict["models.model_names@select"],
-        ["models.model1", "models.model3"]
+        config.dict["models.model_names@select"], ["models.model1", "models.model3"]
     )
     check.is_not_in("models.model_names", config.dict)
     with pytest.raises(
@@ -262,7 +258,7 @@ def test_process_select() -> None:
             "The keys in the list of parameters tagged with '@select' must be "
             "identical before the last dot (= on the same subconfig). Find: "
             "abab and dede before the last dot."
-        )
+        ),
     ):
         processing.premerge(Config({"p@select": ["abab.cdcd", "dede.fgfg"]}, []))
     with pytest.raises(
@@ -270,7 +266,7 @@ def test_process_select() -> None:
         match=re.escape(
             "The value of parameters tagged with '@select' must be a string or a "
             "list of strings representing flat key(s). "
-        )
+        ),
     ):
         processing.premerge(Config({"p@select": 0}, []))
     with pytest.raises(
@@ -279,7 +275,7 @@ def test_process_select() -> None:
             "Find attempt to delete the configuration at the root. You must pass a "
             "flat key with a least one dot on parameter tagged with @select. "
             "Find key: p@select with value: root"
-        )
+        ),
     ):
         processing.premerge(Config({"p@select": "root"}, []))
 
@@ -309,14 +305,14 @@ def test_process_check_tags() -> None:
     config = Config(flat_dict, [processing])
     check.equal(processing.premerge(config).dict, flat_dict)
 
-    flat_dicts = [{'param1@tag': 1}, {'@foo': 2}, {'@': 3}]
+    flat_dicts = [{"param1@tag": 1}, {"@foo": 2}, {"@": 3}]
     for flat_dict in flat_dicts:
         with pytest.raises(
             ValueError,
             match=(
                 "Keys with tags are encountered at the end of "
                 "the pre-merge process.*"
-            )
+            ),
         ):
             processing.premerge(Config(flat_dict, [processing]))
 
@@ -328,6 +324,8 @@ def test_default_processings() -> None:
         ProcessCheckTags(),
         ProcessMerge(),
         ProcessCopy(),
-        ProcessTyping()
+        ProcessTyping(),
+        ProcessDelete(),
+        ProcessSelect()
     ]:
         check.is_in(proc, config.process_list)

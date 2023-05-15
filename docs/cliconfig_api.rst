@@ -4,7 +4,15 @@ CLI Config API
 .. toctree::
    :maxdepth: 4
 
-   cliconfig.processing
+   cliconfig.processing_api
+
+cliconfig.base module
+---------------------
+
+.. automodule:: cliconfig.base
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 cliconfig.config\_routines
 --------------------------
@@ -22,6 +30,15 @@ cliconfig.cli\_parser
    :undoc-members:
    :show-inheritance:
 
+cliconfig.tag\_routines
+-----------------------
+
+.. automodule:: cliconfig.tag_routines
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 cliconfig.dict\_routines
 ------------------------
 
@@ -34,14 +51,6 @@ cliconfig.process\_routines
 ---------------------------
 
 .. automodule:: cliconfig.process_routines
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-cliconfig.tag\_routines
------------------------
-
-.. automodule:: cliconfig.tag_routines
    :members:
    :undoc-members:
    :show-inheritance:

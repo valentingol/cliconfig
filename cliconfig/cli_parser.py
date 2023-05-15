@@ -7,10 +7,13 @@ import yaml
 def parse_cli(sys_argv: List[str]) -> Tuple[List[str], Dict[str, Any]]:
     """Parser for CLI commands.
 
-    Return list of config paths that are detected with `--config ` (with a space),
-    separated by commas without space (or in a list).
-    Return also a dictionary of parameters from CLI detected with --<key>=<value>
-    (with "=" and without spaces).
+    Return list of config path(s) that are detected with ``--config`` followed
+    by a space. If multiple paths are provided, they must be separated by a comma
+    and no space around the comma. It also possible to provide a list of paths.
+
+    Return also a dictionary of parameters from CLI detected with ``--<key>=<value>``
+    (with "=" and without spaces around). If no value is provided,
+    it is True by default (like for a flag).
 
     Parameters
     ----------
@@ -20,7 +23,7 @@ def parse_cli(sys_argv: List[str]) -> Tuple[List[str], Dict[str, Any]]:
     Raises
     ------
     Value Error
-        If the '--config ' argument (with space) is used more than once.
+        If the ``--config`` argument (with space) is used more than once.
 
     Returns
     -------
@@ -35,10 +38,10 @@ def parse_cli(sys_argv: List[str]) -> Tuple[List[str], Dict[str, Any]]:
 
         $ python my_script.py --config config.yaml --foo.bar.param=[1, 2, 3]
 
-    Will be parsed as `config_paths=['config.yaml']`
-    and `cli_params={'foo.bar.param': [1, 2, 3]}`.
-    It is equivalent to: `{'foo': {'bar': {'param': [1, 2, 3]}}`
-    for :func:`merge_config`.
+    Will be parsed as ``config_paths=['config.yaml']``
+    and ``cli_params={'foo.bar.param': [1, 2, 3]}``.
+    It is equivalent to: ``{'foo': {'bar': {'param': [1, 2, 3]}}`` for
+    :func:`.merge_flat` and :func:`.make_config`.
     """
     cli_params_dict: Dict[str, Any] = {}
     config_paths: List[str] = []

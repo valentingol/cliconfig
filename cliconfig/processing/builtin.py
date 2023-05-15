@@ -1,7 +1,10 @@
 """Built-in processing classes.
 
-Classes to apply pre-merge, post-merge, pre-save and post-load modifications
-to dict with processing routines (found in cliconfig.process_routines).
+Built-in classes to apply pre-merge, post-merge, pre-save and post-load modifications
+to dict with processing routines :mod:`.process_routines`.
+
+They are the default processing used by the config routines :func:`.load_config`
+and :func:`.make_config`.
 """
 from typing import Any, Dict, List, Set
 
@@ -16,23 +19,25 @@ from cliconfig.tag_routines import clean_all_tags, clean_tag, dict_clean_tags, i
 
 
 class ProcessMerge(Processing):
-    """Merge dicts just in time with '@merge_after/_before/_add' tags.
+    """Merge dicts just in time with ``@merge_after/_before/_add`` tags.
 
-    Tag your key with '@merge_after', '@merge_before' or @merge_add to load
-    the dict corresponding to the value (path) and merge it just before or after
-    the current dict. The merged dicts will be processed with pre-merge but
-    not post-merge to ensure that merged configurations are all processed with
-    pre-merge before applying a post-merge processing. It allows the merged
-    configs to make references to each other (typically for copy).
+    Tag your key with ``@merge_after``, ``@merge_before`` or ``@merge_add``
+    to load the config corresponding to the value (which is a yaml path) and
+    merge it just before or after the current config. The merged dicts will be
+    processed with pre-merge but not post-merge to ensure that merged
+    configurations are recursively processed with pre-merge before applying a
+    post-merge processing. It allows the merged configs to make references to
+    each other (typically for copy) even without containing the merge tags
+    itself.
 
     * '@merge_add' merges the dict corresponding to the path by allowing ONLY new keys
-      It is a security check when you want to add a dict completely new
-      It is a typical usage for a default config splitted in several files.
+      It is a security check when you want to add a dict completely new,
+      the typical usage for a default config splitted in several files.
     * '@merge_after' merge the dict corresponding to the path on the current dict
     * '@merge_before' merge the current dict on the dict corresponding to the path
 
     The processing is a pre-merge processing only and occurs before
-    most of the other processing.
+    almost all of the other processings.
     Pre-merge order: -20.0
 
     Examples
@@ -53,16 +58,16 @@ class ProcessMerge(Processing):
 
     ::
 
-        {'a': {'b': 2, 'b_path': 'config2.yaml'}, 'c_path': 'config3.yaml', 'c': 3}`
+        {'a': {'b': 2, 'b_path': 'config2.yaml'}, 'c_path': 'config3.yaml', 'c': 3}
 
     If you replace '@merge_after' by '@merge_before', it will be:
 
     ::
 
-        {'a': {'b': 1, 'b_path': 'config2.yaml'}, 'c_path': 'config3.yaml', 'c': 3}`
+        {'a': {'b': 1, 'b_path': 'config2.yaml'}, 'c_path': 'config3.yaml', 'c': 3}
 
-    Finally, if you replace '@merge_after' by '@merge_add', it will raises an
-    error because the key 'a.b' already exists in the dict.
+    Finally, if you replace ``@merge_after`` by ``@merge_add``, it will raises an
+    error because the key ``a.b`` already exists in the dict.
     """
 
     def __init__(self) -> None:
@@ -74,7 +79,7 @@ class ProcessMerge(Processing):
         items = list(flat_config.dict.items())
         for flat_key, val in items:
             if is_tag_in(flat_key, "merge_after"):
-                if not isinstance(val, str) or not val.endswith('.yaml'):
+                if not isinstance(val, str) or not val.endswith(".yaml"):
                     raise ValueError(
                         "Key with '@merge_after' tag must be associated "
                         "to a string corresponding to a *yaml* file."
@@ -82,7 +87,7 @@ class ProcessMerge(Processing):
                     )
                 # Remove the tag in the dict
                 del flat_config.dict[flat_key]
-                flat_config.dict[clean_tag(flat_key, 'merge_after')] = val
+                flat_config.dict[clean_tag(flat_key, "merge_after")] = val
                 # Merge + process the dicts
                 # NOTE: we allow new keys with security because the merge
                 # following this pre-merge will avoid the creation of
@@ -96,7 +101,7 @@ class ProcessMerge(Processing):
                 )
 
             elif is_tag_in(flat_key, "merge_before"):
-                if not isinstance(val, str) or not val.endswith('.yaml'):
+                if not isinstance(val, str) or not val.endswith(".yaml"):
                     raise ValueError(
                         "Key with '@merge_before' tag must be associated "
                         "to a string corresponding to a *yaml* file."
@@ -104,7 +109,7 @@ class ProcessMerge(Processing):
                     )
                 # Remove the tag in the dict
                 del flat_config.dict[flat_key]
-                flat_config.dict[clean_tag(flat_key, 'merge_before')] = val
+                flat_config.dict[clean_tag(flat_key, "merge_before")] = val
                 # Merge + process the dicts
                 flat_config = merge_flat_paths_processing(
                     val,
@@ -115,7 +120,7 @@ class ProcessMerge(Processing):
                 )
 
             elif is_tag_in(flat_key, "merge_add"):
-                if not isinstance(val, str) or not val.endswith('.yaml'):
+                if not isinstance(val, str) or not val.endswith(".yaml"):
                     raise ValueError(
                         "Key with '@merge_add' tag must be associated "
                         "to a string corresponding to a *yaml* file."
@@ -123,7 +128,7 @@ class ProcessMerge(Processing):
                     )
                 # Remove the tag in the dict
                 del flat_config.dict[flat_key]
-                flat_config.dict[clean_tag(flat_key, 'merge_add')] = val
+                flat_config.dict[clean_tag(flat_key, "merge_add")] = val
                 # Pre-merge process the dict with the process list of
                 # the current config
                 flat_config_to_merge = merge_flat_paths_processing(
@@ -159,18 +164,13 @@ class ProcessMerge(Processing):
 
 
 class ProcessCopy(Processing):
-    """Copy a value with '@copy' tag. The copy is protected from updates.
+    """Copy a value with ``@copy`` tag. The copy is protected from direct updates.
 
-    Tag your key with '@copy' and with value the name of the flat key to copy.
-    Then, the value will be a copy of the corresponding value forever.
-    The pre-merge processing will remove the tag. The post-merge processing
-    will set the value (if the copied key exists) and occurs after most processing.
+    Tag your key with ``@copy`` and with value the name of the flat key to copy.
+    The pre-merge processing removes the tag. The post-merge processing
+    sets the value (if the copied key exists) and occurs after most processings.
     The pre-save processing restore the tag and the key to copy to keep the
     information on future loads.
-
-    The copy key is protected against any modification and will raise an error
-    if you try to modify it.
-
     Pre-merge order: 0.0
     Post-merge order: 10.0
     Pre-save order: 10.0
@@ -192,9 +192,16 @@ class ProcessCopy(Processing):
 
     Note
     ----
+
+        The copy key is protected against any modification and will raise an error
+        if you try to modify it but will be updated if the copied key is updated.
+
+    Warning
+    -------
+
         If the key to copy does not exist in the config on post-merge, the
         processing will NOT raise an error to let the user the possibility
-        to add the key later via merge. However, the key still be protected.
+        to add the key later via merge. However, the value still be protected.
     """
 
     def __init__(self) -> None:
@@ -217,8 +224,10 @@ class ProcessCopy(Processing):
                         f"The problem occurs at key: {flat_key} with value: {val}"
                     )
                 clean_key = clean_all_tags(flat_key)
-                if (clean_key in self.keys_to_copy
-                        and self.keys_to_copy[clean_key] != val):
+                if (
+                    clean_key in self.keys_to_copy
+                    and self.keys_to_copy[clean_key] != val
+                ):
                     raise ValueError(
                         "Key with '@copy' has change its value to copy. Found key: "
                         f"{flat_key} with value: {val}, previous value to copy: "
@@ -245,7 +254,8 @@ class ProcessCopy(Processing):
                         "is then protected against updates (except the copied "
                         f"value or the original key to copy). Found key: {key} of "
                         f"value {flat_config.dict[key]} that copy {val} of value "
-                        f"{flat_config.dict[val]}")
+                        f"{flat_config.dict[val]}"
+                    )
                 # Copy the value
                 flat_config.dict[key] = flat_config.dict[val]
                 # Update the current value
@@ -267,13 +277,19 @@ class ProcessCopy(Processing):
 
 
 class ProcessTyping(Processing):
-    """Force a type with '@type:mytype' tag. The type is preserved forever.
+    """Force a type with ``@type:<mytype>`` tag. The type is then forced forever.
 
     Allow basic types (none, any, bool, int, float, str, list, dict), nested lists,
     nested dicts, unions (with Union or the '|' symbol) and Optional.
-    It store the type in pre-merge and check alls forced types on post-merge.
-    It restore the tag in pre-save to keep the information on future loads.
-    It always occurs last in post-merge.
+    The type description is lowercased and spaces are removed.
+
+    For instance: ``@type:None|List[Dict[str, int|float]]`` is valid and force
+    the type to be None or a list containing dicts with str keys and int or float
+    values.
+
+    the processing stores the type in pre-merge and check alls forced types on
+    post-merge. It restore the tag in pre-save to keep the information on
+    future loads. The post-merge processing occurs after almost all processings.
     Pre-merge order: 0.0
     Post-merge order: 20.0
     Pre-save order: 0.0
@@ -288,17 +304,18 @@ class ProcessTyping(Processing):
     --------
     ::
 
-        dict1 = {param@type:None|List[int|float]: None}
-        dict2 = {param: [0, 1, 2.0]}  # no error
-        dict3 = {param: [0, 1, 2.0, 'a']}  # error
+        in_dict = {"param@type:None|List[int|float]": None}
+        dict1 = {param: [0, 1, 2.0]}  # no error
+        dict2 = {param: [0, 1, 2.0, 'a']}  # error
 
-    Merge configs with dictionnaries dict1 and dict2 raise no error and `param`
-    is forced to be None or a list of int or float forever. Merge dict1
-    and dict3 raise an error on post-merge because of the 'a' value.
+    Merging configs with dictionaries ``in_dict`` and ``dict1`` raises no
+    error and ``param`` is forced to be None or a list of int or float forever.
+    Merging config with ``in_dict`` and ``dict3`` raises an error on post-merge
+    due to the 'a' value (which is a string).
 
-    Note that removing "None|" in the type description still doesn't raise an error
-    in the first case because the type checking is evaluated after the merge with
-    dict2.
+    Note that removing "None|" in the type description of ``param`` still
+    doesn't raise an error in the first case because the type checking is
+    evaluated after the merge with ``dict2``.
     """
 
     def __init__(self) -> None:
@@ -313,15 +330,16 @@ class ProcessTyping(Processing):
         """Pre-merge processing."""
         items = list(flat_config.dict.items())
         for flat_key, val in items:
-            end_key = flat_key.split('.')[-1]
+            end_key = flat_key.split(".")[-1]
             if "@type:" in end_key:
                 # Get the type description
                 trail = end_key.split("@type:")[-1]
-                type_desc = trail.split('@')[0]  # (in case of multiple tags)
+                type_desc = trail.split("@")[0]  # (in case of multiple tags)
                 expected_type = tuple(_parse_type(type_desc))
                 clean_key = clean_all_tags(flat_key)
-                if (clean_key in self.forced_types
-                        and set(self.forced_types[clean_key]) != set(expected_type)):
+                if clean_key in self.forced_types and set(
+                    self.forced_types[clean_key]
+                ) != set(expected_type):
                     raise ValueError(
                         f"Find the tag '@type:{type_desc}' on a key that has already "
                         "been associated to an other type: "
@@ -330,7 +348,7 @@ class ProcessTyping(Processing):
                     )
                 # Remove the tag
                 del flat_config.dict[flat_key]
-                flat_config.dict[clean_tag(flat_key, f'type:{type_desc}')] = val
+                flat_config.dict[clean_tag(flat_key, f"type:{type_desc}")] = val
                 # Store the forced type
                 self.forced_types[clean_key] = expected_type
                 self.type_desc[clean_key] = type_desc
@@ -339,8 +357,9 @@ class ProcessTyping(Processing):
     def postmerge(self, flat_config: Config) -> Config:
         """Post-merge processing."""
         for key, expected_type in self.forced_types.items():
-            if (key in flat_config.dict
-                    and not _isinstance(flat_config.dict[key], expected_type)):
+            if key in flat_config.dict and not _isinstance(
+                flat_config.dict[key], expected_type
+            ):
                 type_desc = self.type_desc[key]
                 raise ValueError(
                     f"Key previously tagged with '@type:{type_desc}' must be "
@@ -365,9 +384,9 @@ class ProcessTyping(Processing):
 
 
 class ProcessSelect(Processing):
-    """Select a sub-config with and delete the rest of its parent config.
+    """Select a sub-config with ``@select`` and delete the rest of its parent config.
 
-    First look in pre-merge for a parameter tagged with '@select' containing a
+    First look in pre-merge for a parameter tagged with ``@select`` containing a
     flat key corresponding to a sub-configurations to keep. The parent configuration
     is then deleted on post-merge, except the selected sub-configuration
     and eventually the tagged parameter (if it is in the same sub-configuration).
@@ -395,16 +414,15 @@ class ProcessSelect(Processing):
             model4:
                 param: 6
 
-    Result in deleting models.model2 (param1 and param2) and models.model4.param,
-    and keeping the rest.
+    Result in deleting ``models.model2`` (``param1`` and ``param2``) and
+    ``models.model4.param``, and keeping the rest.
 
     Warning
     -------
 
-        For security reasons, it prevents from deleting the configuration at the root
-        (which is the case when the selected key doesn't contain a dot),
-        and raises an error in this case.
-
+        For security reasons, this processing prevents from deleting
+        the configuration at the root, which is the case when the
+        selected key doesn't contain a dot. It raises an error in this case.
     """
 
     def __init__(self) -> None:
@@ -456,15 +474,18 @@ class ProcessSelect(Processing):
 
     def postmerge(self, flat_config: Config) -> Config:
         """Post-merge processing."""
+
         def _is_in_subconfig(key: str, subconfig: str) -> bool:
             """Check if a key is in a subconfig with the exact name."""
             return key == subconfig or key.startswith(subconfig + ".")
+
         # Delete all keys on the subconfigs except the ones to keep
         for subconfig in self.subconfigs_to_delete:
             for key in list(flat_config.dict.keys()):
-                if (_is_in_subconfig(key, subconfig)
-                        and not any(_is_in_subconfig(key, key_to_keep)
-                                    for key_to_keep in self.keys_to_keep)):
+                if _is_in_subconfig(key, subconfig) and not any(
+                    _is_in_subconfig(key, key_to_keep)
+                    for key_to_keep in self.keys_to_keep
+                ):
                     del flat_config.dict[key]
         return super().postmerge(flat_config)
 
@@ -483,12 +504,14 @@ class ProcessSelect(Processing):
 
 
 class ProcessDelete(Processing):
-    """Delete the parameters tagged with @delete on pre-merge.
+    """Delete the parameters tagged with ``@delete`` on pre-merge.
 
-    This processing is applied late on pre-merge to allow the others processing
-    to be applied before deleting the parameters. It is usefull to activate a
-    processing without add an additional parameter in the default configuration
-    to void the error on merge with allow_new_keys=False.
+    This processing is usefull to activate a processing without adding
+    an additional parameter in the default configuration to avoid the error
+    on merge with ``allow_new_keys=False``. This processing is applied very
+    late on pre-merge to allow the others processing to be applied before
+    deleting the parameters.
+    Pre-merge order: 25.0
 
     Examples
     --------
@@ -510,16 +533,16 @@ class ProcessDelete(Processing):
     Here we want to merge two config files and select one sub-config.
     We use the corresponding tags but we don't have a good name for the keys
     and instead of adding a new parameter in the default configuration with
-    random names like "1", "2", "3", we use the @delete tag to delete the
+    random names like "1", "2", "3", we use the ``@delete`` tag to delete the
     keys after the pre-merge processing.
-    Pre-merge processing: 25.0
 
     Warning
     -------
-        The parameter is deleted on pre-merge so if the parameter already exists
-        on the other configuration during merge, this parameter will be remain
-        as it is. This processing is more used to delete parameter that is NOT
-        present in the default configuration.
+
+        The parameter is deleted on pre-merge. Therefore, if the parameter
+        also exists on the other configuration during merge (without the tag),
+        this parameter will be remain as it is. This processing is more used
+        to delete parameter that is NOT present in the default configuration.
     """
 
     def __init__(self) -> None:
@@ -539,8 +562,8 @@ class ProcessDelete(Processing):
 class ProcessCheckTags(Processing):
     """Raise an error if a tag is present in a key after pre-merging processes.
 
-    This security processing is applied after all pre-merge process and
-    checks for "@" in the keys. It raises an error if one is found.
+    This security processing is always applied after all pre-merge process and
+    checks for '@' in the keys. It raises an error if one is found.
     """
 
     def __init__(self) -> None:
@@ -552,7 +575,7 @@ class ProcessCheckTags(Processing):
         self.premerge_order = 1000.0
 
     def premerge(self, flat_config: Config) -> Config:
-        """Post-merge processing."""
+        """Pre-merge processing."""
         _, tagged_keys = dict_clean_tags(flat_config.dict)
         if tagged_keys:
             keys_message = "\n".join(tagged_keys[:5])
@@ -569,12 +592,13 @@ class ProcessCheckTags(Processing):
         return flat_config
 
 
-class DefaultProcessings():
+class DefaultProcessings:
     """Default list of built-in processings.
 
     To add these processings to a Config instance, use:
+    ::
 
-    config.process_list += DefaultProcessings().list
+        config.process_list += DefaultProcessings().list
 
     The current default processing list contains:
      * ProcessCheckTags: protect against '@' in keys at the end of pre-merge)

@@ -21,10 +21,11 @@ def make_config(
     process_list: Optional[List[Processing]] = None,
     add_default_processing: bool = True,
 ) -> Config:
-    r"""Make a config from default configs and CLI arguments and apply processing.
+    r"""Make a config from default config(s) and CLI argument(s) with processing.
 
-    It uses the CLI Config routines to parse the CLI arguments and merge
-    them in a simple way. Apply the processing functions on each merge.
+    The function uses the CLI Config routines :func:`.parse_cli` to parse the CLI
+    arguments and merge them with :func:`.merge_flat_paths_processing`, applying
+    the pre-merge and post-merge processing functions on each merge.
 
     Parameters
     ----------
@@ -34,24 +35,29 @@ def make_config(
     process_list: Optional[List[Processing]], optional
         The list of processing to apply during each merge. None for empty list.
         By default None.
-        If add_default_processing is True, the default processing
-        (in :mod:`cliconfig.processing.builtin`) are added to the list.
     add_default_processing : bool, optional
-        If True, add the default processing (in :mod:`cliconfig.processing.builtin`)
-        to the processing list.
+        If add_default_processing is True, the default processings
+        (found on :class:`.DefaultProcessings`) are added to the list of
+        processings. By default True.
 
     Raises
     ------
     ValueError
-        If allow_new_keys is False and CLI has new keys that are not
-        in default configs.
+        If additional configs have new keys that are not in default configs.
 
     Returns
     -------
     config : Config
-        The built config. Contains the config dict (config.dict) and the processing
-        list (config.process_list), which can be used to apply further processing
-        routines.
+        The nested built config. Contains the config dict (config.dict) and
+        the processing list (config.process_list) which can be used to apply
+        further processing routines.
+
+    Note
+    ----
+
+        Setting additional arguments from CLI that are not in default configs
+        does NOT raise an error but only a warning. This ensures the compatibility
+        with other CLI usage (e.g notebook, argparse, etc.)
 
     Examples
     --------
@@ -62,8 +68,8 @@ def make_config(
 
     .. code-block:: text
 
-        python main.py -- config bestmodel.yaml,mydata.yaml \
-            --architecture.layers.hidden_dim=64
+        $ python main.py -- config [bestmodel.yaml,mydata.yaml] \
+              --architecture.layers.hidden_dim=64
 
     """
     # Create the processing list
@@ -104,10 +110,7 @@ def make_config(
     # Merge CLI parameters
     cli_params_config = Config(cli_params_dict, [])
     config = merge_flat_processing(
-        config,
-        cli_params_config,
-        allow_new_keys=False,
-        preprocess_first=False
+        config, cli_params_config, allow_new_keys=False, preprocess_first=False
     )
     print(
         f"[CONFIG] Info: Merged {len(default_config_paths)} default config(s), "
@@ -128,8 +131,9 @@ def load_config(
 ) -> Config:
     """Load config from a file and merge into optional default configs.
 
-    First merge the default configs together, then load the default config,
-    apply the post-load processing, and finally merge the loaded config
+    First merge the default configs together (if any), then load the config
+    from path, apply the post-load processing, and finally merge the loaded
+    config.
 
     Parameters
     ----------
@@ -140,19 +144,26 @@ def load_config(
         Then, the loaded config is merged into the result. None for no default configs.
         By default None.
     process_list: Optional[List[Processing]]
-        The list of processing to apply after loading. Only postload
-        method is applied. The order of the processing is given
-        by the postload_order attribute of the processing.
+        The list of processing to apply after loading and for the merges.
         If None, no processing is applied. By default None.
     add_default_processing : bool, optional
-        If True, add the default processing to the processing list.
+        If add_default_processing is True, the default processings
+        (found on :class:`.DefaultProcessings`) are added to the list of
+        processings. By default True.
 
     Returns
     -------
     config: Dict[str, Any]
-        The loaded config. Contains the config dict (config.dict) and the processing
-        list (config.process_list), which can be used to apply further processing
-        routines.
+        The nested loaded config. Contains the config dict (config.dict) and
+        the processing list (config.process_list) which can be used to apply
+        further processing routines.
+
+    Warning
+    -------
+
+        If default configs are provided, the function does not allow new keys
+        for the loaded config. This is for helping the user to see how to
+        adapt the config file if the default configs have changed.
     """
     # Crate process_list
     process_list_: List[Processing] = [] if process_list is None else process_list
@@ -168,17 +179,16 @@ def load_config(
                 allow_new_keys=True,
                 preprocess_first=False,  # Already processed
             )
-    # Disallow new keys for loaded config
     loaded_config = load_processing(path, config.process_list)
     # Update the config list from loaded_config in config
     config.process_list = loaded_config.process_list
-    # Merge the loaded config into the config
-    # NOTE: The loaded config is processed with pre-merge so that tags in
-    # the yaml files are correctly processed.
+    # Merge the loaded config into the config and
+    # disallow new keys for loaded config
+    # if default configs are provided
     config = merge_flat_processing(
         config,
         loaded_config,
-        allow_new_keys=False,
+        allow_new_keys=default_config_paths is None,
         preprocess_first=False,
     )
     # Unflatten the config
@@ -188,6 +198,8 @@ def load_config(
 
 def save_config(config: Config, path: str) -> None:
     """Save a config and apply pre-save processing before saving.
+
+    Alias for :func:`.save_processing`.
 
     Parameters
     ----------
@@ -202,7 +214,7 @@ def save_config(config: Config, path: str) -> None:
 def show_config(config: Config) -> None:
     """Show the config dict in a pretty way.
 
-    The config dict is unflattened before.
+    The config dict is automatically unflattened before printing.
 
     Parameters
     ----------

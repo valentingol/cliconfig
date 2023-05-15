@@ -55,9 +55,7 @@ def test_make_config(capsys: pytest.CaptureFixture, process_add1: Processing) ->
     sys.argv = [
         "tests/test_make_config.py.py",
     ]
-    config = make_config(
-        "tests/configs/default1.yaml",
-        "tests/configs/default2.yaml")
+    config = make_config("tests/configs/default1.yaml", "tests/configs/default2.yaml")
     expected_config = {
         "param1": 1,
         "param2": 2,

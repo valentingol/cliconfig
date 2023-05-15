@@ -41,12 +41,11 @@ def test_multiple_tags() -> None:
     }
     check.equal(config.dict, expected_config)
     with pytest.raises(
-        ValueError,
-        match="Key previously tagged with '@type:None|int'.*"
+        ValueError, match="Key previously tagged with '@type:None|int'.*"
     ):
         merge_flat_processing(
             config,
-            Config({'config2.param': 5.6}, []),
+            Config({"config2.param": 5.6}, []),
             preprocess_first=False,
         )
     sys.argv = sys_argv
@@ -66,29 +65,30 @@ def test_multiple_tags2() -> None:
     ]
 
     def func_pos_enc_type(x: str) -> str:
-        if x in ['absolute', 'relative', 'embed']:
+        if x in ["absolute", "relative", "embed"]:
             return x
         raise ValueError(f"Invalid value for pos_enc_type: {x}")
 
     def func_optim_type(x: str) -> str:
-        if x in ['SGD', 'Adam']:
+        if x in ["SGD", "Adam"]:
             return x
         raise ValueError(f"Invalid value for optim_type: {x}")
+
     proc_pos_enc_type = create_processing_value(
         func_pos_enc_type,
-        tag_name='pos_enc',
+        tag_name="pos_enc",
         order=20,
         persistent=True,
     )
     proc_optim_type = create_processing_value(
         func_optim_type,
-        tag_name='optim_type',
+        tag_name="optim_type",
         order=20,
         persistent=True,
     )
     proc_protect = create_processing_keep_property(
         func=lambda x: x,
-        tag_name='protect',
+        tag_name="protect",
         premerge_order=-15,
         postmerge_order=15,
     )
@@ -136,33 +136,27 @@ def test_multiple_tags2() -> None:
     saved_dict = load_dict("tests/tmp/config.yaml")
     check.equal(
         saved_dict["data"]["augmentation@type:List[str]"],
-        ["RandomHorizontalFlip", "RandomVerticalFlip"]
+        ["RandomHorizontalFlip", "RandomVerticalFlip"],
     )
     check.equal(
-        saved_dict["models"]["archi_name@type:None|str@select"],
-        "models.vit_b16"
+        saved_dict["models"]["archi_name@type:None|str@select"], "models.vit_b16"
     )
     check.equal(
-        saved_dict["models"]["vit_b16"]["in_size@type:int@copy"],
-        "data.data_size"
+        saved_dict["models"]["vit_b16"]["in_size@type:int@copy"], "data.data_size"
     )
     config = load_config(
         "tests/tmp/config.yaml",
         ["tests/configs/integration/test2/default.yaml"],
-        config.process_list
+        config.process_list,
     )
     del config.dict["run_id"]
     check.equal(config.dict, expected_dict)
+    with pytest.raises(ValueError, match="Key previously tagged with '@type:int.*"):
+        merge_flat_processing(config, Config({"models.vit_b16.n_blocks": 5.6}, []))
     with pytest.raises(
-        ValueError,
-        match="Key previously tagged with '@type:int.*"
+        ValueError, match="Found attempt to modify a key with '@copy' tag.*"
     ):
-        merge_flat_processing(config, Config({'models.vit_b16.n_blocks': 5.6}, []))
-    with pytest.raises(
-        ValueError,
-        match="Found attempt to modify a key with '@copy' tag.*"
-    ):
-        merge_flat_processing(config, Config({'models.vit_b16.in_size': 224}, []))
+        merge_flat_processing(config, Config({"models.vit_b16.in_size": 224}, []))
 
     shutil.rmtree("tests/tmp")
     sys.argv = sys_argv

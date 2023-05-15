@@ -81,8 +81,10 @@ class ProcessBypassTyping(Processing):
                 del flat_config.dict[flat_key]
                 clean_key = clean_all_tags(flat_key)
                 for processing in flat_config.process_list:
-                    if (isinstance(processing, ProcessTyping)
-                            and clean_key in processing.forced_types):
+                    if (
+                        isinstance(processing, ProcessTyping)
+                        and clean_key in processing.forced_types
+                    ):
                         forced_type = processing.forced_types.pop(clean_key)
                         self.bypassed_forced_types[clean_key] = forced_type
         return flat_config
@@ -100,25 +102,17 @@ def test_process_print_sorted(capsys: pytest.CaptureFixture) -> None:
 
 def test_process_bypass_typing() -> None:
     """Test ProcessBypassTyping."""
-    config1 = Config(
-        {"a@type:int": 0}, [ProcessBypassTyping(), ProcessTyping()]
-    )
-    config2 = Config(
-        {"a@bypass_typing@type:str": "a"}, []
-    )
+    config1 = Config({"a@type:int": 0}, [ProcessBypassTyping(), ProcessTyping()])
+    config2 = Config({"a@bypass_typing@type:str": "a"}, [])
     merge_flat_processing(config1, config2)
-    config1 = Config(
-        {"a@type:int": 0}, [ProcessBypassTyping(), ProcessTyping()]
-    )
-    config2 = Config(
-        {"a@type:str": "a"}, []
-    )
+    config1 = Config({"a@type:int": 0}, [ProcessBypassTyping(), ProcessTyping()])
+    config2 = Config({"a@type:str": "a"}, [])
     # Reset ProcessTyping
     with pytest.raises(
         ValueError,
         match=(
             "Find the tag '@type:str' on a key that has already "
             "been associated to an other type: int.*"
-        )
+        ),
     ):
         merge_flat_processing(config1, config2)
