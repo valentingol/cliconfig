@@ -1,4 +1,7 @@
-"""Routines to manipulate nested and flat dictionaries (and mix of both)."""
+"""Routines to manipulate nested and flat dictionaries (and mix of both).
+
+Used by :mod:`.process_routines` and :mod:`.config_routines`.
+"""
 import os
 from typing import Any, Dict, Tuple, Union
 
@@ -15,7 +18,7 @@ def merge_flat(
 ) -> Dict[str, Any]:
     """Flatten then merge dict2 into dict1. The result is flat.
 
-    Work even if dict1 and dict2 have are a mix of nested and flat
+    Work even if dict1 and dict2 have a mix of nested and flat
     dictionaries. For instance like this:
 
     .. code-block:: python
@@ -27,7 +30,7 @@ def merge_flat(
     dict1 : Dict[str, Any]
         The first dict. It can be nested, flat or a mix of both.
     dict2 : Dict[str, Any]
-        The second dict to merge into dict1.
+        The second dict to merge into first dict.
     allow_new_keys : bool, optional
         If True, new keys (that are not in dict1) are allowed in dict2.
         By default True.
@@ -57,7 +60,7 @@ def merge_flat(
         >>> merge_dict({'a.b': 1, 'a': {'b': 1}},  {'c': 3}, allow_new_keys=True)
         ValueError: duplicated key 'a.b'.
         The above exception was the direct cause of the following exception:
-        ValueError: You may consider calling `clean_pre_flat` on dict 1 before merging.
+        ValueError: You may consider calling 'clean_pre_flat' on dict 1 before merging.
     """
     # Flatten dicts
     flat_dict1, flat_dict2 = _flat_before_merge(dict1, dict2)
@@ -91,7 +94,7 @@ def _flat_before_merge(
             except ValueError as exc:
                 raise ValueError(
                     f"Duplicated key found in dict {i + 1} when flattening. "
-                    f"You may consider calling `clean_pre_flat` before merging."
+                    f"You may consider calling 'clean_pre_flat' before merging."
                 ) from exc
         else:
             flat_dict = _dict
@@ -107,8 +110,8 @@ def merge_flat_paths(
 ) -> Dict[str, Any]:
     """Flatten then merge two dict eventually loaded from yaml file paths.
 
-    Similar to :func:`cliconfig.dict_routines.merge_flat` but allow passing
-    the paths of dicts as inputs. It merges the second dict into the first one.
+    Similar to :func:`.merge_flat` but allow passing the paths of dicts
+    as inputs. It merges the second dict into the first one.
 
     Parameters
     ----------
@@ -151,14 +154,16 @@ def merge_flat_paths(
 
 
 def flatten(in_dict: Dict[str, Any]) -> Dict[str, Any]:
-    """Flatten dict then return it.
+    """Flatten dict then return it (flat keys are built with dots).
 
     Work even if in_dict is a mix of nested and flat dictionaries.
     For instance like this:
 
     .. code-block:: python
 
-        in_dict = {'a.b': {'c': 1}, 'a': {'b.d': 2}, 'a.e': {'f.g': 3}}
+        >>> flatten({'a.b': {'c': 1}, 'a': {'b.d': 2}, 'a.e': {'f.g': 3}})
+        {'a.b.c': 1, 'a.b.d': 2, 'a.e.f.g': 3}
+
 
     Parameters
     ----------
@@ -168,7 +173,7 @@ def flatten(in_dict: Dict[str, Any]) -> Dict[str, Any]:
     Raises
     ------
     ValueError
-        If dict has some conflicting keys (like `{'a.b': <x>, 'a': {'b': <y>}}`).
+        If dict has some conflicting keys (like ``{'a.b': <x>, 'a': {'b': <y>}}``).
 
     Returns
     -------
@@ -246,8 +251,8 @@ def clean_pre_flat(in_dict: Dict[str, Any], priority: str) -> Dict[str, Any]:
         See warning section below.
     priority: str
         One of 'flat' or 'unflat', 'error'.
-        If 'flat', keys with dots at the root like `{'a.b': ...}` (flat keys) have
-        priority over nested keys like `{'a': {'b': ...}}` when there are conflicts.
+        If 'flat', keys with dots at the root like ``{'a.b': ...}`` (flat keys) have
+        priority over nested keys like ``{'a': {'b': ...}}`` when there are conflicts.
         If 'unflat', nested keys have priority over flat keys when there are conflicts.
         If 'error', raise an error when there are conflicts.
 
@@ -263,12 +268,12 @@ def clean_pre_flat(in_dict: Dict[str, Any], priority: str) -> Dict[str, Any]:
 
     Warning
     -------
-        * No flat key can contain a dict. Then, dicts like `{'a.b': {'c': 1}}`
+        * No flat key can contain a dict. Then, dicts like ``{'a.b': {'c': 1}}``
           are not supported.
         * All the keys that contain dots (the flat keys) must be at the root.
-          Then, dicts like `{a: {'b.c': 1}}` are not supported.
+          Then, dicts like ``{a: {'b.c': 1}}`` are not supported.
         * To summarize, the dict must contain only fully flat dicts
-          and fully nested dicts.
+          and/or fully nested dicts.
 
     Examples
     --------
@@ -311,7 +316,7 @@ def _del_key(
     keep_flat: bool = False,
     keep_unflat: bool = False,
 ) -> None:
-    """Remove in place a value in dict corresponding to a flat key (e.g. 'a.b.c).
+    """Remove in place a value in dict corresponding to a flat key (e.g. 'a.b.c').
 
     Parameters
     ----------
@@ -333,10 +338,10 @@ def _del_key(
 
     Warning
     -------
-        * No flat key can contain a dict. Then, dicts like `{'a.b': {'c': 1}}`
+        * No flat key can contain a dict. Then, dicts like ``{'a.b': {'c': 1}}``
           are not supported.
         * All the keys that contain dots (the flat keys) must be at the root.
-          Then, dicts like `{a: {'b.c': 1}}` are not supported.
+          Then, dicts like ``{a: {'b.c': 1}}`` are not supported.
         * To summarize, the dict must contain only fully flat dicts
           and fully nested dicts.
 
@@ -355,7 +360,6 @@ def _del_key(
         ValueError: Key 'a.b.z' not found in dict.
         >>> _del_key(in_dict, 'a.z.c')
         ValueError: Key 'a.z.c' not found in dict.
-
     """
     found_key = False
     if not keep_flat and flat_key in in_dict:
@@ -403,7 +407,7 @@ def _del_key(
 
 
 def save_dict(in_dict: Dict[str, Any], path: str) -> None:
-    """Save a dict to a yaml file.
+    """Save a dict to a yaml file (with yaml.dump).
 
     Parameters
     ----------
@@ -421,6 +425,8 @@ def save_dict(in_dict: Dict[str, Any], path: str) -> None:
 def load_dict(path: str) -> Dict[str, Any]:
     """Load dict from a yaml file path.
 
+     Support multiple files in the same document.
+
     Parameters
     ----------
     path : str
@@ -429,24 +435,32 @@ def load_dict(path: str) -> Dict[str, Any]:
     Returns
     -------
     out_dict : Dict[str, Any]
-        The loaded dict.
+        The nested (unflatten) loaded dict.
+
+    Note
+    ----
+        If multiple yaml files are in the same document, they are merged
+        from the first to the last.
     """
     with open(path, "r", encoding="utf-8") as cfg_file:
-        out_dict = yaml.safe_load(cfg_file)
-    return out_dict
+        file_dicts = yaml.safe_load_all(cfg_file)
+        out_dict: Dict[str, Any] = {}
+        for file_dict in file_dicts:
+            out_dict = merge_flat(out_dict, file_dict, allow_new_keys=True)
+    return unflatten(out_dict)
 
 
-def show_dict(in_dict: Dict[str, Any], start_indent: int = 1) -> None:
+def show_dict(in_dict: Dict[str, Any], start_indent: int = 0) -> None:
     """Show the input dict in a pretty way.
 
-    The input dict is unflattened before.
+    The config dict is automatically unflattened before printing.
 
     Parameters
     ----------
     in_dict : Dict[str, Any]
         The dict to show.
     start_indent : int, optional
-        The number of starting tab indent (4 spaces), by default 1.
+        The number of starting tab indent (4 spaces), by default 0.
     """
 
     def pretty_print(in_dict: Dict[str, Any], indent: int) -> None:
