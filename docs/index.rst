@@ -77,6 +77,9 @@ For instance with these config files:
       param1: 0
       param2: 1
 
+Note that can also use YAML tags separated with "@" (like `key: !tag@tag2 value`)
+to add tags instead of putting them in the parameter name (like `key@tag@tag2: value`).
+
 Here `main.yaml` will be interpreted like:
 
 .. code:: yaml
