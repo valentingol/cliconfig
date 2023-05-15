@@ -9,17 +9,24 @@ def _parse_type(type_desc: str) -> Tuple:
     Allow basic types (none, any, bool, int, float, str, list, dict), nested lists,
     nested dicts, unions (with Union or the '|' symbol) and Optional.
 
-    Representation:
-     * None|Any -> (type(None), object)
-     * list|float -> (list, float)
-     * List[float] -> (("list", (float,)),)
-     * Dict[str, List[float]] -> (("dict", (str,), ((("list", (float,)),),)),)
-     * Dict[str|bool, int|float] -> (("dict", (str, bool), (int, float)),)
+    Examples of representation:
+     * "str" -> (str,)
+     * "None|Any" -> (type(None), object)
+     * "list|float" -> (list, float)
+     * "List[float]" -> (("list", (float,)),)
+     * "Dict[str, Any]" -> (("dict", (str,), (object,)),)
+     * "Dict[str, List[float]]" -> (("dict", (str,), ((("list", (float,)),),)),)
+     * "Dict[str|bool, int|float]" -> (("dict", (str, bool), (int, float)),)
+     * ...
 
     Raises
     ------
     ValueError
         If the type description is not valid or not recognized.
+
+    Note
+    ----
+        The type description is lowercased and spaces are removed before parsing.
     """
     # Clean up
     old_type_desc = type_desc
@@ -97,6 +104,7 @@ def _parse_optional(type_desc: str) -> Tuple:
 
 
 def _parse_union(type_desc: str) -> Tuple:
+    """Parse an "union" type description."""
     sub_desc = type_desc[6:-1]
     # Split by comma
     sub_blocks = _split_brackets(sub_desc, delimiter=',')

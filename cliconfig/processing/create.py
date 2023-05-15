@@ -79,83 +79,6 @@ class _ProcessingValuePersistent(Processing):
         return flat_config
 
 
-def create_processing_value(
-    func: Callable,
-    regex: Optional[str] = None,
-    tag_name: Optional[str] = None,
-    order: float = 0.0,
-    *,
-    persistent: bool = False,
-) -> Processing:
-    r"""Create a processing object that modifies a value in dict using tag or regex.
-
-    The processing is applied on pre-merge. It triggers when the key matches
-    the tag or the regex. The function apply flat_dict[key] = func(flat_dict[key]).
-    You must only provide one of tag or regex. If tag is provided, the tag will be
-    removed from the key during pre-merge.
-
-    Parameters
-    ----------
-    func : Callable
-        The function to apply to the value to make new_value.
-    regex : Optional[str]
-        The regex to match the key.
-    tag_name : Optional[str]
-        The tag (without "@") to match the key. The values are modified when
-        triggering the pattern ".*@<tag_name>.*" and the tag is removed from the key.
-    order : int, optional
-        The pre-merge order. By default 0.0.
-    persistent : bool, optional
-        If True, the processing will be applied on all keys that have already
-        matched the tag before. By nature, regex processing are always persistent.
-        By default, False.
-
-    Raises
-    ------
-    ValueError
-        If both tag and regex are provided or if none of them are provided.
-
-    Returns
-    -------
-    processing : Processing
-        The processing object with the pre-merge method.
-
-
-    Examples
-    --------
-    With the following 2 processing and the following config:
-
-    ::
-
-        proc2 = create_processing_value(lambda x: -x, regex="neg_number.*", order=0.0)
-        proc1 = create_processing_value(lambda x: x + 1, tag_name="add1", order=1.0)
-
-    .. code_block: yaml
-
-        --- # config.yaml
-        neg_number1: 1
-        neg_number2: 1
-        neg_number3@add1: 1
-
-    When config.yaml is merged with an other config, it will be considered
-    before merging as:
-
-    ::
-
-        {'number1': -1, 'number2': -1, 'number3': 0}
-    """
-    if tag_name is not None:
-        if regex is not None:
-            raise ValueError("You must provide a tag or a regex but not both.")
-    else:
-        if regex is None:
-            raise ValueError("You must provide a tag or a regex "
-                             "(to trigger the value update).")
-    if persistent:
-        return _ProcessingValuePersistent(regex, tag_name, order, func)
-    return _ProcessingValue(regex, tag_name, order, func)
-
-
 class _ProcessingKeepProperty(Processing):
     """Processing class for make_processing_keep_property."""
 
@@ -210,6 +133,83 @@ class _ProcessingKeepProperty(Processing):
         return flat_config
 
 
+def create_processing_value(
+    func: Callable,
+    regex: Optional[str] = None,
+    tag_name: Optional[str] = None,
+    order: float = 0.0,
+    *,
+    persistent: bool = True,
+) -> Processing:
+    r"""Create a processing object that modifies a value in dict using tag or regex.
+
+    The processing is applied on pre-merge. It triggers when the key matches
+    the tag or the regex. The function apply ``flat_dict[key] = func(flat_dict[key])``.
+    You must only provide one of tag or regex. If tag is provided, the tag will be
+    removed from the key during pre-merge.
+
+    Parameters
+    ----------
+    func : Callable
+        The function to apply to the value to make new_value.
+    regex : Optional[str]
+        The regex to match the key.
+    tag_name : Optional[str]
+        The tag (without "@") to match the key. The tag is removed from
+        the key after triggering.
+    order : int, optional
+        The pre-merge order. By default 0.0.
+    persistent : bool, optional
+        If True, the processing will be applied on all keys that have already
+        matched the tag before. By nature, regex processing are always persistent.
+        By default, True.
+
+    Raises
+    ------
+    ValueError
+        If both tag and regex are provided or if none of them are provided.
+
+    Returns
+    -------
+    processing : Processing
+        The processing object with the pre-merge method.
+
+
+    Examples
+    --------
+    With the following 2 processing and the following config:
+
+    ::
+
+        proc2 = create_processing_value(lambda x: -x, regex="neg_number.*", order=0.0)
+        proc1 = create_processing_value(lambda x: x + 1, tag_name="add1", order=1.0)
+
+    .. code_block: yaml
+
+        --- # config.yaml
+        neg_number1: 1
+        neg_number2: 1
+        neg_number3@add1: 1
+
+    When config.yaml is merged with an other config, it will be considered
+    before merging as:
+
+    ::
+
+        {'number1': -1, 'number2': -1, 'number3': 0}
+    """
+    if tag_name is not None:
+        if regex is not None:
+            raise ValueError("You must provide a tag or a regex but not both.")
+    else:
+        if regex is None:
+            raise ValueError("You must provide a tag or a regex "
+                             "(to trigger the value update).")
+    if persistent:
+        return _ProcessingValuePersistent(regex, tag_name, order, func)
+    return _ProcessingValue(regex, tag_name, order, func)
+
+
 def create_processing_keep_property(
     func: Callable,
     regex: Optional[str] = None,
@@ -217,10 +217,11 @@ def create_processing_keep_property(
     premerge_order: float = 0.0,
     postmerge_order: float = 0.0,
 ) -> Processing:
-    """Create a processing object that keep a property of a value using tag or regex.
+    """Create a processing object that keep a property from a value using tag or regex.
 
     The pre-merge processing looks for keys that match the tag or the regex, apply
-    the function func on the value and store the result (= the "property").
+    the function func on the value and store the result (= the "property"):
+    ``property = func(flat_dict[key])``.
     The post-merge processing will check that the property is the same as the one
     stored during pre-merge. If not, it will raise a ValueError.
 
@@ -248,21 +249,27 @@ def create_processing_keep_property(
     Processing
         The processing object with the pre-merge and post-merge methods.
 
+    Note
+    ----
+
+        The property to keep can be updated by using the tag a second time.
+
     Examples
     --------
     A processing that enforce the types of all the parameters to be constant
     (equal to the type of the first value encountered):
 
-    ```python
-    create_processing_keep_property(type, regex=".*", premerge_order=15.0,
-                                    postmerge_order=15.0)
-    ```
+    ::
+
+        create_processing_keep_property(type, regex=".*", premerge_order=15.0,
+                                        postmerge_order=15.0)
+
     A processing that protect parameters tagged with @protect from being changed:
 
-    ```python
-    create_processing_keep_property(lambda x: x, tag_name="protect",
-                                    premerge_order=15.0, postmerge_order=15.0)
-    ```
+    ::
+
+        create_processing_keep_property(lambda x: x, tag_name="protect",
+                                        premerge_order=15.0, postmerge_order=15.0)
     """
     if tag_name is not None:
         if regex is not None:
