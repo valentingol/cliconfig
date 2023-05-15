@@ -79,7 +79,7 @@ class ProcessMerge(Processing):
         items = list(flat_config.dict.items())
         for flat_key, val in items:
             if is_tag_in(flat_key, "merge_after"):
-                if not isinstance(val, str) or not val.endswith('.yaml'):
+                if not isinstance(val, str) or not val.endswith(".yaml"):
                     raise ValueError(
                         "Key with '@merge_after' tag must be associated "
                         "to a string corresponding to a *yaml* file."
@@ -87,7 +87,7 @@ class ProcessMerge(Processing):
                     )
                 # Remove the tag in the dict
                 del flat_config.dict[flat_key]
-                flat_config.dict[clean_tag(flat_key, 'merge_after')] = val
+                flat_config.dict[clean_tag(flat_key, "merge_after")] = val
                 # Merge + process the dicts
                 # NOTE: we allow new keys with security because the merge
                 # following this pre-merge will avoid the creation of
@@ -101,7 +101,7 @@ class ProcessMerge(Processing):
                 )
 
             elif is_tag_in(flat_key, "merge_before"):
-                if not isinstance(val, str) or not val.endswith('.yaml'):
+                if not isinstance(val, str) or not val.endswith(".yaml"):
                     raise ValueError(
                         "Key with '@merge_before' tag must be associated "
                         "to a string corresponding to a *yaml* file."
@@ -109,7 +109,7 @@ class ProcessMerge(Processing):
                     )
                 # Remove the tag in the dict
                 del flat_config.dict[flat_key]
-                flat_config.dict[clean_tag(flat_key, 'merge_before')] = val
+                flat_config.dict[clean_tag(flat_key, "merge_before")] = val
                 # Merge + process the dicts
                 flat_config = merge_flat_paths_processing(
                     val,
@@ -120,7 +120,7 @@ class ProcessMerge(Processing):
                 )
 
             elif is_tag_in(flat_key, "merge_add"):
-                if not isinstance(val, str) or not val.endswith('.yaml'):
+                if not isinstance(val, str) or not val.endswith(".yaml"):
                     raise ValueError(
                         "Key with '@merge_add' tag must be associated "
                         "to a string corresponding to a *yaml* file."
@@ -128,7 +128,7 @@ class ProcessMerge(Processing):
                     )
                 # Remove the tag in the dict
                 del flat_config.dict[flat_key]
-                flat_config.dict[clean_tag(flat_key, 'merge_add')] = val
+                flat_config.dict[clean_tag(flat_key, "merge_add")] = val
                 # Pre-merge process the dict with the process list of
                 # the current config
                 flat_config_to_merge = merge_flat_paths_processing(
@@ -224,8 +224,10 @@ class ProcessCopy(Processing):
                         f"The problem occurs at key: {flat_key} with value: {val}"
                     )
                 clean_key = clean_all_tags(flat_key)
-                if (clean_key in self.keys_to_copy
-                        and self.keys_to_copy[clean_key] != val):
+                if (
+                    clean_key in self.keys_to_copy
+                    and self.keys_to_copy[clean_key] != val
+                ):
                     raise ValueError(
                         "Key with '@copy' has change its value to copy. Found key: "
                         f"{flat_key} with value: {val}, previous value to copy: "
@@ -252,7 +254,8 @@ class ProcessCopy(Processing):
                         "is then protected against updates (except the copied "
                         f"value or the original key to copy). Found key: {key} of "
                         f"value {flat_config.dict[key]} that copy {val} of value "
-                        f"{flat_config.dict[val]}")
+                        f"{flat_config.dict[val]}"
+                    )
                 # Copy the value
                 flat_config.dict[key] = flat_config.dict[val]
                 # Update the current value
@@ -327,15 +330,16 @@ class ProcessTyping(Processing):
         """Pre-merge processing."""
         items = list(flat_config.dict.items())
         for flat_key, val in items:
-            end_key = flat_key.split('.')[-1]
+            end_key = flat_key.split(".")[-1]
             if "@type:" in end_key:
                 # Get the type description
                 trail = end_key.split("@type:")[-1]
-                type_desc = trail.split('@')[0]  # (in case of multiple tags)
+                type_desc = trail.split("@")[0]  # (in case of multiple tags)
                 expected_type = tuple(_parse_type(type_desc))
                 clean_key = clean_all_tags(flat_key)
-                if (clean_key in self.forced_types
-                        and set(self.forced_types[clean_key]) != set(expected_type)):
+                if clean_key in self.forced_types and set(
+                    self.forced_types[clean_key]
+                ) != set(expected_type):
                     raise ValueError(
                         f"Find the tag '@type:{type_desc}' on a key that has already "
                         "been associated to an other type: "
@@ -344,7 +348,7 @@ class ProcessTyping(Processing):
                     )
                 # Remove the tag
                 del flat_config.dict[flat_key]
-                flat_config.dict[clean_tag(flat_key, f'type:{type_desc}')] = val
+                flat_config.dict[clean_tag(flat_key, f"type:{type_desc}")] = val
                 # Store the forced type
                 self.forced_types[clean_key] = expected_type
                 self.type_desc[clean_key] = type_desc
@@ -353,8 +357,9 @@ class ProcessTyping(Processing):
     def postmerge(self, flat_config: Config) -> Config:
         """Post-merge processing."""
         for key, expected_type in self.forced_types.items():
-            if (key in flat_config.dict
-                    and not _isinstance(flat_config.dict[key], expected_type)):
+            if key in flat_config.dict and not _isinstance(
+                flat_config.dict[key], expected_type
+            ):
                 type_desc = self.type_desc[key]
                 raise ValueError(
                     f"Key previously tagged with '@type:{type_desc}' must be "
@@ -469,15 +474,18 @@ class ProcessSelect(Processing):
 
     def postmerge(self, flat_config: Config) -> Config:
         """Post-merge processing."""
+
         def _is_in_subconfig(key: str, subconfig: str) -> bool:
             """Check if a key is in a subconfig with the exact name."""
             return key == subconfig or key.startswith(subconfig + ".")
+
         # Delete all keys on the subconfigs except the ones to keep
         for subconfig in self.subconfigs_to_delete:
             for key in list(flat_config.dict.keys()):
-                if (_is_in_subconfig(key, subconfig)
-                        and not any(_is_in_subconfig(key, key_to_keep)
-                                    for key_to_keep in self.keys_to_keep)):
+                if _is_in_subconfig(key, subconfig) and not any(
+                    _is_in_subconfig(key, key_to_keep)
+                    for key_to_keep in self.keys_to_keep
+                ):
                     del flat_config.dict[key]
         return super().postmerge(flat_config)
 
@@ -584,7 +592,7 @@ class ProcessCheckTags(Processing):
         return flat_config
 
 
-class DefaultProcessings():
+class DefaultProcessings:
     """Default list of built-in processings.
 
     To add these processings to a Config instance, use:

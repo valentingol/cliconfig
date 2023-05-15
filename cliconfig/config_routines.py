@@ -110,10 +110,7 @@ def make_config(
     # Merge CLI parameters
     cli_params_config = Config(cli_params_dict, [])
     config = merge_flat_processing(
-        config,
-        cli_params_config,
-        allow_new_keys=False,
-        preprocess_first=False
+        config, cli_params_config, allow_new_keys=False, preprocess_first=False
     )
     print(
         f"[CONFIG] Info: Merged {len(default_config_paths)} default config(s), "

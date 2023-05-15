@@ -24,9 +24,9 @@ class _ProcessingValue(Processing):
         self.tag_name = tag_name
         self.func = func
         if self.regex:
-            self.is_in_func = lambda key: re.match(
-                self.regex, key.split('.')[-1]
-            ) is not None
+            self.is_in_func = (
+                lambda key: re.match(self.regex, key.split(".")[-1]) is not None
+            )
         elif self.tag_name:
             self.is_in_func = lambda key: is_tag_in(key, str(self.tag_name))
 
@@ -59,9 +59,9 @@ class _ProcessingValuePersistent(Processing):
         self.func = func
         self.matched_keys: Set[str] = set()
         if self.regex is not None:
-            self.is_in_func = lambda key: re.match(
-                self.regex, key.split('.')[-1]
-            ) is not None
+            self.is_in_func = (
+                lambda key: re.match(self.regex, key.split(".")[-1]) is not None
+            )
         elif self.tag_name is not None:
             self.is_in_func = lambda key: is_tag_in(key, str(self.tag_name))
 
@@ -69,8 +69,10 @@ class _ProcessingValuePersistent(Processing):
         """Pre-merge processing."""
         items = list(flat_config.dict.items())
         for flat_key, value in items:
-            if (self.is_in_func(flat_key)  # type: ignore
-                    or clean_all_tags(flat_key) in self.matched_keys):
+            if (
+                self.is_in_func(flat_key)  # type: ignore
+                or clean_all_tags(flat_key) in self.matched_keys
+            ):
                 self.matched_keys.add(clean_all_tags(flat_key))
                 if self.tag_name:
                     del flat_config.dict[flat_key]
@@ -98,9 +100,9 @@ class _ProcessingKeepProperty(Processing):
         self.func = func
         self.properties: Dict[str, Any] = {}
         if self.regex is not None:
-            self.is_in_func = lambda key: re.match(
-                self.regex, key.split('.')[-1]
-            ) is not None
+            self.is_in_func = (
+                lambda key: re.match(self.regex, key.split(".")[-1]) is not None
+            )
         elif self.tag_name is not None:
             self.is_in_func = lambda key: is_tag_in(key, str(self.tag_name))
 
@@ -203,8 +205,9 @@ def create_processing_value(
             raise ValueError("You must provide a tag or a regex but not both.")
     else:
         if regex is None:
-            raise ValueError("You must provide a tag or a regex "
-                             "(to trigger the value update).")
+            raise ValueError(
+                "You must provide a tag or a regex (to trigger the value update)."
+            )
     if persistent:
         return _ProcessingValuePersistent(regex, tag_name, order, func)
     return _ProcessingValue(regex, tag_name, order, func)
@@ -276,13 +279,10 @@ def create_processing_keep_property(
             raise ValueError("You must provide a tag or a regex but not both.")
     else:
         if regex is None:
-            raise ValueError("You must provide a tag or a regex "
-                             "(to trigger the value update).")
+            raise ValueError(
+                "You must provide a tag or a regex (to trigger the value update)."
+            )
     processing = _ProcessingKeepProperty(
-        regex,
-        tag_name,
-        premerge_order,
-        postmerge_order,
-        func
+        regex, tag_name, premerge_order, postmerge_order, func
     )
     return processing

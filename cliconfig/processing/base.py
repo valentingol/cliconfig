@@ -6,7 +6,7 @@ and :mod:`.config_routines`.
 from cliconfig.base import Config
 
 
-class Processing():
+class Processing:
     """Processing base class.
 
     Each processing classes contains pre-merge, post-merge, pre-save

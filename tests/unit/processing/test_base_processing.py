@@ -8,8 +8,8 @@ from cliconfig.processing.base import Processing
 
 def test_processing() -> None:
     """Test Processing."""
-    class _ProcessingTest(Processing):
 
+    class _ProcessingTest(Processing):
         def __init__(self) -> None:
             super().__init__()
             self.attr = 0

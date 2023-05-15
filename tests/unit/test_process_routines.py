@@ -22,8 +22,8 @@ def test_merge_flat_processing(
     process_keep: ProcessKeep,
 ) -> None:
     """Test merge_flat_processing."""
-    class _ProcessingTest(Processing):
 
+    class _ProcessingTest(Processing):
         def __init__(self) -> None:
             super().__init__()
             self.attr = 0
@@ -54,8 +54,7 @@ def test_merge_flat_paths_processing(
 ) -> None:
     """Test merge_flat_paths_processing."""
     config1 = Config(
-        {"param1@add1": 0, "param2.param3@keep": 1},
-        [process_add1, process_keep]
+        {"param1@add1": 0, "param2.param3@keep": 1}, [process_add1, process_keep]
     )
     config2 = Config({"param2.param3": 3}, [])
     expected_dict = {"param1": 1, "param2.param3": 1}
@@ -87,8 +86,7 @@ def test_save_processing(
 ) -> None:
     """Test save_processing."""
     config = Config(
-        {"param1@add1": 0, "param2.param3@add1": 1},
-        [process_add1, process_keep]
+        {"param1@add1": 0, "param2.param3@add1": 1}, [process_add1, process_keep]
     )
     save_processing(config, "tests/tmp/config.yaml")
     with open("tests/tmp/config.yaml", "r", encoding="utf-8") as yaml_file:
@@ -115,7 +113,7 @@ def test_load_processing(
             "config_or_path must be a Config instance or a path to a yaml file "
             "but you passed a dict. If you want to use it as a valid input, "
             "you should use Config(<input dict>, []) instead."
-        )
+        ),
     ):
         merge_flat_paths_processing(
             {"a": 2},  # type: ignore
@@ -123,7 +121,7 @@ def test_load_processing(
         )
     with pytest.raises(
         ValueError,
-        match=("config_or_path must be a Config instance or a path to a yaml file.")
+        match=("config_or_path must be a Config instance or a path to a yaml file."),
     ):
         merge_flat_paths_processing(
             Config({"a": 1}, []),

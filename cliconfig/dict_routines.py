@@ -79,8 +79,7 @@ def merge_flat(
 
 
 def _flat_before_merge(
-    dict1: Dict[str, Any],
-    dict2: Dict[str, Any]
+    dict1: Dict[str, Any], dict2: Dict[str, Any]
 ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """Flatten two dicts to merge them later."""
     # Flatten dicts
@@ -368,10 +367,7 @@ def _del_key(
         del in_dict[flat_key]
 
     def recursive_del_key(
-        in_dict: Dict[str, Any],
-        key: str,
-        *,
-        found_key: bool
+        in_dict: Dict[str, Any], key: str, *, found_key: bool
     ) -> bool:
         first_key, *other_keys = key.split(".", 1)
         if other_keys:
@@ -474,4 +470,5 @@ def show_dict(in_dict: Dict[str, Any], start_indent: int = 0) -> None:
                 print(f"'{value}'")
             else:
                 print(value)
+
     pretty_print(unflatten(in_dict), start_indent)

@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from cliconfig.processing.base import Processing
 
 
-class Config():
+class Config:
     """Class for configuration.
 
     Config object contain the config dict and the processing list
@@ -15,9 +15,7 @@ class Config():
     """
 
     def __init__(
-        self,
-        config_dict: Dict[str, Any],
-        process_list: List["Processing"]
+        self, config_dict: Dict[str, Any], process_list: List["Processing"]
     ) -> None:
         self.dict = config_dict
         self.process_list = process_list
@@ -33,9 +31,11 @@ class Config():
         Two Config objects are equal if their dicts are equal and their
         lists of Processing objects are equal (order doesn't matter).
         """
-        if (isinstance(other, Config)
-                and self.dict == other.dict
-                and len(self.process_list) == len(other.process_list)):
+        if (
+            isinstance(other, Config)
+            and self.dict == other.dict
+            and len(self.process_list) == len(other.process_list)
+        ):
             equal = True
             for processing in self.process_list:
                 equal = equal and processing in other.process_list

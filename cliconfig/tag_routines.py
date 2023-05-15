@@ -38,14 +38,14 @@ def clean_tag(flat_key: str, tag_name: str) -> str:
     if tag_name[0] == "@":
         tag_name = tag_name[1:]
     # Replace "@tag@other_tag" by "@other_tag"
-    parts = flat_key.split(f'@{tag_name}@')
+    parts = flat_key.split(f"@{tag_name}@")
     flat_key = "@".join(parts)
     # Replace "@tag." by "."
-    parts = flat_key.split(f'@{tag_name}.')
+    parts = flat_key.split(f"@{tag_name}.")
     flat_key = ".".join(parts)
     # Remove "@tag" at the end of the string
-    if flat_key.endswith(f'@{tag_name}'):
-        flat_key = flat_key[:-len(f'@{tag_name}')]
+    if flat_key.endswith(f"@{tag_name}"):
+        flat_key = flat_key[: -len(f"@{tag_name}")]
     return flat_key
 
 
@@ -62,11 +62,11 @@ def clean_all_tags(flat_key: str) -> str:
     flat_key : str
         The cleaned flat key.
     """
-    list_keys = flat_key.split('.')
+    list_keys = flat_key.split(".")
     for i, key in enumerate(list_keys):
-        key = re.sub(r'@.*', '', key)
+        key = re.sub(r"@.*", "", key)
         list_keys[i] = key
-    flat_key = '.'.join(list_keys)
+    flat_key = ".".join(list_keys)
     return flat_key
 
 
@@ -89,7 +89,7 @@ def dict_clean_tags(flat_dict: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str
     clean_dict = copy.deepcopy(flat_dict)
     tagged_keys = []
     for key, value in items:
-        if '@' in key:
+        if "@" in key:
             del clean_dict[key]
             clean_dict[clean_all_tags(key)] = value
             tagged_keys.append(key)
@@ -122,8 +122,10 @@ def is_tag_in(flat_key: str, tag_name: str, *, full_key: bool = False) -> bool:
     if tag_name[0] == "@":
         tag_name = tag_name[1:]
     if not full_key:
-        flat_key = flat_key.split('.')[-1]
-    is_in = (flat_key.endswith(f"@{tag_name}")
-             or f"@{tag_name}@" in flat_key
-             or f"@{tag_name}." in flat_key)
+        flat_key = flat_key.split(".")[-1]
+    is_in = (
+        flat_key.endswith(f"@{tag_name}")
+        or f"@{tag_name}@" in flat_key
+        or f"@{tag_name}." in flat_key
+    )
     return is_in
