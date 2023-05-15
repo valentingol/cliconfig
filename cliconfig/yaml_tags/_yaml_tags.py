@@ -13,12 +13,6 @@ class TaggedNode:
         self.value = value
         self.is_config = is_config
 
-    def items(self) -> Any:
-        """Items method."""
-        if self.is_config:
-            return self.value.items()
-        return None
-
 
 def tagged_constructor(
     loader: yaml.SafeLoader, tag_suffix: str, node: yaml.Node
