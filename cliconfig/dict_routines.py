@@ -9,6 +9,8 @@ import yaml
 from flatten_dict import flatten as _flatten
 from flatten_dict import unflatten as _unflatten
 
+from cliconfig.yaml_tags._yaml_tags import get_yaml_loader, insert_tags
+
 
 def merge_flat(
     dict1: Dict[str, Any],
@@ -421,7 +423,7 @@ def save_dict(in_dict: Dict[str, Any], path: str) -> None:
 def load_dict(path: str) -> Dict[str, Any]:
     """Load dict from a yaml file path.
 
-     Support multiple files in the same document.
+     Support multiple files in the same document and yaml tags.
 
     Parameters
     ----------
@@ -435,14 +437,18 @@ def load_dict(path: str) -> Dict[str, Any]:
 
     Note
     ----
-        If multiple yaml files are in the same document, they are merged
+
+        * If multiple yaml files are in the same document, they are merged
         from the first to the last.
+        * To use multiple yaml tags, separate them with "@". E.g. ``!tag1@tag2``.
+        * You can combine any number of yaml and cliconfig tags together.
     """
     with open(path, "r", encoding="utf-8") as cfg_file:
-        file_dicts = yaml.safe_load_all(cfg_file)
+        file_dicts = yaml.load_all(cfg_file, Loader=get_yaml_loader())
         out_dict: Dict[str, Any] = {}
         for file_dict in file_dicts:
-            out_dict = merge_flat(out_dict, file_dict, allow_new_keys=True)
+            new_dict, _ = insert_tags(file_dict)
+            out_dict = merge_flat(out_dict, new_dict, allow_new_keys=True)
     return unflatten(out_dict)
 
 
