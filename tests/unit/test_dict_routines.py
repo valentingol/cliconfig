@@ -59,7 +59,7 @@ def test_merge_flat() -> None:
     dict1 = {"a.b": 1, "a": {"b": 1, "c": 2}}
     with pytest.raises(
         ValueError,
-        match="Duplicated key found.*You may consider calling `clean_pre_flat`.*",
+        match="Duplicated key found.*You may consider calling 'clean_pre_flat'.*",
     ):
         merge_flat(dict1, dict2, allow_new_keys=True)
 
@@ -155,17 +155,20 @@ def test_clean_pre_flat() -> None:
 
 def test_save_load_dict() -> None:
     """Test save_dict and load_dict."""
-    config1 = {"a": 1, "b": {"c": 2}, "d": [2, 3.0], "e": [{"f": 4}]}
-    save_dict(config1, "tests/tmp/config.yaml")
+    dict1 = {"a": 1, "b": {"c": 2}, "d": [2, 3.0], "e": [{"f": 4}]}
+    save_dict(dict1, "tests/tmp/config.yaml")
     check.is_true(os.path.isfile("tests/tmp/config.yaml"))
-    config2 = load_dict("tests/tmp/config.yaml")
-    check.equal(config1, config2)
+    dict2 = load_dict("tests/tmp/config.yaml")
+    check.equal(dict1, dict2)
+    # Case multiple files and yaml tags
+    out_dict = load_dict("tests/configs/multi_files.yaml")
+    check.equal(out_dict, dict1)
     shutil.rmtree("tests/tmp")
 
 
 def test_show_dict() -> None:
     """Test show_dict."""
-    config = {
+    in_dict = {
         "model": {
             "s1_ae_config": {
                 "in_dim": 2,
@@ -194,4 +197,4 @@ def test_show_dict() -> None:
             "num_workers": 6,
         },
     }
-    show_dict(config)
+    show_dict(in_dict)
