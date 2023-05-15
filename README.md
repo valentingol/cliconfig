@@ -12,6 +12,8 @@ flatten or nested dicts.
 
 ## Documentation :memo: [here](https://cliconfig.readthedocs.io/en/stable)
 
+## Pypi :package: [here](https://pypi.org/project/cliconfig/)
+
 [![Release](https://img.shields.io/github/v/tag/valentingol/cliconfig?label=Pypi&logo=pypi&logoColor=yellow)](https://pypi.org/project/cliconfig/)
 ![PythonVersion](https://img.shields.io/badge/Python-3.7%20%7E%203.11-informational)
 [![License](https://img.shields.io/github/license/valentingol/cliconfig?color=999)](https://stringfixer.com/fr/MIT_license)
