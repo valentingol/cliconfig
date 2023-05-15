@@ -16,6 +16,11 @@ that can change the whole configuration before and after each config merge, conf
 saving and config loading. It also contains many routines to manipulate the config as
 flatten or nested dicts.
 
+`Pypi project <https://pypi.org/project/cliconfig/>`_
+
+`Github project <https://github.com/valentingol/cliconfig>`_
+
+
 |PyPI version| |PythonVersion| |License|
 
 |Ruff_logo| |Black_logo|

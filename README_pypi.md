@@ -11,7 +11,9 @@ that can change the whole configuration before and after each config merge, conf
 saving and config loading. It also contains many routines to manipulate the config as
 flatten or nested dicts.
 
-## Documentation: [here](https://cliconfig.readthedocs.io/en/stable)
+## Documentation: [read-the-docs](https://cliconfig.readthedocs.io/en/stable)
+
+## Source code: [github](https://github.com/valentingol/cliconfig)
 
 [![Release](https://img.shields.io/github/v/tag/valentingol/cliconfig?label=Pypi&logo=pypi&logoColor=yellow)](https://pypi.org/project/cliconfig/)
 ![PythonVersion](https://img.shields.io/badge/Python-3.7%20%7E%203.11-informational)
