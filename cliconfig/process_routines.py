@@ -224,3 +224,22 @@ def load_processing(path: str, process_list: List[Processing]) -> Config:
     for processing in order_list:
         flat_config = processing.postload(flat_config)
     return flat_config
+
+
+def end_build_processing(flat_config: Config) -> Config:
+    """Apply end-build processings to a flat config.
+
+    Parameters
+    ----------
+    flat_config : Config
+        The flat config to apply the end-build processings.
+
+    Returns
+    -------
+    flat_config : Config
+        The flat config after applying the end-build processings.
+    """
+    order_list = sorted(flat_config.process_list, key=lambda x: x.endbuild_order)
+    for processing in order_list:
+        flat_config = processing.endbuild(flat_config)
+    return flat_config
