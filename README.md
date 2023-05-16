@@ -260,7 +260,7 @@ Please see our [contributing guidelines](CONTRIBUTING.md) for more information ð
 
 Priority:
 
-* [ ] Add end-build processing that trigger at the end of `make_config` and `load_config`.
+* [x] Add end-build processing that trigger at the end of `make_config` and `load_config`.
 * [x] Continue `test_multi_tags2` integration test with cases that raise errors, and
   pre-save processing.
 * [x] Support multi-files in yaml file (with separator "---")
