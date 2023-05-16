@@ -1,5 +1,5 @@
 """Base classes of Config object."""
-from typing import TYPE_CHECKING, Any, Dict, List
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 # Imports Processing for mypy type checking only
 if TYPE_CHECKING:
@@ -12,13 +12,23 @@ class Config:
     Config object contain the config dict and the processing list
     and no methods except ``__init__``, ``__repr__`` and ``__eq__``.
     The Config objects are mutable and not hashable.
+
+    Parameters
+    ----------
+    config_dict : Dict[str, Any]
+        The config dict.
+    process_list : Optional[List[Processing]], optional
+        The list of Processing objects. If None, an empty list is used.
+        The default is None.
     """
 
     def __init__(
-        self, config_dict: Dict[str, Any], process_list: List["Processing"]
+        self,
+        config_dict: Dict[str, Any],
+        process_list: Optional[List["Processing"]] = None
     ) -> None:
         self.dict = config_dict
-        self.process_list = process_list
+        self.process_list = process_list if process_list else []
 
     def __repr__(self) -> str:
         """Representation of Config object."""

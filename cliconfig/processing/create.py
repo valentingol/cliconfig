@@ -179,19 +179,19 @@ def create_processing_value(
 
     Examples
     --------
-    With the following 2 processing and the following config:
+    With the following config and 2 processings:
+
+    .. code_block: yaml
+
+        # config.yaml
+        neg_number1: 1
+        neg_number2: 1
+        neg_number3@add1: 1
 
     ::
 
         proc2 = create_processing_value(lambda x: -x, regex="neg_number.*", order=0.0)
         proc1 = create_processing_value(lambda x: x + 1, tag_name="add1", order=1.0)
-
-    .. code_block: yaml
-
-        --- # config.yaml
-        neg_number1: 1
-        neg_number2: 1
-        neg_number3@add1: 1
 
     When config.yaml is merged with an other config, it will be considered
     before merging as:

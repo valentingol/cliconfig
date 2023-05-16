@@ -4,18 +4,18 @@ Processings are powerful tools to modify the config at each step of the lifecycl
 a configuration. More precisely, you can use processings to modify the full
 configuration before and after each merge, after loading, and before saving the config.
 
-The processings are applied via a processing object that have four methods
-(called "processing" to simplify): `premerge`, `postmerge`, `postload` and `presave`.
-These names correspond to the timing they are applied. Each processing have
-the signature:
+The processings are applied via a processing object that have five methods
+(called "processing" to simplify): `premerge`, `postmerge`, `endbuild`, `postload`
+and `presave`. These names correspond to the timing they are applied. Each processing
+have the signature:
 
 ```python
 def premerge(self, flat_config: Config) -> Config:
     ...
 ```
 
-Where `Config` is a simple dataclass containing only two fields: `dict` that is the
-configuration dict and `process_list`, the list of processing objects
+Where `Config` is a simple class containing only two attributes (and no methods):
+`dict` that is the configuration dict and `process_list`, the list of processing objects
 (we discuss about this in a section below). Note that it is
 also the class of the object returned by the `make_config` function.
 
@@ -49,36 +49,52 @@ the dict will be unflattened to its normal nested configuration structure.
 
 The order in which the processings are triggered is crucial because they modify
 the config and consequently affect the behavior of subsequent processings.
-To manage this order, the processing class have four float attributes representing
-the order of the four processing methods: premerge, postmerge, postload, and presave.
+To manage this order, the processing class have five float attributes representing
+the order of the five processing methods: premerge, postmerge, endbuild, postload,
+and presave.
 
 Here's a basic example to illustrate the significance of the order:
 
 ```yaml
-# config.yaml
-param1@type:int@copy: 'param2'
-param2@type:int: 1
+# config1.yaml
+merge@merge_add@delete: config2.yaml
+param: 1
+# config2.yaml
+param2: 2
 ```
 
-In this example, we want to enforce the types of the parameters. Additionally, `param1`
-is intended to be a copy of `param2` and naturally, it is forced to have the same type.
+In this example, we want to build a global config using `config1.yaml`. This file contains only
+half of the paramers, and the other half is in `config2.yaml`. Then, we add a key
+with the name of our choice, here "merge", tagged with `@merge_add` to merge
+`config2.yaml` before the global config update. We add the `@delete` tag to delete
+the key "merge" before merging with the global config because in this case, there is
+no key with the name "merge" in the global config and it would raise an error as
+it is not possible to ass new keys.
 
-During the pre-merge processing, the tags are removed, and information about the
-enforced types and the copy operation is gathered on processing attributes.
-Then, a merge is performed (assuming no modifications to our parameters at
-this point to simplify), followed by the post-merge processing.
+`@merge_add` and `@delete` has both only a pre-merge effect. Let's check the orders.
+It is `-20.0` for merge and `30.0` for delete. So merge trigger first, add `param2` and
+the "merge" key is deleted after it. If the orders were reversed, the key would have been
+deleted before merge processing and so the `param2` would not have been updated with the
+value of 2 and the resulting configuration would potentially not have been
+the expected one at all.
 
-Now, what happens if the type post-merge processing triggers before the
-copy post-merge processing? It will check the value, which is `"param2"`,
-and raise an error because it is not an integer (the forced type got during pre-merge).
-However, if the copy processing triggers before the type processing, it will copy the
-value of `param2` (which is `1`) to `param1`, and then the type processing will not
-encounter a wrong value.
-
-Fortunately, the post-merge orders are set as follows: `20.0` for the type processing
-and `10.0` for the copy processing. As a result, the copy processing triggers first.
 Therefore, it is crucial to carefully manage the order when creating your own
 processings!
+
+Some useful ranges to choose your order:
+
+* not important: order = 0 (default)
+* if it check/modify the config before applying any processing: order < -25
+* if it add new parameters: -25 < order < -5
+* if it update a value based on itself: -5 < order < 5
+* if it update a value based on other keys: 5 < order < 15
+* if it checks a property on a value: 15 < order < 25
+* if it delete other key(s) but you want to trigger the tags before: 25 < order < 35
+* final check/modification after all processings: order > 35
+
+Note: a pre-merge order should not be greater than 1000, the order of the default
+processing `ProcessCheckTags` that raise an error if tags still exist at the end
+of the pre-merge step.
 
 ## Create basic processing
 

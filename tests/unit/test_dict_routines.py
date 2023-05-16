@@ -165,17 +165,15 @@ def test_save_load_dict() -> None:
     expected_dict = {
         "config@cfg": {
             "param1@par@other": 1,
-            "param2": {"a": 1.0, "b@par2": 2.1},
+            "param2": {"a": 1.0, "b@par2": "2.1"},
         },
         "config2": {
             "param3@par3": 3.2,
-            "param4@par4": [4, 5, {'6': 6}],
-            "param5": [True, 8]
+            "param4@par4": [4, 5, {"6": 6}],
+            "param5": [True, 8],
         },
-        "config3@cfg3": {
-            "param6": {"param7@par7": None}, "param8": "True"
-        },
-        "config4@cfg4": {"config5@cfg5": {"param9": "11"}}
+        "config3@cfg3": {"param6": {"param7@par7": None}, "param8": "True"},
+        "config4@cfg4": {"config5@cfg5": {"param9": "11"}},
     }
     check.equal(out_dict, expected_dict)
     shutil.rmtree("tests/tmp")

@@ -7,8 +7,8 @@
 *CLI Config*: Lightweight library that provides routines to merge nested configs
 and set parameters from command line. It is also provide processing functions
 that can change the whole configuration before and after each config merge, config
-saving and config loading. It also contains many routines to manipulate the config as
-flatten or nested dicts.
+saving, config loading and at the end of config building. It also contains many
+routines to manipulate the config as flatten or nested dicts.
 
 ## Documentation :memo: [here](https://cliconfig.readthedocs.io/en/stable)
 
@@ -154,9 +154,7 @@ The default tags include:
 * `@select`: This tag select sub-config(s) to keep and delete the other
   sub-configs in the same parent config. The tagged key is not deleted if it is
   in the parent config.
-* `@delete`: This tag deletes the key from the config on pre-merge. It is useful
-  to activate a processing without having a good name for the key to add in
-  the default config.
+* `@delete`: This tag deletes the key from the config before merging.
 
 The tags are applied in the following order: `@merge`, `@select`, `@copy`, `@type`
 and then `@delete`.
@@ -210,7 +208,7 @@ Then, all the parameters in `config1` and `config2` have enforced types
 These side effects are not visible in the config but stored on processing classes.
 They are objects that find the tags, remove them from config and apply a modification.
 These processing are powerful tools that can be used to highly customize the
-configuration process.
+configuration at each step of the process.
 
 You can easily create your own processing (associated to a tag or not).
 The way to do it and a further explanation of them is available in the
@@ -262,7 +260,7 @@ Please see our [contributing guidelines](CONTRIBUTING.md) for more information ð
 
 Priority:
 
-* [ ] Add end-build processing that trigger at the end of `make_config` and `load_config`.
+* [x] Add end-build processing that trigger at the end of `make_config` and `load_config`.
 * [x] Continue `test_multi_tags2` integration test with cases that raise errors, and
   pre-save processing.
 * [x] Support multi-files in yaml file (with separator "---")

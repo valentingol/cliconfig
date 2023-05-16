@@ -13,8 +13,8 @@ CLI Config
 *CLI Config*: Lightweight library that provides routines to merge nested configs
 and set parameters from command line. It is also provide processing functions
 that can change the whole configuration before and after each config merge, config
-saving and config loading. It also contains many routines to manipulate the config as
-flatten or nested dicts.
+saving, config loading and at the end of config building. It also contains many
+routines to manipulate the config as flatten or nested dicts.
 
 `Pypi project <https://pypi.org/project/cliconfig/>`_
 

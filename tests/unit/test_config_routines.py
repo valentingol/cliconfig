@@ -40,6 +40,7 @@ def test_make_config(capsys: pytest.CaptureFixture, process_add1: Processing) ->
             "letter3": "c",
             "letter4": "d",
         },
+        "processing name": "ProcessAdd1",
     }
     expected_out = (
         "[CONFIG] Warning: New keys found in CLI parameters that will not be merged:\n"
@@ -96,6 +97,7 @@ def test_load_config(process_add1: Processing) -> None:
             "letter3": "c",
             "letter4": "d",
         },
+        "processing name": "ProcessAdd1",
     }
     check.equal(config.dict, expected_config)
     # Additional keys when allow_new_keys=False
