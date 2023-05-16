@@ -6,6 +6,7 @@ from cliconfig.base import Config
 from cliconfig.cli_parser import parse_cli
 from cliconfig.dict_routines import flatten, show_dict, unflatten
 from cliconfig.process_routines import (
+    end_build_processing,
     load_processing,
     merge_flat_paths_processing,
     merge_flat_processing,
@@ -117,6 +118,8 @@ def make_config(
         f"{len(additional_config_paths)} additional config(s) and "
         f"{len(cli_params_dict)} CLI parameter(s)."
     )
+    # Apply end-build processing
+    config = end_build_processing(config)
     # Unflatten the config dict
     config.dict = unflatten(config.dict)
     return config
@@ -191,6 +194,8 @@ def load_config(
         allow_new_keys=default_config_paths is None,
         preprocess_first=False,
     )
+    # Apply end-build processing
+    config = end_build_processing(config)
     # Unflatten the config
     config.dict = unflatten(config.dict)
     return config
