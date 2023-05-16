@@ -21,6 +21,7 @@ class Processing:
     def __init__(self) -> None:
         self.premerge_order = 0.0
         self.postmerge_order = 0.0
+        self.endbuild_order = 0.0
         self.presave_order = 0.0
         self.postload_order = 0.0
 
@@ -37,6 +38,15 @@ class Processing:
 
         Function applied to the flat config to modify it
         after merging . It takes a flat config and returns a flat config.
+        """
+        return flat_config
+
+    def endbuild(self, flat_config: Config) -> Config:
+        """End-build processing.
+
+        Function applied to the flat config to modify it at the end of
+        a building process (typically :func:`.make_config` or :func:`.load_config`).
+        It takes a flat config and returns a flat config.
         """
         return flat_config
 
