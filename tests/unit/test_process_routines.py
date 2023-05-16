@@ -8,6 +8,7 @@ import yaml
 
 from cliconfig.base import Config
 from cliconfig.process_routines import (
+    end_build_processing,
     load_processing,
     merge_flat_paths_processing,
     merge_flat_processing,
@@ -127,3 +128,10 @@ def test_load_processing(
             Config({"a": 1}, []),
             ("not a path",),  # type: ignore
         )
+
+
+def test_end_build_processing(process_add1: ProcessAdd1) -> None:
+    """Test end_build_processing."""
+    config = Config({"param1@add1": 0}, [process_add1])
+    config = end_build_processing(config)
+    check.equal(config.dict, {"param1@add1": 0, "processing name": "ProcessAdd1"})
