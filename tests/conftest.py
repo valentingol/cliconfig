@@ -11,7 +11,6 @@ from cliconfig.tag_routines import clean_all_tags, clean_tag, is_tag_in
 class ProcessAdd1(Processing):
     """Add 1 to values with tag "@add1"."""
 
-    # pylint: disable=unused-argument
     def premerge(self, flat_config: Config) -> Config:
         """Pre-merge processing."""
         items = list(flat_config.dict.items())
@@ -19,6 +18,11 @@ class ProcessAdd1(Processing):
             if is_tag_in(flat_key, "add1"):
                 flat_config.dict[clean_tag(flat_key, "add1")] = value + 1
                 del flat_config.dict[flat_key]
+        return flat_config
+
+    def endbuild(self, flat_config: Config) -> Config:
+        """End-build processing."""
+        flat_config.dict["processing name"] = "ProcessAdd1"
         return flat_config
 
     def presave(self, flat_config: Config) -> Config:
