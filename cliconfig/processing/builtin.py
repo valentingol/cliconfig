@@ -168,12 +168,15 @@ class ProcessCopy(Processing):
 
     Tag your key with ``@copy`` and with value the name of the flat key to copy.
     The pre-merge processing removes the tag. The post-merge processing
-    sets the value (if the copied key exists) and occurs after most processings.
-    The pre-save processing restore the tag and the key to copy to keep the
-    information on future loads.
+    sets the value (if the copied key exists). The end-build processing checks
+    that the copied key exists or was already copied once. The pre-save processing
+    restore the tag and the key to copy to keep the information on future loads.
+    The post-merge and the end-build processings occurs after most processings to
+    allow the user to modify or add the copied key before the copy.
     Pre-merge order: 0.0
     Post-merge order: 10.0
-    Pre-save order: 10.0
+    End-build order: 10.0
+    Pre-save order: 0.0
 
     Examples
     --------
@@ -193,23 +196,22 @@ class ProcessCopy(Processing):
     Note
     ----
 
-        The copy key is protected against any modification and will raise an error
-        if you try to modify it but will be updated if the copied key is updated.
-
-    Warning
-    -------
-
-        If the key to copy does not exist in the config on post-merge, the
-        processing will NOT raise an error to let the user the possibility
-        to add the key later via merge. However, the value still be protected.
+        * The copy key is protected against any modification and will raise an error
+          if you try to modify it but will be updated if the copied key is updated.
+        * If the key to copy does not exist in the config on post-merge, no error
+          is raised to let the user the possibility to add the key later via merge.
+          However, if the key still does not exist at the end of the build
+          (and the key was never copied), an error is raised.
     """
 
     def __init__(self) -> None:
         super().__init__()
         self.premerge_order = 0.0
         self.postmerge_order = 10.0
-        self.presave_order = 10.0
+        self.endbuild_order = 10.0
+        self.presave_order = 0.0
         self.keys_to_copy: Dict[str, str] = {}
+        self.copied_keys: Set[str] = set()
         self.current_value: Dict[str, Any] = {}
 
     def premerge(self, flat_config: Config) -> Config:
@@ -251,15 +253,32 @@ class ProcessCopy(Processing):
                     # The key has been modified
                     raise ValueError(
                         "Found attempt to modify a key with '@copy' tag. The key "
-                        "is then protected against updates (except the copied "
-                        f"value or the original key to copy). Found key: {key} of "
+                        f"is protected against direct updates. Found key: {key} of "
                         f"value {flat_config.dict[key]} that copy {val} of value "
                         f"{flat_config.dict[val]}"
                     )
                 # Copy the value
                 flat_config.dict[key] = flat_config.dict[val]
+                self.copied_keys.add(key)
                 # Update the current value
                 self.current_value[key] = flat_config.dict[val]
+        return flat_config
+
+    def endbuild(self, flat_config: Config) -> Config:
+        """End-build processing."""
+        for key, val in self.keys_to_copy.items():
+            if key in flat_config.dict and key not in self.copied_keys:
+                if val in flat_config.dict:
+                    # Copy the value
+                    flat_config.dict[key] = flat_config.dict[val]
+                    self.copied_keys.add(key)
+                else:
+                    raise ValueError(
+                        "A key with '@copy' tag has been found but the key to copy "
+                        "does not exist at the end of the build and it has been "
+                        f"never copied. Found key: {key} that would copy the "
+                        f"key: {val}."
+                    )
         return flat_config
 
     def presave(self, flat_config: Config) -> Config:
@@ -287,18 +306,18 @@ class ProcessTyping(Processing):
     the type to be None or a list containing dicts with str keys and int or float
     values.
 
-    the processing stores the type in pre-merge and check alls forced types on
-    post-merge. It restore the tag in pre-save to keep the information on
-    future loads. The post-merge processing occurs after almost all processings.
+    The processing stores the type in pre-merge and check alls forced types on
+    end-build. It restore the tag in pre-save to keep the information on
+    future loads. The end-build processing occurs after almost all processings.
     Pre-merge order: 0.0
-    Post-merge order: 20.0
+    End-build order: 20.0
     Pre-save order: 0.0
 
     Note
     ----
-        The type is not checked on pre-merge to allow the parameter to be
-        updated (by a copy or a merge for instance). The goal of this
-        processing is to ensure the type at the end of the post-merge.
+        The type is not checked on pre-merge or ost-merge to allow the parameter
+        to be updated (by a copy or a merge for instance). The goal of this
+        processing is to ensure the type at the end of the build.
 
     Examples
     --------
@@ -321,7 +340,7 @@ class ProcessTyping(Processing):
     def __init__(self) -> None:
         super().__init__()
         self.premerge_order = 0.0
-        self.postmerge_order = 20.0
+        self.endbuild_order = 20.0
         self.presave_order = 0.0
         self.forced_types: Dict[str, tuple] = {}
         self.type_desc: Dict[str, str] = {}  # For error messages
@@ -354,8 +373,8 @@ class ProcessTyping(Processing):
                 self.type_desc[clean_key] = type_desc
         return flat_config
 
-    def postmerge(self, flat_config: Config) -> Config:
-        """Post-merge processing."""
+    def endbuild(self, flat_config: Config) -> Config:
+        """End-build processing."""
         for key, expected_type in self.forced_types.items():
             if key in flat_config.dict and not _isinstance(
                 flat_config.dict[key], expected_type
@@ -511,7 +530,7 @@ class ProcessDelete(Processing):
     on merge with ``allow_new_keys=False``. This processing is applied very
     late on pre-merge to allow the others processing to be applied before
     deleting the parameters.
-    Pre-merge order: 25.0
+    Pre-merge order: 30.0
 
     Examples
     --------
@@ -548,7 +567,7 @@ class ProcessDelete(Processing):
     def __init__(self) -> None:
         super().__init__()
         # After all pre-merge processing
-        self.premerge_order = 25.0
+        self.premerge_order = 30.0
 
     def premerge(self, flat_config: Config) -> Config:
         """Pre-merge processing."""
