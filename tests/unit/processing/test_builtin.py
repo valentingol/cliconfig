@@ -114,6 +114,7 @@ def test_process_copy() -> None:
     flat_config.dict["config1.param1"] = 2
     flat_config = processing.postmerge(flat_config)
     check.equal(flat_config.dict, {"config1.param1": 2, "config2.param2": 2})
+    check.equal(processing.copied_keys, {"config2.param2"})
     flat_config = processing.presave(flat_config)
     check.equal(processing.current_value, {"config2.param2": 2})
     check.equal(
@@ -146,14 +147,26 @@ def test_process_copy() -> None:
     # Case of non-existing key (on post-merge): do not raise error
     processing.keys_to_copy = {"a": "b"}
     processing.postmerge(Config({"a": "b"}, [processing]))
+    # Case of non-existing key (on end-build): raise error
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "A key with '@copy' tag has been found but the key to copy does not "
+            "exist at the end of the build and it has been never copied. Found key: "
+            "a that would copy the key: b."
+        ),
+    ):
+        processing.endbuild(Config({"a": "b"}, [processing]))
+    # Copy if it appears on end-build
+    config = processing.endbuild(Config({"a": "b", "b": 3}, [processing]))
+    check.equal(config.dict["a"], 3)
     # Case overwriting a key
     processing.current_value = {"a": 2}
     with pytest.raises(
         ValueError,
-        match=re.escape(
+        match=(
             "Found attempt to modify a key with '@copy' tag. The key is "
-            "then protected against updates (except the copied value or "
-            "the original key to copy). Found key: a of value c that copy "
+            "protected against direct updates. Found key: a of value c that copy "
             "b of value 1"
         ),
     ):
@@ -187,6 +200,7 @@ def test_process_typing() -> None:
         flat_config.process_list[0].type_desc,  # type: ignore
         {"param1": "int", "param2": "List[Optional[Dict[str, int|float]]]"},
     )
+    flat_config = processing.endbuild(flat_config)  # no error
     flat_config = processing.presave(flat_config)
     check.equal(
         flat_config.dict,
@@ -210,9 +224,11 @@ def test_process_typing() -> None:
     ):
         processing.premerge(Config({"param@type:str": "str"}, [processing]))
 
-    # Case of wrong type in postmerge
+    # Case of wrong type in post-merge: no error
     processing.forced_types = {"param": (int,)}
     processing.type_desc = {"param": "int"}
+    processing.postmerge(Config({"param": "mystr"}, [processing]))
+    # Case of wrong type in end-build: raise error
     with pytest.raises(
         ValueError,
         match=(
@@ -221,7 +237,7 @@ def test_process_typing() -> None:
             "value: mystr of type <class 'str'> at key: param"
         ),
     ):
-        processing.postmerge(Config({"param": "mystr"}, [processing]))
+        processing.endbuild(Config({"param": "mystr"}, [processing]))
 
 
 def test_process_select() -> None:
@@ -326,6 +342,6 @@ def test_default_processings() -> None:
         ProcessCopy(),
         ProcessTyping(),
         ProcessDelete(),
-        ProcessSelect()
+        ProcessSelect(),
     ]:
         check.is_in(proc, config.process_list)
