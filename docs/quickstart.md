@@ -109,9 +109,7 @@ The default tags include:
   For instance: `@type:List[Dict[str, int|float]]`.
 * `@select`: This tag select sub-config(s) to keep and delete the other
   sub-configs in the same parent config
-* `@delete`: This tag deletes the key from the config on pre-merge. It is useful
-  to activate a processing without having a good name for the key to add in
-  the default config.
+* `@delete`: This tag deletes the key from the config before merging.
 
 The tags are applied in the following order: `@merge`, `@select`, `@copy`, `@type`
 and then `@delete`.
@@ -165,7 +163,7 @@ Then, all the parameters in `config1` and `config2` have enforced types
 These side effects are not visible in the config but stored on processing classes.
 They are objects that find the tags, remove them from config and apply a modification.
 These processing are powerful tools that can be used to highly customize the
-configuration process.
+configuration at each step of the process.
 
 You can easily create your own processing (associated to a tag or not).
 The way to do it and a further explanation of them is available in the
