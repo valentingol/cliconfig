@@ -58,7 +58,7 @@ def insert_tags(tagged_tree: Any) -> Tuple[Any, Optional[str]]:
 
 
 def build_tree_from_dict(in_dict: Dict) -> Dict[str, Any]:
-    """Build a dict with cliconfig tag from a dict of tagged tree."""
+    """Build a dict with cliconfig tag from a dict of tagged trees."""
     out_dict: Dict[str, Any] = {}
     for key, value in in_dict.items():
         tree, tag = insert_tags(value)
