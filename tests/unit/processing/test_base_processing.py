@@ -20,10 +20,11 @@ def test_processing() -> None:
         (
             base_process.premerge(config),
             base_process.postmerge(config),
+            base_process.endbuild(config),
             base_process.presave(config),
             base_process.postload(config),
         ),
-        (config, config, config, config),
+        (config, config, config, config, config),
     )
     # Check equality of Processing objects
     proc1 = _ProcessingTest()
