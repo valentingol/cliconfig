@@ -40,14 +40,15 @@ def test_multiple_tags() -> None:
         },
     }
     check.equal(config.dict, expected_config)
+    config = merge_flat_processing(
+        config,
+        Config({"config2.param": 5.6}, []),
+        preprocess_first=False,
+    )
     with pytest.raises(
         ValueError, match="Key previously tagged with '@type:None|int'.*"
     ):
-        merge_flat_processing(
-            config,
-            Config({"config2.param": 5.6}, []),
-            preprocess_first=False,
-        )
+        config.process_list[3].endbuild(config)
     sys.argv = sys_argv
 
 
@@ -142,7 +143,7 @@ def test_multiple_tags2() -> None:
         saved_dict["models"]["archi_name@type:None|str@select"], "models.vit_b16"
     )
     check.equal(
-        saved_dict["models"]["vit_b16"]["in_size@type:int@copy"], "data.data_size"
+        saved_dict["models"]["vit_b16"]["in_size@copy@type:int"], "data.data_size"
     )
     config = load_config(
         "tests/tmp/config.yaml",
@@ -152,7 +153,9 @@ def test_multiple_tags2() -> None:
     del config.dict["run_id"]
     check.equal(config.dict, expected_dict)
     with pytest.raises(ValueError, match="Key previously tagged with '@type:int.*"):
-        merge_flat_processing(config, Config({"models.vit_b16.n_blocks": 5.6}, []))
+        config.process_list[7].endbuild(
+            Config({"models.vit_b16.n_blocks": 5.6}, config.process_list)
+        )
     with pytest.raises(
         ValueError, match="Found attempt to modify a key with '@copy' tag.*"
     ):
