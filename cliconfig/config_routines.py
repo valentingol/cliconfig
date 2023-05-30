@@ -21,6 +21,7 @@ def make_config(
     *default_config_paths: str,
     process_list: Optional[List[Processing]] = None,
     add_default_processing: bool = True,
+    fallback: str = "",
 ) -> Config:
     r"""Make a config from default config(s) and CLI argument(s) with processing.
 
@@ -40,6 +41,10 @@ def make_config(
         If add_default_processing is True, the default processings
         (found on :class:`.DefaultProcessings`) are added to the list of
         processings. By default True.
+    fallback : str, optional
+        Path of the configuration to use if no additional config is provided
+        with ``--config``. No fallback config if empty string (default),
+        in that case, the config is the default configs plus the CLI arguments.
 
     Raises
     ------
@@ -77,11 +82,12 @@ def make_config(
     process_list_: List[Processing] = [] if process_list is None else process_list
     if add_default_processing:
         process_list_ += DefaultProcessings().list
-
     config = Config({}, process_list_)
-
-    # Merge default configs and additional configs
     additional_config_paths, cli_params_dict = parse_cli(sys.argv)
+    if not additional_config_paths and fallback:
+        # Add fallback config
+        additional_config_paths = [fallback]
+    # Merge default configs and additional configs
     for i, paths in enumerate([default_config_paths, additional_config_paths]):
         # Allow new keys for default configs only
         allow_new_keys = i == 0
