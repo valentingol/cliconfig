@@ -23,10 +23,18 @@ with `make_config`:
 
 ```python
 # main.py
-from cliconfig import make_config, show_config
+from cliconfig import load_config, make_config, show_config, save_config
 
 config = make_config('default1.yaml', 'default2.yaml')
 show_config(config)  # print the config to check it
+
+config.dict  # the configuration as a native python dict
+print('letter 1:', config.letters.letter1)  # access a parameter (you can also set it or delete it)
+
+# Save the config as a yaml file
+save_config(config, 'myconfig.yaml')
+# Load the config and merge with the default configs if any (useful if default configs were updated)
+config = load_config('myconfig.yaml', default_config_paths=['default1.yaml', 'default2.yaml'])
 ```
 
 Then you can add one or multiple additional config files that will be passed on
@@ -35,7 +43,7 @@ command line and that will override the default values.
 ```yaml
 # first.yaml
 letters:
-  letter3: C
+  letter3: C  # equivalent to "letters.letter3: 'C'"
 
 # second.yaml
 param1: -1
@@ -74,13 +82,18 @@ Config:
         letter1: A
         letter2: B
         letter3: C
+letter 1: A
 ```
 
 Note that the configurations is stored as native python dict at each step of the process.
+The config object is just a wrapper around this dict that allows to access the parameters
+via dots (and containing the list of processings, see
+[*Processing*](https://cliconfig.readthedocs.io/en/stable/processing.html)
+section of the documentation for details.)
 
 You can also use multiple documents in a single YAML file with the `---` separator. In
-this case, the configs of the documents are merged in sequence and the file is interpreted
-as a single additional config file containing this merged configuration.
+this case, the documents are merged in sequence and the file is interpreted as a single
+additional config file containing this merged configuration.
 
 ## Use tags
 

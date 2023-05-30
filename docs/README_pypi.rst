@@ -29,7 +29,7 @@ routines to manipulate the config as flatten or nested dicts.
 
 |Tests| |Coverage| |Documentation Status|
 
-Make default config file(s) in your project (configs are merged from left to right):
+Make default config yaml file(s) in your project (configs are merged from left to right):
 
 .. code:: python
 
@@ -37,7 +37,6 @@ Make default config file(s) in your project (configs are merged from left to rig
    from cliconfig import make_config
 
    config = make_config('default1.yaml', 'default2.yaml')
-   config_dict = config.dict  # native python dict
 
 Then launch your script with additional config(s) file(s) and parameters by command line.
 The additional configs are merge on the default ones then the parameters are set.
@@ -49,10 +48,22 @@ The additional configs are merge on the default ones then the parameters are set
 **By default, these additional configs cannot add new parameters to the default config
 (for security and retro-compatibility reasons).**
 
+Now you can get your configuration parameters in your script:
+
+.. code:: python
+
+   # Nested config dict as a native python dict
+   config.dict
+   # Get a parameter value (you can also set it or delete it)
+   config.foo1.foo2.bar
+
+You can also load and save configs with `cliconfig.save_config` and `cliconfig.load_config`.
+
+
 With processing
 ---------------
 
-The library provide powerfull tools to modify the configuration called "processings".
+The library provide powerful tools to modify the configuration called "processings".
 One of the possibility they add is to merge multiple configurations,
 copy a parameter on another, enforce type and more. To do so, simply adding the
 corresponding tags to your parameter names (on config files or CLI parameters).
