@@ -25,7 +25,7 @@ class Config:
     def __init__(
         self,
         config_dict: Dict[str, Any],
-        process_list: Optional[List["Processing"]] = None
+        process_list: Optional[List["Processing"]] = None,
     ) -> None:
         self.dict = config_dict
         self.process_list = process_list if process_list else []
