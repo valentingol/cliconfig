@@ -3,15 +3,11 @@ requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 
 [project]
 name = "cliconfig"
-authors = [
-    {name="Valentin Goldite", email="valentin.goldite@gmail.com"},
-]
+authors = [{ name = "Valentin Goldite", email = "valentin.goldite@gmail.com" }]
 description = """Merge your config files and set parameters from the command line in a simple way."""
 requires-python = ">=3.7"
-keywords = ["logging", "machine", "learning"]
-classifiers = [
-    "Programming Language :: Python :: 3",
-]
+keywords = ["cli", "config", "cliconfig", "python", "yaml", "merge"]
+classifiers = ["Programming Language :: Python :: 3"]
 dynamic = ["readme", "dependencies", "version"]
 
 [tool.setuptools]
@@ -25,7 +21,7 @@ write_to = "cliconfig/_version.py"
 Source = "https://github.com/valentingol/cliconfig"
 
 [tool.setuptools.dynamic]
-readme = { file = ["README_pypi.md"] , content-type = "text/markdown" }
+readme = { file = ["docs/README_pypi.rst"], content-type = "text/x-rst" }
 dependencies = { file = ["requirements.txt"] }
 
 [tool.coverage.run]
@@ -33,7 +29,6 @@ source = ["cliconfig"]
 
 [tool.coverage.report]
 exclude_lines = ["if __name__ == '__main__':", "    main()"]
-
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -46,13 +41,59 @@ log_level = "DEBUG"
 # annotations (ANN), boolean-trap (FBT), builtins (A), commas (COM),
 # comprehensions (C4), import conventions (ICN), pie (PIE), pytest-style (PT),
 # return (RET), simplify (SIM), tidy-imports (TID), unused-arguments (ARG)
-select = ['A', 'ARG', 'C4', 'C90', 'COM', 'D', 'E', 'F', 'FBT', 'I',
-          'ICN', 'NPY', 'PD', 'PIE', 'PT', 'RET', 'SIM', 'TID', 'W']
-ignore = ['RET504', 'COM812', 'F841', 'F401', ]
-fixable = ['A', 'ARG', 'BLE', 'C4', 'C90', 'COM', 'D', 'E', 'F', 'FBT', 'I',
-           'ICN', 'NPY', 'PD', 'PIE', 'PT', 'RET', 'SIM', 'TID', 'W']
-exclude = [".eggs", ".git", ".mypy_cache", ".ruff_cache", ".venv", "venv",
-           "__pypackages__"]
+select = [
+    'A',
+    'ARG',
+    'C4',
+    'C90',
+    'COM',
+    'D',
+    'E',
+    'F',
+    'FBT',
+    'I',
+    'ICN',
+    'NPY',
+    'PD',
+    'PIE',
+    'PT',
+    'RET',
+    'SIM',
+    'TID',
+    'W',
+]
+ignore = ['RET504', 'COM812', 'F841', 'F401']
+fixable = [
+    'A',
+    'ARG',
+    'BLE',
+    'C4',
+    'C90',
+    'COM',
+    'D',
+    'E',
+    'F',
+    'FBT',
+    'I',
+    'ICN',
+    'NPY',
+    'PD',
+    'PIE',
+    'PT',
+    'RET',
+    'SIM',
+    'TID',
+    'W',
+]
+exclude = [
+    ".eggs",
+    ".git",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".venv",
+    "venv",
+    "__pypackages__",
+]
 
 line-length = 88
 target-version = "py310"
