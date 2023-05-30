@@ -27,6 +27,7 @@ def test_make_config(capsys: pytest.CaptureFixture, process_add1: Processing) ->
         "tests/configs/default1.yaml",
         "tests/configs/default2.yaml",
         process_list=[process_add1],
+        fallback="tests/configs/fallback.yaml",
     )
     captured = capsys.readouterr()
     out = captured.out
@@ -52,17 +53,21 @@ def test_make_config(capsys: pytest.CaptureFixture, process_add1: Processing) ->
     check.equal(config.dict, expected_config)
     check.equal(out, expected_out)
 
-    # No additional configs
+    # No additional configs and fallback
     sys.argv = [
         "tests/test_make_config.py.py",
     ]
-    config = make_config("tests/configs/default1.yaml", "tests/configs/default2.yaml")
+    config = make_config(
+        "tests/configs/default1.yaml",
+        "tests/configs/default2.yaml",
+        fallback="tests/configs/fallback.yaml",
+    )
     expected_config = {
         "param1": 1,
-        "param2": 2,
+        "param2": -1,
         "param3": 3,
         "letters": {
-            "letter1": "a",
+            "letter1": "z",
             "letter2": "b",
             "letter3": "c",
             "letter4": "d",
