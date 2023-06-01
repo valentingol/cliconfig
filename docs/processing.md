@@ -12,6 +12,7 @@ have the signature:
 ```python
 def premerge(self, flat_config: Config) -> Config:
     ...
+    return flat_config
 ```
 
 Where `Config` is a simple class containing only two attributes (and no methods):
