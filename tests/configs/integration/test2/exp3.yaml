@@ -1,2 +1,5 @@
 train.optimizer:
   lr: 0.001
+metadata.exp_details@new:
+  goal: "Test multiple processings"
+  config_folder: "tests/configs/integration/test2"
