@@ -12,6 +12,7 @@ from cliconfig.processing.builtin import (
     ProcessCopy,
     ProcessDelete,
     ProcessMerge,
+    ProcessNew,
     ProcessSelect,
     ProcessTyping,
 )
@@ -311,6 +312,51 @@ def test_process_delete() -> None:
     check.equal(config.dict, {})
 
 
+def test_process_new() -> None:
+    """Test ProcessNew."""
+    processing = ProcessNew()
+    flat_dict = {
+        "param1": 1,
+        "config1": {
+            "param2": 2,
+            "subconfig@new": {"param3": 3, "param4": 4},
+        },
+        "config2@new@tag.subconfig.param3": 3,
+        "config3.subconfig@new.param4": 4,
+    }
+    flat_dict = flatten(flat_dict)
+    config = Config(flat_dict, [processing])
+    check.equal(
+        processing.premerge(config).dict,
+        {
+            "param1": 1,
+            "config1.param2": 2,
+        },
+    )
+    check.equal(
+        processing.postmerge(config).dict,
+        {
+            "param1": 1,
+            "config1.param2": 2,
+            "config1.subconfig.param3": 3,
+            "config1.subconfig.param4": 4,
+            "config2.subconfig.param3": 3,
+            "config3.subconfig.param4": 4,
+        },
+    )
+    check.equal(
+        processing.presave(config).dict,
+        {
+            "param1": 1,
+            "config1.param2": 2,
+            "config1.subconfig.param3@new": 3,
+            "config1.subconfig.param4@new": 4,
+            "config2.subconfig.param3@new": 3,
+            "config3.subconfig.param4@new": 4,
+        },
+    )
+
+
 def test_process_check_tags() -> None:
     """Test ProcessCheckTags."""
     processing = ProcessCheckTags()
@@ -343,5 +389,6 @@ def test_default_processings() -> None:
         ProcessTyping(),
         ProcessDelete(),
         ProcessSelect(),
+        ProcessNew(),
     ]:
         check.is_in(proc, config.process_list)
