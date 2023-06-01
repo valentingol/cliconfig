@@ -21,11 +21,12 @@ If you need to modify or add keys within a dictionary, consider enclosing it in 
 For instance:
 
 ```yaml
---- default.yaml
+# default.yaml
 logging:
   metrics: ['train loss', 'val loss']
   styles: [{'train loss': 'red', 'val loss': 'blue'}]
---- experiment.yaml
+
+# experiment.yaml
 logging:
   metrics: ['train loss', 'val loss', 'val acc']
   styles: [{'train loss': 'red', 'val loss': 'blue', 'val acc': 'cyan'}]
