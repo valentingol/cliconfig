@@ -44,14 +44,16 @@ class ProcessMerge(Processing):
     --------
     .. code-block:: yaml
 
-        --- # config1.yaml
+        # config1.yaml
         a:
           b: 1
           b_path@merge_after: dict2.yaml
-        --- # config2.yaml
+
+        # config2.yaml
         a.b: 2
         c_path@merge_add: config3.yaml
-        --- # config3.yaml
+
+        # config3.yaml
         c: 3
 
     Before merging, the config1 is interpreted as the dict:
@@ -541,11 +543,11 @@ class ProcessDelete(Processing):
         2@merge_add@delete: config1.yaml
         3@merge_add@delete: config2.yaml
 
-        --- # config1.yaml
+        # config1.yaml
         configs.config1.param: 1
         configs.config1.param2: 2
 
-        --- # config2.yaml
+        # config2.yaml
         configs.config2.param: 3
         configs.config2.param: 4
 
@@ -574,6 +576,94 @@ class ProcessDelete(Processing):
         keys = list(flat_config.dict.keys())
         for key in keys:
             if is_tag_in(key, "delete"):
+                del flat_config.dict[key]
+        return flat_config
+
+
+class ProcessNew(Processing):
+    """Allow new sub-config/parameter absent from default config with tag ``@new``.
+
+    The tagged sub-config/parameter and its value is stored during pre-merge and
+    is deleted to avoid error on merge due to new key. It is then restored on
+    post-merge. Finally, the tag is restored on pre-save for further loading.
+    This processing is applied very late on pre-merge to allow
+    the others processing to be applied before deleting the parameters.
+    The post-merge processing is applied very early to allow the other processing
+    to use this new parameter.
+    Pre-merge order: 30.0
+    Post-merge order: -20.0
+    Pre-save order: 0.0
+
+    Disclaimer: It is preferable to have an exhaustive default configuration instead
+    of abusing this processing to improve the readability and to avoid typos errors
+    in the name of the parameters or their sub-configs.
+
+    Examples
+    --------
+    .. code-block:: yaml
+
+        # default.yaml
+        param1: 1
+
+        # additional.yaml
+        param2@new: 2
+        subconfig@new.subsubconfig:
+            param3: 3
+            param4: 4
+
+    Use default.yaml as default configuration and add additional.yaml as additional
+    configuration via CLI results on the configuration containing param1, param2
+    and the nested config containing param3 and param4.
+    Without the ``@new`` tag, an error is raised because param2 is not present in
+    the default configuration.
+
+    Note
+    ----
+
+        * Tag a subconfig by adding ``@new`` at the end of the key containing
+          the sub-config dict in your yaml file.
+        * When a parameter is added with this processing, it is possible to modify it
+          later via config merge without the tag because the parameter is then present
+          in the current configuration.
+        * If the tagged parameter or sub-config is already present in the current
+          configuration, no error are raised and the value is still updated on
+          post-merge. It may no have influence in practice.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.premerge_order = 30.0
+        self.postmerge_order = -20.0
+        self.new_vals: Dict[str, Any] = {}
+        self.new_vals_backup: Dict[str, Any] = {}
+
+    def premerge(self, flat_config: Config) -> Config:
+        """Pre-merge processing."""
+        keys = list(flat_config.dict.keys())
+        for key in keys:
+            # NOTE: we don't use is_tag_in because we want to look
+            # for tags in the sub-configs too.
+            if "@new@" in key or "@new." in key or key.endswith("@new"):
+                clean_key = clean_all_tags(key)
+                self.new_vals[clean_key] = flat_config.dict[key]
+                self.new_vals_backup[clean_key] = flat_config.dict[key]
+                del flat_config.dict[key]
+        return flat_config
+
+    def postmerge(self, flat_config: Config) -> Config:
+        """Post-merge processing."""
+        flat_config.dict.update(self.new_vals)
+        # Reset the new values to avoid re-adding them later
+        self.new_vals = {}
+        return flat_config
+
+    def presave(self, flat_config: Config) -> Config:
+        """Pre-save processing."""
+        # Restore the tag @new to allow loading the config later by allowing
+        # these new parameters.
+        for key in self.new_vals_backup:
+            if key in flat_config.dict:
+                flat_config.dict[key + "@new"] = self.new_vals_backup[key]
                 del flat_config.dict[key]
         return flat_config
 
@@ -640,4 +730,5 @@ class DefaultProcessings:
             ProcessTyping(),
             ProcessSelect(),
             ProcessDelete(),
+            ProcessNew(),
         ]
