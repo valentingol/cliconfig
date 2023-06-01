@@ -100,6 +100,7 @@ def test_multiple_tags2() -> None:
     config = make_config(
         "tests/configs/integration/test2/default.yaml",
         process_list=[proc_pos_enc_type, proc_optim_type, proc_protect, proc_run_id],
+        add_default_processing=True,
     )
     expected_dict = {
         "project_name": "ImageClassif",
@@ -127,6 +128,12 @@ def test_multiple_tags2() -> None:
                 "lr": 0.001,
                 "momentum": 0,
             },
+        },
+        "metadata": {
+            "exp_details": {
+                "goal": "Test multiple processings",
+                "config_folder": "tests/configs/integration/test2",
+            }
         },
     }
     check.is_instance(config.dict["run_id"], int)
