@@ -527,7 +527,7 @@ class ProcessSelect(Processing):
 class ProcessDelete(Processing):
     """Delete the parameters tagged with ``@delete`` on pre-merge.
 
-    This processing is usefull to activate a processing without adding
+    This processing is useful to activate a processing without adding
     an additional parameter in the default configuration to avoid the error
     on merge with ``allow_new_keys=False``. This processing is applied very
     late on pre-merge to allow the others processing to be applied before
@@ -661,9 +661,9 @@ class ProcessNew(Processing):
         """Pre-save processing."""
         # Restore the tag @new to allow loading the config later by allowing
         # these new parameters.
-        for key in self.new_vals_backup:
+        for key, value in self.new_vals_backup.items():
             if key in flat_config.dict:
-                flat_config.dict[key + "@new"] = self.new_vals_backup[key]
+                flat_config.dict[key + "@new"] = value
                 del flat_config.dict[key]
         return flat_config
 
