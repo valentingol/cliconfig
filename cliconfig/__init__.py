@@ -1,6 +1,6 @@
 """CLI Config: build your configuration from CLI by merging with processing.
 
-Copyright (C) 2023  Valentin Goldité
+Copyright © 2023  Valentin Goldité
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the MIT License.
