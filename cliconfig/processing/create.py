@@ -1,7 +1,8 @@
 """Functions to create new processing quickly."""
 # pylint: disable=unused-argument
 import re
-from typing import Any, Callable, Dict, Optional, Set
+from inspect import signature
+from typing import Any, Callable, Dict, Optional, Set, Union
 
 from cliconfig.base import Config
 from cliconfig.processing.base import Processing
@@ -16,7 +17,7 @@ class _ProcessingValue(Processing):
         regex: Optional[str],
         tag_name: Optional[str],
         order: float,
-        func: Callable[[Any], Any],
+        func: Union[Callable[[Any], Any], Callable[[Any, Config], Any]],
     ) -> None:
         super().__init__()
         self.premerge_order = order
@@ -38,7 +39,14 @@ class _ProcessingValue(Processing):
                 if self.tag_name:
                     del flat_config.dict[flat_key]
                     flat_key = clean_tag(flat_key, self.tag_name)
-                flat_config.dict[flat_key] = self.func(value)
+                # Case one argument
+                if len(signature(self.func).parameters) == 1:
+                    flat_config.dict[flat_key] = self.func(value)  # type: ignore
+                # Case two arguments
+                else:
+                    flat_config.dict[flat_key] = self.func(  # type: ignore
+                        value, flat_config
+                    )
         return flat_config
 
 
@@ -50,7 +58,7 @@ class _ProcessingValuePersistent(Processing):
         regex: Optional[str],
         tag_name: Optional[str],
         order: float,
-        func: Callable[[Any], Any],
+        func: Union[Callable[[Any], Any], Callable[[Any, Config], Any]],
     ) -> None:
         super().__init__()
         self.premerge_order = order
@@ -77,7 +85,14 @@ class _ProcessingValuePersistent(Processing):
                 if self.tag_name:
                     del flat_config.dict[flat_key]
                     flat_key = clean_tag(flat_key, self.tag_name)
-                flat_config.dict[flat_key] = self.func(value)
+                # Case one argument
+                if len(signature(self.func).parameters) == 1:
+                    flat_config.dict[flat_key] = self.func(value)  # type: ignore
+                # Case two arguments
+                else:
+                    flat_config.dict[flat_key] = self.func(  # type: ignore
+                        value, flat_config
+                    )
         return flat_config
 
 
@@ -136,24 +151,29 @@ class _ProcessingKeepProperty(Processing):
 
 
 def create_processing_value(
-    func: Callable,
+    func: Union[Callable[[Any], Any], Callable[[Any, Config], Any]],
+    *,
     regex: Optional[str] = None,
     tag_name: Optional[str] = None,
     order: float = 0.0,
-    *,
-    persistent: bool = True,
+    persistent: bool = False,
 ) -> Processing:
-    r"""Create a processing object that modifies a value in dict using tag or regex.
+    r"""Create a processing object that modifies a value in config using tag or regex.
 
     The processing is applied on pre-merge. It triggers when the key matches
     the tag or the regex. The function apply ``flat_dict[key] = func(flat_dict[key])``.
     You must only provide one of tag or regex. If tag is provided, the tag will be
     removed from the key during pre-merge.
 
+    It also possible to pass the flat config as a second argument of the function
+    ``func``. In this case, the function apply
+    ``flat_dict[key] = func(flat_dict[key], flat_config)``.
+
     Parameters
     ----------
     func : Callable
-        The function to apply to the value to make new_value.
+        The function to apply to the value (and eventually the flat config)
+        to make the new value.
     regex : Optional[str]
         The regex to match the key.
     tag_name : Optional[str]
@@ -164,7 +184,7 @@ def create_processing_value(
     persistent : bool, optional
         If True, the processing will be applied on all keys that have already
         matched the tag before. By nature, regex processing are always persistent.
-        By default, True.
+        By default, False.
 
     Raises
     ------
@@ -190,8 +210,10 @@ def create_processing_value(
 
     ::
 
-        proc2 = create_processing_value(lambda x: -x, regex="neg_number.*", order=0.0)
-        proc1 = create_processing_value(lambda x: x + 1, tag_name="add1", order=1.0)
+        proc2 = create_processing_value(lambda val: -val, regex="neg_number.*",
+            order=0.0)
+        proc1 = create_processing_value(lambda val: val + 1, tag_name="add1",
+            order=1.0)
 
     When config.yaml is merged with an other config, it will be considered
     before merging as:
@@ -199,6 +221,24 @@ def create_processing_value(
     ::
 
         {'number1': -1, 'number2': -1, 'number3': 0}
+
+    Using the config as a second argument of the function:
+
+    .. code_block: yaml
+
+        # config.yaml
+        param1: 1
+        param2@eval: "config.param1 + 1"
+
+    ::
+
+        proc = create_processing_value(
+            lambda val, config: eval(val, {'config': config}),
+            tag_name='eval', persistent=False
+        )
+
+    When config.yaml is merged with an other config, param2 will be evaluated
+    as 2.
     """
     if tag_name is not None:
         if regex is not None:
