@@ -107,7 +107,7 @@ configuration for your experiment. It serves as the interface between the user c
 and the final config.
 
 In some cases, you may need to get parameters which names match a certain
-patterns (e.g a prefix or a suffix) or contain a specific tag and modify their values
+pattern (e.g a prefix or a suffix) or contain a specific tag and modify their values
 depending on their current ones.
 
 To simplify the creation of such a process, we provide the `cliconfig.create_processing_value` function.
@@ -117,12 +117,12 @@ You specify the function to be applied on the value to modify it, and optionally
 the order of the processing. Additionally, there is a `persistent` argument, which is
 a boolean value indicating whether encountering the tag (if a tag is used) once in
 a parameter name will continue to trigger the processing for this parameter
-even after the tag is removed. By default, it is `True`.
+even after the tag is removed. By default, it is `False`.
 
 Here's an example to illustrate:
 
 ```python
-proc = create_processing_value(lambda x: str(x), tag='convert_str', persistent=True)
+proc = create_processing_value(lambda x: str(x), tag_name='convert_str', persistent=True)
 config = make_config(default_config, process_list=[proc])
 ```
 
@@ -134,9 +134,28 @@ It's worth noting that you can also use functions that have side effects without
 necessarily changing the value itself. For example, you can use a function to
 check if a certain condition is met by the value.
 
+It is also possible to pass the flat config as a second argument to the function.
+For example:
+
+```yaml
+# config.yaml
+param: 1
+param2@eval: "config.param + 1"
+```
+
+```python
+proc = create_processing_value(
+    lambda x, config: eval(x, {"config": config}),
+    tag_name="eval",
+    persistent=False,
+)
+```
+
+Here the value of `param2` will be evaluated to 2 at pre-merge step.
+
 ### Pre-merge/post-merge processing that protect a property from being modified
 
-An other useful kind of processing is a processing that ensure to keep a certain
+Another useful kind of processing is a processing that ensure to keep a certain
 property on the value. For this kind of processing, you can use
 `cliconfig.create_processing_keep_property`. It takes a function that returns
 the property from the value, the regex or the tag name like the previous function,
