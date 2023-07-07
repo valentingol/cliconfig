@@ -277,26 +277,15 @@ pip install -r requirements-dev.txt
 Everyone can contribute to CLI Config, and we value everyone’s contributions.
 Please see our [contributing guidelines](CONTRIBUTING.md) for more information 🤗
 
-## Todo
+## To-do
 
-Priority:
-
-* [x] Add end-build processing that trigger at the end of `make_config` and `load_config`.
-* [x] Continue `test_multi_tags2` integration test with cases that raise errors, and
-  pre-save processing.
-* [x] Support multi-files in yaml file (with separator "---")
-* [ ] Fix mistakes in all docstrings (🚧  in progress)
-
-Secondary:
-
-* [x] Add a `@delete` tag to delete a key from the config after pre-merge. Useful to make
-  processing action without introducing new keys in the config.
-* [x] Set a default value to True if no value are specified for parameter in command line.
-* [x] Support yaml tags "!tag" in config files.
+* [ ] Add a parameter to change the type (pre-merge, post-merge, ...) of processings
+  created by `create_processing_XXX`
+* [ ] Correct grammar and syntax errors in the documentation with LTex
 
 ## License
 
-Copyright (C) 2023  Valentin Goldité
+Copyright © 2023 Valentin Goldité
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the [MIT License](LICENSE). This program is distributed in the hope that
@@ -304,5 +293,5 @@ it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty o
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 This project is free to use for COMMERCIAL USE, MODIFICATION, DISTRIBUTION and
-PRIVATE USE as long as the original license is include as well as this copy
+PRIVATE USE as long as the original license is included as well as this copy
 right notice at the top of the modified files.

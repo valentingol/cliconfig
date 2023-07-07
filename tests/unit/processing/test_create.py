@@ -39,10 +39,38 @@ def test_create_processing_value() -> None:
     config = Config(in_dict, [proc1, proc2])
     config = config.process_list[1].premerge(config)
     config = config.process_list[0].premerge(config)
-    check.equal(in_dict, {"neg_number1": -1, "neg_number2": -1, "neg_number3": 0})
+    check.equal(config.dict, {"neg_number1": -1, "neg_number2": -1, "neg_number3": 0})
     config = config.process_list[1].premerge(config)
     config = config.process_list[0].premerge(config)
-    check.equal(in_dict, {"neg_number1": 1, "neg_number2": 1, "neg_number3": 0})
+    check.equal(config.dict, {"neg_number1": 1, "neg_number2": 1, "neg_number3": 0})
+    # Config in input, non persistent
+    proc = create_processing_value(
+        lambda x, flat_config: eval(  # pylint: disable=eval-used
+            x, {"config": flat_config}
+        ),
+        tag_name="eval",
+        persistent=False,
+    )
+    eval_dict = {"param1": 1, "param2@eval": "config.param1 + 1"}
+    config = Config(eval_dict, [proc])
+    config = config.process_list[0].premerge(config)
+    check.equal(config.dict, {"param1": 1, "param2": 2})
+    # Config in input, persistent
+    eval_dict = {"param1": 1, "param2@eval": "config.param1 + 1"}
+    eval_dict2 = {"param1": 1, "param2": "config.param1 - 1"}
+    proc2 = create_processing_value(
+        lambda x, flat_config: eval(  # pylint: disable=eval-used
+            x, {"config": flat_config}
+        ),
+        tag_name="eval",
+        persistent=True,
+    )
+    config = Config(eval_dict, [proc2])
+    config = config.process_list[0].premerge(config)
+    check.equal(config.dict, {"param1": 1, "param2": 2})
+    config = Config(eval_dict2, [proc2])
+    config = config.process_list[0].premerge(config)
+    check.equal(config.dict, {"param1": 1, "param2": 0})
 
     # Failing cases
     with pytest.raises(
