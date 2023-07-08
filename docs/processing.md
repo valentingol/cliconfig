@@ -7,7 +7,7 @@ configuration before and after each merge, after loading, and before saving the 
 The processings are applied via a processing object that have five methods
 (called "processing" to simplify): `premerge`, `postmerge`, `endbuild`, `postload`
 and `presave`. These names correspond to the timing they are applied. Each processing
-have the signature:
+has the signature:
 
 ```python
 def premerge(self, flat_config: Config) -> Config:
@@ -17,7 +17,7 @@ def premerge(self, flat_config: Config) -> Config:
 
 Where `Config` is a simple class containing only two attributes (and no methods):
 `dict` that is the configuration dict and `process_list`, the list of processing objects
-(we discuss about this in a section below). Note that it is
+(we discuss this in a section below). Note that it is
 also the class of the object returned by the `make_config` function.
 
 They only take a flat config as input i.e a config containing a dict of depth 1 with
@@ -29,7 +29,7 @@ whatever you want with the config (we hope!).
 ## Why a flat dict?
 
 The idea is that when we construct a config, we manipulate dictionaries that contain
-both nested sub-dicts and flat keys simultaneously. To simplify this process, the
+both nested sub-dictionaries and flat keys simultaneously. To simplify this process, the
 dictionaries are systematically flattened before merging. This approach makes things
 simpler and prevents duplicated keys within the same configuration, as shown in the
 example:
@@ -65,11 +65,11 @@ param2: 2
 ```
 
 In this example, we want to build a global config using `config1.yaml`. This file contains only
-half of the paramers, and the other half is in `config2.yaml`. Then, we add a key
+half of the parameters, and the other half is in `config2.yaml`. Then, we add a key
 with the name of our choice, here "merge", tagged with `@merge_add` to merge
 `config2.yaml` before the global config update. We add the `@delete` tag to delete
 the key "merge" before merging with the global config because in this case, there is
-no key with the name "merge" in the global config and it would raise an error as
+no key with the name "merge" in the global config, and it would raise an error as
 it is not possible to ass new keys.
 
 `@merge_add` and `@delete` has both only a pre-merge effect. Let's check the orders.
@@ -85,12 +85,12 @@ processings!
 Some useful ranges to choose your order:
 
 * not important: order = 0 (default)
-* if it check/modify the config before applying any processing: order < -25
-* if it add new parameters: -25 < order < -5
-* if it update a value based on itself: -5 < order < 5
-* if it update a value based on other keys: 5 < order < 15
-* if it checks a property on a value: 15 < order < 25
-* if it delete other key(s) but you want to trigger the tags before: 25 < order < 35
+* if it checks/modifies the config before applying any processing: order < -25
+* if it adds new parameters: -25 < order < -5
+* if it updates a value based on itself: -5 < order < 5
+* if it updates a value based on other keys: 5 < order < 15
+* if it checkss a property on a value: 15 < order < 25
+* if it deletes other key(s) but you want to trigger the tags before: 25 < order < 35
 * final check/modification after all processings: order > 35
 
 Note: a pre-merge order should not be greater than 1000, the order of the default
@@ -99,14 +99,9 @@ of the pre-merge step.
 
 ## Create basic processing
 
-### Pre-merge processing that modify a single value
+### Processing that modify a single value
 
-The pre-merge processing is particularly useful as it allows you to modify the input
-config provided by the user and create the resulting Python dictionary that stores the
-configuration for your experiment. It serves as the interface between the user config
-and the final config.
-
-In some cases, you may need to get parameters which names match a certain
+One of the most useful kind of processing look for parameters which names match a certain
 pattern (e.g a prefix or a suffix) or contain a specific tag and modify their values
 depending on their current ones.
 
@@ -117,12 +112,13 @@ You specify the function to be applied on the value to modify it, and optionally
 the order of the processing. Additionally, there is a `persistent` argument, which is
 a boolean value indicating whether encountering the tag (if a tag is used) once in
 a parameter name will continue to trigger the processing for this parameter
-even after the tag is removed. By default, it is `False`.
+even after the tag is removed. By default, it is `False`. Finally, you can set
+the processing type (pre-merge, post-merge, etc.) at your convenience. Default is pre-merge.
 
 Here's an example to illustrate:
 
 ```python
-proc = create_processing_value(lambda x: str(x), tag_name='convert_str', persistent=True)
+proc = create_processing_value(lambda x: str(x), 'premerge', tag_name='convert_str', persistent=True)
 config = make_config(default_config, process_list=[proc])
 ```
 
@@ -149,6 +145,8 @@ proc = create_processing_value(
     tag_name="eval",
     persistent=False,
 )
+# (Note that the `eval` function is not safe and the code above
+# should not be used in case of untrusted config)
 ```
 
 Here the value of `param2` will be evaluated to 2 at pre-merge step.
@@ -163,8 +161,8 @@ and the order of the pre-merge and the post-merge.
 
 The pre-merge processing looks for keys that match the tag or the regex, apply
 the function on the value and store the result (= the "property").
-The post-merge processing will check that the property is the same as the one
-stored during pre-merge. If not, it will raise an error.
+The post-merge and end-build processing will check that the property is the same as
+the one stored during pre-merge. If not, it will raise an error.
 
 Examples:
 
@@ -173,19 +171,23 @@ A processing that enforce the types of all the parameters to be constant
 
 ```python
 create_processing_keep_property(type, regex=".*", premerge_order=15.0,
-                                postmerge_order=15.0)
+                                postmerge_order=15.0, endbuild_order=15.0)
 ```
 
 A processing that protect parameters tagged with @protect from being changed:
 
 ```python
 create_processing_keep_property(lambda x: x, tag_name="protect",
-                                premerge_order=15.0, postmerge_order=15.0)
+                                premerge_order=15.0, postmerge_order=15.0,
+                                endbuild_order=15.0)
 ```
 
-Each time you choose the order `15.0` because it is a good values for processing that
-made checks on the values. Indeed processings that change the values such as
-`ProcessCopy` have an order that is generally <= 10.0.
+Each time you choose the order `15.0` because it is a good value for processing that
+made checks on the values. Indeed, processings that change the values such as
+`ProcessCopy` have an order that is generally $\leq$ 10.0.
+
+It is also possible to pass the flat config as a second argument to the function
+similarly to `create_processing_value`.
 
 ## Create your processing classes (Advanced)
 
@@ -200,8 +202,8 @@ to be cautious because tagging a key modifies its name and can lead to conflicts
 when using processing. To address this issue, we provide tag routines in
 `cliconfig.tag_routines`. These routines include:
 
-* `is_tag_in`: Checks if a tag is in a key. It look for the exact tag name.
-  If `full_key` is True, it looks for all the fkat key, including sub-configs
+* `is_tag_in`: Checks if a tag is in a key. It looks for the exact tag name.
+  If `full_key` is True, it looks for all the flat key, including sub-configs
   (default: False)
 * `clean_tag`: Removes a specific tag (based on its exact name) from a key.
   It is helpful to remove the tag after pre-merging.
@@ -212,7 +214,7 @@ when using processing. To address this issue, we provide tag routines in
   the parameter names of a full dict with tags.
 
 With these tools, we can write a processing, for example, that searches for all
-parameters with a tag @look ant that prints their sorted values at the end of
+parameters with a tag `@look` ant that prints their sorted values at the end of
 the post-merging.
 
 ```python
@@ -284,13 +286,13 @@ takes as input a Config object that contains as we see the list of processing.
 Now, the trick is that sometimes we want to apply these operations to the processing
 themselves, particularly when we want to modify a part of the configuration instead
 of just a single parameter (such as merging two configurations). This is why it is
-particularly useful to have an access to the full Config object and not only the
+particularly useful to have access to the full Config object and not only the
 dict.
 
-For example, consider the tag "@merge_add," which triggers a processing before
+For example, consider the tag `@merge_add`, which triggers a processing before
 merging and merges the config loaded from a specified path (the value) into the
 current config. We may want to see what happens if we merge a config that also
-contains an "@merge_add" tag within it:
+contains a `@merge_add` tag within it:
 
 ```yaml
 # main.yaml
@@ -327,13 +329,13 @@ Note that the processing functions receive the list of processing objects as an
 input and update as an attribute of the processing object. This means that it
 is possible to manually modify this list in processing functions.
 
-**Disclaimer**: The processing list to apply during pre/post-merge, pre-save and
+**Warning**: The processing list to apply during pre/post-merge, pre-save and
 post-load are determined before the first processing is applied. Therefore, you can't
 add or remove processing and expect it to be effective during the current merge/save/load.
 However, if you modify their internal variables it will be effective immediately.
 
 Here an example of a processing that remove the type check of a parameter in
-`ProcessTyping` processing. It is then possible for instance to force an other
+`ProcessTyping` processing. It is then possible for instance to force another
 type (it is not possible otherwise).
 
 ```python
@@ -371,13 +373,13 @@ class ProcessBypassTyping(Processing):
 
 # Without bypass:
 config1 = Config({"a@type:int": 0}, [ProcessBypassTyping(), ProcessTyping()])
-config2 = Config({"a@bypass_typing@type:str": "a"}, [])
+config2 = Config({"a@type:str": "a"}, [])
 config = merge_flat_processing(config1, config2)
-# Error: try to change the forced type of "a" from int to str
+# > Error: try to change the forced type of "a" from int to str
 
 # With bypass:
 config1 = Config({"a@type:int": 0}, [ProcessBypassTyping(), ProcessTyping()])
 config2 = Config({"a@bypass_typing@type:str": "a"}, [])
 config = merge_flat_processing(config1, config2)
-# No error
+# > No error
 ```
