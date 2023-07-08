@@ -8,7 +8,7 @@
 and set parameters from command line. It is also provide processing functions
 that can change the whole configuration before and after each config merge, config
 saving, config loading and at the end of config building. It also contains many
-routines to manipulate the config as flatten or nested dicts.
+routines to manipulate the config as flatten or nested dictionaries.
 
 ## Documentation :memo: [here](https://cliconfig.readthedocs.io/en/stable)
 
@@ -110,7 +110,7 @@ python main.py --config first.yaml,second.yaml --param2=-2 --letters.letter2='B'
 ```
 
 *Note*: the additional configs are detected with `--config` followed by space
-and separated by comma(s) **without space**. It also possible to pass a list.
+and separated by comma(s) **without space**. It is also possible to pass a list.
 The parameters are detected with the pattern `--<param>=<value>` without spaces.
 
 It will show:
@@ -167,7 +167,7 @@ The default tags include:
   sub-configs in the same parent config. The tagged key is not deleted if it is
   in the parent config.
 * `@delete`: This tag deletes the key from the config before merging.
-* `@new`: This tag allows to add new key(s) to the config that are not already
+* `@new`: This tag allows adding new key(s) to the config that are not already
   present in the default config(s). It can be used for single parameter or a
   sub-config. Disclaimer: it is preferable to have exhaustive default config(s)
   instead of abusing this tag for readability and for security concerning typos.
@@ -279,9 +279,11 @@ Please see our [contributing guidelines](CONTRIBUTING.md) for more information ð
 
 ## To-do
 
-* [ ] Add a parameter to change the type (pre-merge, post-merge, ...) of processings
+* [x] Add a parameter to change the type (pre-merge, post-merge, ...) of processings
   created by `create_processing_XXX`
-* [ ] Correct grammar and syntax errors in the documentation with LTex
+* [x] Allow the flat config to be passed as a 2nd argument of the fonctions `func` used
+  in `create_processing_XXX`
+* [x] Correct grammar and syntax errors in the documentation with LTex
 
 ## License
 
@@ -292,6 +294,6 @@ terms of the [MIT License](LICENSE). This program is distributed in the hope tha
 it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-This project is free to use for COMMERCIAL USE, MODIFICATION, DISTRIBUTION and
+The project is free to use for COMMERCIAL USE, MODIFICATION, DISTRIBUTION and
 PRIVATE USE as long as the original license is included as well as this copy
 right notice at the top of the modified files.
