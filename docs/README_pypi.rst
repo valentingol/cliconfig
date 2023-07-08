@@ -14,7 +14,7 @@ CLI Config
 and set parameters from command line. It is also provide processing functions
 that can change the whole configuration before and after each config merge, config
 saving, config loading and at the end of config building. It also contains many
-routines to manipulate the config as flatten or nested dicts.
+routines to manipulate the config as flatten or nested dictionaries.
 
 `Pypi project <https://pypi.org/project/cliconfig/>`_
 
@@ -39,7 +39,7 @@ Make default config yaml file(s) in your project (configs are merged from left t
    config = make_config('default1.yaml', 'default2.yaml')
 
 Then launch your script with additional config(s) file(s) and parameters by command line.
-The additional configs are merge on the default ones then the parameters are set.
+The additional configs are merged on the default one's then the parameters are set.
 
 .. code:: bash
 
@@ -63,7 +63,7 @@ You can also load and save configs with `cliconfig.save_config` and `cliconfig.l
 With processing
 ---------------
 
-The library provide powerful tools to modify the configuration called "processings".
+The library provides powerful tools to modify the configuration called "processings".
 One of the possibility they add is to merge multiple configurations,
 copy a parameter on another, enforce type and more. To do so, simply adding the
 corresponding tags to your parameter names (on config files or CLI parameters).

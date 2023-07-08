@@ -67,7 +67,7 @@ python main.py --config first.yaml,second.yaml --param2=-2 --letters.letter2='B'
 ```
 
 *Note*: the additional configs are detected with `--config` followed by space
-and separated by comma(s) **without space**. It also possible to pass a list.
+and separated by comma(s) **without space**. It is also possible to pass a list.
 The parameters are detected with the pattern `--<param>=<value>` without spaces.
 
 It will show:
@@ -123,7 +123,7 @@ The default tags include:
 * `@select`: This tag select sub-config(s) to keep and delete the other
   sub-configs in the same parent config
 * `@delete`: This tag deletes the key from the config before merging.
-* `@new`: This tag allows to add new key(s) to the config that are not already
+* `@new`: This tag allows adding new key(s) to the config that are not already
   present in the default config(s). It can be used for single parameter or a
   sub-config. Disclaimer: it is preferable to have exhaustive default config(s)
   instead of abusing this tag for readability and for security concerning typos.
