@@ -22,6 +22,7 @@ def make_config(
     process_list: Optional[List[Processing]] = None,
     add_default_processing: bool = True,
     fallback: str = "",
+    no_cli: bool = False,
 ) -> Config:
     r"""Make a config from default config(s) and CLI argument(s) with processing.
 
@@ -45,6 +46,10 @@ def make_config(
         Path of the configuration to use if no additional config is provided
         with ``--config``. No fallback config if empty string (default),
         in that case, the config is the default configs plus the CLI arguments.
+    no_cli : bool, optional
+        If True, the CLI arguments are not parsed and the config is only
+        built from the default_config_paths in input and the
+        fallback argument is ignored. By default False.
 
     Raises
     ------
@@ -83,10 +88,13 @@ def make_config(
     if add_default_processing:
         process_list_ += DefaultProcessings().list
     config = Config({}, process_list_)
-    additional_config_paths, cli_params_dict = parse_cli(sys.argv)
-    if not additional_config_paths and fallback:
-        # Add fallback config
-        additional_config_paths = [fallback]
+    if no_cli:
+        additional_config_paths, cli_params_dict = [], {}
+    else:
+        additional_config_paths, cli_params_dict = parse_cli(sys.argv)
+        if not additional_config_paths and fallback:
+            # Add fallback config
+            additional_config_paths = [fallback]
     # Merge default configs and additional configs
     for i, paths in enumerate([default_config_paths, additional_config_paths]):
         # Allow new keys for default configs only
@@ -167,8 +175,8 @@ def load_config(
         the processing list (config.process_list) which can be used to apply
         further processing routines.
 
-    Warning
-    -------
+    Note
+    ----
 
         If default configs are provided, the function does not allow new keys
         for the loaded config. This is for helping the user to see how to
