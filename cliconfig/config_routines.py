@@ -1,6 +1,6 @@
 """Functions to manipulate config as dict with yaml files and CLI."""
 import sys
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from cliconfig.base import Config
 from cliconfig.cli_parser import parse_cli
@@ -89,7 +89,8 @@ def make_config(
         process_list_ += DefaultProcessings().list
     config = Config({}, process_list_)
     if no_cli:
-        additional_config_paths, cli_params_dict = [], {}
+        additional_config_paths: List[str] = []
+        cli_params_dict: Dict[str, Any] = {}
     else:
         additional_config_paths, cli_params_dict = parse_cli(sys.argv)
         if not additional_config_paths and fallback:
