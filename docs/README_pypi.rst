@@ -1,6 +1,8 @@
 CLI Config
 ==========
 
+*Build your experiment configurations for complex projects with robustness, flexibility and simplicity*
+
 |
 
 .. image:: _static/logo_extend.png
@@ -16,6 +18,10 @@ that can change the whole configuration before and after each config merge, conf
 saving, config loading and at the end of config building. It also contains many
 routines to manipulate the config as flatten or nested dictionaries.
 
+The package is initially designed for machine learning experiments where the
+number of parameters is huge and a lot of them have to be set by the user between
+each experiment. If your project matches this description, this package is for you!
+
 `Pypi project <https://pypi.org/project/cliconfig/>`_
 
 `Github project <https://github.com/valentingol/cliconfig>`_
@@ -28,6 +34,9 @@ routines to manipulate the config as flatten or nested dictionaries.
 |Ruff| |Flake8| |Pydocstyle| |MyPy| |PyLint|
 
 |Tests| |Coverage| |Documentation Status|
+
+Official badge:
+|Config|
 
 Make default config yaml file(s) in your project (configs are merged from left to right):
 
@@ -58,7 +67,6 @@ Now you can get your configuration parameters in your script:
    config.foo1.foo2.bar
 
 You can also load and save configs with `cliconfig.save_config` and `cliconfig.load_config`.
-
 
 With processing
 ---------------
@@ -140,3 +148,5 @@ See *Quickstart* section for more details and *Processing* section for advanced 
    :target: https://github.com/valentingol/cliconfig/actions/workflows/tests.yaml
 .. |Documentation Status| image:: https://readthedocs.org/projects/cliconfig/badge/?version=latest
    :target: https://cliconfig.readthedocs.io/en/latest/?badge=latest
+.. |Config| image:: https://custom-icon-badges.demolab.com/badge/cliconfig-black?logo=cliconfig
+    :target: https://github.com/valentingol/cliconfig
