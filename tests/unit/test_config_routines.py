@@ -78,6 +78,31 @@ def test_make_config(capsys: pytest.CaptureFixture, process_add1: Processing) ->
     check.equal(config.dict, {})
     check.equal(config.process_list, [])
 
+    # No CLI
+    sys.argv = [
+        "tests/test_make_config.py.py",
+        "--config",
+        "tests/configs/config1.yaml",
+        "--param2=6",
+    ]
+    config = make_config(
+        "tests/configs/default1.yaml",
+        "tests/configs/default2.yaml",
+        fallback="tests/configs/fallback.yaml",
+        no_cli=True,
+    )
+    expected_config = {
+        "param1": 1,
+        "param2": 2,
+        "param3": 3,
+        "letters": {
+            "letter1": "a",
+            "letter2": "b",
+            "letter3": "c",
+            "letter4": "d",
+        },
+    }
+
     sys.argv = sys_argv.copy()
 
 
