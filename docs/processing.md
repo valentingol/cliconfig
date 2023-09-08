@@ -262,7 +262,7 @@ class ProcessPrintSorted(Processing):
         return flat_config
 
 # And to use it:
-config = make_config("main.yaml", process_list=[ProcessProtect()])
+config = make_config("main.yaml", process_list=[ProcessPrintSorted()])
 ```
 
 **Important note**: After all pre-merge processings, the config should no longer contains
@@ -281,7 +281,7 @@ on the config are not actually to merge, save, and load a config, but rather:
 
 These three operations are in `cliconfig.process_routines` and called
 `merge_processing`, `save_processing`, and `load_processing`, respectively. They
-takes as input a Config object that contains as we see the list of processing.
+take as input a Config object that contains as we see the list of processing.
 
 Now, the trick is that sometimes we want to apply these operations to the processing
 themselves, particularly when we want to modify a part of the configuration instead
