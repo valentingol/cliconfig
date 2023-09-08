@@ -8,4 +8,4 @@ pytest
 pytest-check
 pytest-cov
 pytest-mock
-ruff==0.0.261
+ruff==0.0.287
