@@ -57,10 +57,8 @@ file (space is important) but as a parameter called "config" with value "first.y
 (it then raises an error if no "config" parameter is on the default config).
 
 ```bash
-
 Now the config look like this:
 
-```python
 Config:
     param1: -1  # (overridden by second.yaml)
     param2: -2  # (overridden by command line args)
