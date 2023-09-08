@@ -70,7 +70,7 @@ def merge_flat(
     if not allow_new_keys:
         # Check that there are no new keys in dict2
         for key in flat_dict2:
-            if key not in flat_dict1.keys():
+            if key not in flat_dict1:
                 raise ValueError(
                     f"New parameter found '{key}' in that is not in the original "
                     "dict."
