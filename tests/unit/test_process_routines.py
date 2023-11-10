@@ -90,6 +90,8 @@ def test_save_processing(
         {"param1@add1": 0, "param2.param3@add1": 1}, [process_add1, process_keep]
     )
     save_processing(config, "tests/tmp/config.yaml")
+    check.equal(config.dict["param1@add1"], 0)
+    check.is_not_in("param1", config.dict)
     with open("tests/tmp/config.yaml", "r", encoding="utf-8") as yaml_file:
         loaded_dict = yaml.safe_load(yaml_file)
     check.equal(loaded_dict, {"param1": 1, "param2": {"param3": 2}})
