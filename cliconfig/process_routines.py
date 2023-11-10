@@ -187,15 +187,15 @@ def save_processing(config: Config, path: str) -> None:
     path : str
         The path to the yaml file to save the config dict.
     """
-    config.dict = flatten(config.dict)
+    config_to_save = Config(flatten(config.dict), config.process_list)
     # Get the pre-save order
     order_list = sorted(config.process_list, key=lambda x: x.presave_order)
     # Apply the pre-save processing
     for processing in order_list:
-        config = processing.presave(config)
+        config_to_save = processing.presave(config_to_save)
     # Unflatten and save the dict
-    config.dict = unflatten(config.dict)
-    save_dict(config.dict, path)
+    config_to_save.dict = unflatten(config_to_save.dict)
+    save_dict(config_to_save.dict, path)
 
 
 def load_processing(path: str, process_list: List[Processing]) -> Config:
