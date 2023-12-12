@@ -14,7 +14,7 @@ from cliconfig.process_routines import (
 )
 from cliconfig.processing.base import Processing
 from cliconfig.processing.builtin import DefaultProcessings
-from cliconfig.tag_routines import clean_all_tags
+from cliconfig.tag_routines import clean_all_tags, is_tag_in
 
 
 def make_config(
@@ -113,7 +113,10 @@ def make_config(
     cli_params_dict = flatten(cli_params_dict)
     new_keys, keys = [], list(cli_params_dict.keys())
     for key in keys:
-        if clean_all_tags(key) not in config.dict:
+        if (
+            not is_tag_in(key, "new", full_key=True)
+            and clean_all_tags(key) not in config.dict
+        ):
             # New key: delete it
             new_keys.append(clean_all_tags(key))
             del cli_params_dict[key]
