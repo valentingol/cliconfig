@@ -102,6 +102,18 @@ def test_make_config(capsys: pytest.CaptureFixture, process_add1: Processing) ->
             "letter4": "d",
         },
     }
+    check.equal(config.dict, expected_config)
+
+    # @new in CLI
+    sys.argv = [
+        "tests/test_make_config.py.py",
+        "--unknown@new=0",
+    ]
+    config = make_config(
+        "tests/configs/default1.yaml",
+        "tests/configs/default2.yaml",
+    )
+    check.equal(config.unknown, 0)
 
     sys.argv = sys_argv.copy()
 
