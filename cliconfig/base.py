@@ -102,7 +102,3 @@ class Config:
             super().__delattr__(__name)
         else:
             del self.dict[__name]
-
-
-if __name__ == "__main__":
-    config: Config = Config({"a": 1, "b": {"c": 3}})
