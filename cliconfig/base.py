@@ -31,6 +31,10 @@ class Config:
         self.dict = config_dict
         self.process_list = process_list if process_list else []
 
+    def __dir__(self) -> List[str]:
+        """List of attributes, sub-configurations and parameters."""
+        return ["dict", "process_list"]
+
     def __repr__(self) -> str:
         """Representation of Config object."""
         process_classes = [process.__class__.__name__ for process in self.process_list]

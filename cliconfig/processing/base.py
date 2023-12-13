@@ -66,6 +66,10 @@ class Processing:
         """
         return flat_config
 
+    def __repr__(self) -> str:
+        """Representation of Processing object."""
+        return f"{self.__class__.__name__}"
+
     def __eq__(self, __value: object) -> bool:
         """Equality operator.
 

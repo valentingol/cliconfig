@@ -34,3 +34,5 @@ def test_processing() -> None:
     check.equal(proc1, proc2)
     proc2.attr = 1
     check.not_equal(proc1, proc2)
+    # Check repr
+    check.equal(repr(proc1), "_ProcessingTest")

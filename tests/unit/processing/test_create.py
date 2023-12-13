@@ -23,9 +23,7 @@ def test_is_matched() -> None:
         ValueError, match="Either regex or tag_name must be defined but not both."
     ):
         _is_matched("foo.bar", ".*", "tag")
-    with pytest.raises(
-        ValueError, match="Either regex or tag_name must be defined."
-    ):
+    with pytest.raises(ValueError, match="Either regex or tag_name must be defined."):
         _is_matched("foo.bar", None, None)
 
 
@@ -82,14 +80,12 @@ def test_create_processing_value() -> None:
     proc1 = create_processing_value(type, "endbuild", tag_name="get_type")
     proc2 = create_processing_value(str, "presave", tag_name="to_str")
     proc3 = create_processing_value(
-        lambda *args: 0,  # noqa
-        "postload",
-        tag_name="zero"
+        lambda *args: 0, "postload", tag_name="zero"  # noqa
     )
     in_dict2 = {
         "type1@get_type@to_str@zero": 1,
         "type2@get_type@to_str@zero": "2",
-        "type3@get_type@to_str@zero": True
+        "type3@get_type@to_str@zero": True,
     }
     config = Config(in_dict2, [proc1, proc2, proc3])
     config = config.process_list[0].premerge(config)
@@ -99,11 +95,10 @@ def test_create_processing_value() -> None:
     config = config.process_list[0].endbuild(config)
     check.equal(config.dict, {"type1": int, "type2": str, "type3": bool})
     config = config.process_list[1].presave(config)
-    check.equal(config.dict, {
-        "type1": "<class 'int'>",
-        "type2": "<class 'str'>",
-        "type3": "<class 'bool'>"
-    })
+    check.equal(
+        config.dict,
+        {"type1": "<class 'int'>", "type2": "<class 'str'>", "type3": "<class 'bool'>"},
+    )
     config = config.process_list[2].postload(config)
     check.equal(config.dict, {"type1": 0, "type2": 0, "type3": 0})
 
@@ -121,9 +116,7 @@ def test_create_processing_value() -> None:
     check.equal(config.dict, {"param1": 1, "param2": 2})
 
     # Failing cases
-    with pytest.raises(
-        ValueError, match="Processing type 'UNKNOWN' not recognized.*"
-    ):
+    with pytest.raises(ValueError, match="Processing type 'UNKNOWN' not recognized.*"):
         create_processing_value(lambda x: x + 1, "UNKNOWN", tag_name="tag")
     with pytest.raises(
         ValueError, match="You must provide a tag or a regex but not both."
@@ -136,6 +129,20 @@ def test_create_processing_value() -> None:
         ),
     ):
         create_processing_value(lambda x: x + 1, order=0.0)
+
+    # Test repr
+    def add1(x: int) -> int:
+        """Add 1."""
+        return x + 1
+
+    proc = create_processing_value(add1, tag_name="add1", order=1.0, persistent=True)
+    check.equal(
+        repr(proc),
+        (
+            "ProcessingValue(func=add1, tag=add1, regex=None, "
+            "type=premerge, persistent=True, order=1.0)"
+        ),
+    )
 
 
 def test_create_processing_keep_property() -> None:
@@ -152,8 +159,7 @@ def test_create_processing_keep_property() -> None:
     config = config.process_list[1].premerge(config)
     config = config.process_list[2].premerge(config)
     check.equal(
-        config.dict,
-        {"str": "foo", "int": 2, "list": [1, 2, 3], "list2": [1, 2]}
+        config.dict, {"str": "foo", "int": 2, "list": [1, 2, 3], "list2": [1, 2]}
     )
     config.dict = {"str": "foo", "int": -1, "list": [1, 2, 3], "list2": [4, 5]}
     config = config.process_list[0].postmerge(config)
@@ -207,3 +213,13 @@ def test_create_processing_keep_property() -> None:
         ),
     ):
         create_processing_keep_property(lambda x: x, premerge_order=0.0)
+
+    # Test repr
+    proc = create_processing_keep_property(sum, tag_name="keep_sum", endbuild_order=1.0)
+    check.equal(
+        repr(proc),
+        (
+            "ProcessingKeepProperty(func=sum, tag=keep_sum, regex=None, "
+            "orders=(0.0, 0.0, 1.0))"
+        ),
+    )

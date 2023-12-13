@@ -41,6 +41,7 @@ class _ProcessingValue(Processing):
         self.processing_type = processing_type
         self.regex = regex
         self.tag_name = tag_name
+        self.order = order
         if processing_type == "premerge":
             self.premerge_order = order
         elif processing_type == "postmerge":
@@ -133,6 +134,14 @@ class _ProcessingValue(Processing):
             return self._apply_update(flat_config)
         return flat_config
 
+    def __repr__(self) -> str:
+        """Representation of Processing object."""
+        return (
+            f"ProcessingValue(func={self.func.__name__}, tag={self.tag_name}, "
+            f"regex={self.regex}, type={self.processing_type}, "
+            f"persistent={self.persistent}, order={self.order})"
+        )
+
 
 class _ProcessingKeepProperty(Processing):
     """Processing class for make_processing_keep_property."""
@@ -206,6 +215,14 @@ class _ProcessingKeepProperty(Processing):
         """End-build processing."""
         self._check_properties(flat_config, "end-build")
         return flat_config
+
+    def __repr__(self) -> str:
+        """Representation of Processing object."""
+        return (
+            f"ProcessingKeepProperty(func={self.func.__name__}, tag={self.tag_name}, "
+            f"regex={self.regex}, orders=({self.premerge_order}, "
+            f"{self.postmerge_order}, {self.endbuild_order}))"
+        )
 
 
 def create_processing_value(
@@ -314,8 +331,14 @@ def create_processing_value(
             raise ValueError(
                 "You must provide a tag or a regex (to trigger the value update)."
             )
-    proc = _ProcessingValue(func, processing_type, regex=regex,
-                            tag_name=tag_name, order=order, persistent=persistent)
+    proc = _ProcessingValue(
+        func,
+        processing_type,
+        regex=regex,
+        tag_name=tag_name,
+        order=order,
+        persistent=persistent,
+    )
     return proc
 
 

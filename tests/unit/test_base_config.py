@@ -42,3 +42,7 @@ def test_config(process_add1: Processing) -> None:
     # Should no raise error
     del config.dict
     del config.process_list
+    # Test dir
+    config = Config({"a": 1, "b": {"c": 3}})
+    check.equal(dir(config), ["dict", "process_list"])
+    check.equal(dir(config.b), ["dict", "process_list"])
