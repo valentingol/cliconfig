@@ -44,5 +44,5 @@ def test_config(process_add1: Processing) -> None:
     del config.process_list
     # Test dir
     config = Config({"a": 1, "b": {"c": 3}})
-    check.equal(dir(config), ["dict", "process_list"])
-    check.equal(dir(config.b), ["dict", "process_list"])
+    check.equal(dir(config), ["a", "b", "dict", "process_list"])
+    check.equal(dir(config.b), ["c", "dict", "process_list"])
