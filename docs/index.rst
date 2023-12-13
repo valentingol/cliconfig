@@ -8,6 +8,7 @@
    quickstart
    edge_cases
    processing
+   sweep
    cliconfig_api
    contribute
    license
