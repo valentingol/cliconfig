@@ -33,7 +33,7 @@ class Config:
 
     def __dir__(self) -> List[str]:
         """List of attributes, sub-configurations and parameters."""
-        return ["dict", "process_list"]
+        return ["dict", "process_list"] + list(self.dict.keys())
 
     def __repr__(self) -> str:
         """Representation of Config object."""
