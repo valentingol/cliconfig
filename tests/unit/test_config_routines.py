@@ -7,7 +7,15 @@ import pytest
 import pytest_check as check
 
 from cliconfig.base import Config
-from cliconfig.config_routines import load_config, make_config, save_config, show_config
+from cliconfig.config_routines import (
+    flatten_config,
+    load_config,
+    make_config,
+    save_config,
+    show_config,
+    unflatten_config,
+    update_config,
+)
 from cliconfig.processing.base import Processing
 
 
@@ -163,3 +171,28 @@ def test_save_config() -> None:
     save_config(config, "tests/tmp/config.yaml")
     check.is_true(os.path.exists("tests/tmp/config.yaml"))
     shutil.rmtree("tests/tmp")
+
+
+def test_flatten_config() -> None:
+    """Test flatten_config."""
+    config = Config({"a": 1, "b": {"c": 2, "d": 3}, "e": "f"}, [])
+    flat_config = flatten_config(config)
+    expected_dict = {"a": 1, "b.c": 2, "b.d": 3, "e": "f"}
+    check.equal(flat_config.dict, expected_dict)
+
+
+def test_unflatten_config() -> None:
+    """Test unflatten_config."""
+    config = Config({"a": 1, "b.c": 2, "b.d": 3, "e": "f"}, [])
+    flat_config = unflatten_config(config)
+    expected_dict = {"a": 1, "b": {"c": 2, "d": 3}, "e": "f"}
+    check.equal(flat_config.dict, expected_dict)
+
+
+def test_update_config() -> None:
+    """Test update_config."""
+    config = Config({"a": 1, "b": {"c": 2, "d": 3}, "e": "f"}, [])
+    new_dict = {"b": {"c": 3}, "g": "h"}
+    new_config = update_config(config, new_dict)
+    expected_dict = {"a": 1, "b": {"c": 3, "d": 3}, "e": "f", "g": "h"}
+    check.equal(new_config.dict, expected_dict)

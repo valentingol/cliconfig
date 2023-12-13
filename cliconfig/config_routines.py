@@ -246,3 +246,60 @@ def show_config(config: Config) -> None:
     """
     print("Config:")
     show_dict(config.dict, start_indent=1)
+
+
+def flatten_config(config: Config) -> Config:
+    """Flatten a config.
+
+    Parameters
+    ----------
+    config : Config
+        The config to flatten.
+
+    Returns
+    -------
+    confg : Config
+        The config containing a flattened dict.
+    """
+    config.dict = flatten(config.dict)
+    return config
+
+
+def unflatten_config(config: Config) -> Config:
+    """Unflatten a config.
+
+    Parameters
+    ----------
+    config : Config
+        The config to unflatten.
+
+    Returns
+    -------
+    config : Config
+        The config containing an unflattened dict.
+    """
+    config.dict = unflatten(config.dict)
+    return config
+
+
+def update_config(config: Config, new_dict: dict) -> Config:
+    """Update a config with a new dict without triggering processing.
+
+    The resulting config is unflattened.
+
+    Parameters
+    ----------
+    config : Config
+        The config to update.
+    new_dict : dict
+        The dict to update the config with.
+
+    Returns
+    -------
+    config : Config
+        The updated config.
+    """
+    config.dict = flatten(config.dict)
+    config.dict.update(flatten(new_dict))
+    config.dict = unflatten(config.dict)
+    return config
