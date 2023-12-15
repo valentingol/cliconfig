@@ -189,10 +189,16 @@ def test_unflatten_config() -> None:
     check.equal(flat_config.dict, expected_dict)
 
 
-def test_update_config() -> None:
+def test_update_config(process_add1: Processing) -> None:
     """Test update_config."""
-    config = Config({"a": 1, "b": {"c": 2, "d": 3}, "e": "f"}, [])
-    new_dict = {"b": {"c": 3}, "g": "h"}
-    new_config = update_config(config, new_dict)
-    expected_dict = {"a": 1, "b": {"c": 3, "d": 3}, "e": "f", "g": "h"}
+    config = Config({"a": 1, "b": {"c": 2, "d": 3}, "e": "f"}, [process_add1])
+    new_dict = {"b": {"c@add1": 3}, "g": "h"}
+    new_config = update_config(config, new_dict, allow_new_keys=True)
+    expected_dict = {
+        "a": 1,
+        "b": {"c": 4, "d": 3},
+        "e": "f",
+        "g": "h",
+        "processing name": "ProcessAdd1",
+    }
     check.equal(new_config.dict, expected_dict)
