@@ -8,6 +8,7 @@ from cliconfig.processing.base import Processing
 
 def test_processing() -> None:
     """Test Processing."""
+    # Make processing test
 
     class _ProcessingTest(Processing):
         def __init__(self) -> None:
