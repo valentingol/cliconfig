@@ -1,6 +1,6 @@
 """Functions to manipulate config as dict with yaml files and CLI."""
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from cliconfig.base import Config
 from cliconfig.cli_parser import parse_cli
@@ -136,9 +136,7 @@ def make_config(
         f"{len(additional_config_paths)} additional config(s) and "
         f"{len(cli_params_dict)} CLI parameter(s)."
     )
-    # Apply end-build processing
     config = end_build_processing(config)
-    # Unflatten the config dict
     config.dict = unflatten(config.dict)
     return config
 
@@ -212,9 +210,7 @@ def load_config(
         allow_new_keys=default_config_paths is None,
         preprocess_first=False,
     )
-    # Apply end-build processing
     config = end_build_processing(config)
-    # Unflatten the config
     config.dict = unflatten(config.dict)
     return config
 
@@ -282,24 +278,38 @@ def unflatten_config(config: Config) -> Config:
     return config
 
 
-def update_config(config: Config, new_dict: dict) -> Config:
-    """Update a config with a new dict without triggering processing.
+def update_config(
+    config: Config,
+    other: Union[Dict[str, Any], Config],
+    *,
+    allow_new_keys: bool = False,
+) -> Config:
+    """Update a config with a new dict or config with processing triggering.
 
+    The pre-merge, post-merge and end-build processings will be triggered.
     The resulting config is unflattened.
 
     Parameters
     ----------
     config : Config
         The config to update.
-    new_dict : dict
-        The dict to update the config with.
+    other : Config | dict
+        The config or dict to update the config with.
+    allow_new_keys : bool, optional
+        If True, allow new keys in the other config. By default False.
 
     Returns
     -------
     config : Config
         The updated config.
     """
-    config.dict = flatten(config.dict)
-    config.dict.update(flatten(new_dict))
-    config.dict = unflatten(config.dict)
+    other_config = Config(other, []) if isinstance(other, dict) else other
+    config = merge_flat_processing(
+        config,
+        other_config,
+        allow_new_keys=allow_new_keys,
+        preprocess_first=False,
+    )
+    config = end_build_processing(config)
+    config = unflatten_config(config)
     return config
