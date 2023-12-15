@@ -93,7 +93,7 @@ For instance with these config files:
     # sub2.yaml
     config2.param@type:int: 2
     config3:
-      param1@def: "(config1.param2 + config2.param) / 2"
+      param1@def: "[(config1.param2 + config2.param) / 2] * 2 if config2.param else None"
       param2: 1
 
 Note that can also use YAML tags separated with "@" (like `key: !tag@tag2 value`)
@@ -112,7 +112,7 @@ Here `main.yaml` will be interpreted like:
       param: 2
     config3:
       select: config3.param1
-      param1: 1.5
+      param1: [1.5, 1.5]
       # param2 is deleted because it is not in the selection
 
 Then, all the parameters in `config1` and `config2` have enforced types
