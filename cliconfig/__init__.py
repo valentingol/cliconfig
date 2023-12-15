@@ -13,7 +13,15 @@ Copyright © 2023  Valentin Goldité
 """
 from cliconfig._version import __version__, __version_tuple__
 from cliconfig.base import Config
-from cliconfig.config_routines import load_config, make_config, save_config, show_config
+from cliconfig.config_routines import (
+    flatten_config,
+    load_config,
+    make_config,
+    save_config,
+    show_config,
+    unflatten_config,
+    update_config,
+)
 from cliconfig.process_routines import (
     merge_flat_paths_processing,
     merge_flat_processing,
@@ -33,10 +41,13 @@ __all__ = [
     "Processing",
     "create_processing_keep_property",
     "create_processing_value",
+    "flatten_config",
     "make_config",
     "load_config",
     "merge_flat_paths_processing",
     "merge_flat_processing",
     "save_config",
     "show_config",
+    "unflatten_config",
+    "update_config",
 ]
