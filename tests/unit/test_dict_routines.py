@@ -4,6 +4,7 @@ import shutil
 
 import pytest
 import pytest_check as check
+from yaml.parser import ParserError
 
 from cliconfig.dict_routines import (
     _del_key,
@@ -177,6 +178,9 @@ def test_save_load_dict() -> None:
     }
     check.equal(out_dict, expected_dict)
     shutil.rmtree("tests/tmp")
+    # Case error while parsing
+    with pytest.raises(ParserError, match=".*tests/configs/wrong.yaml.*"):
+        load_dict("tests/configs/wrong.yaml")
 
 
 def test_show_dict() -> None:

@@ -4,4 +4,5 @@ models.vit_b16:
   attn_dropout: 0.2
   dropout: 0.1
   in_size: !copy@type:int data.data_size
+  dim: 512
 train.n_epochs: 30

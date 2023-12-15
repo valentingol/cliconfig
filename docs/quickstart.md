@@ -115,6 +115,10 @@ The default tags include:
 * `@copy`: This tag copies a parameter from another key. The value should be a string
   that represents the flattened key. The copied value is then protected from further
   updates but will be updated if the copied key change during a merge.
+* `@def`: This tag evaluate a mathematic expression to define the parameter value.
+  The value associated to a parameter tagged with `@def` can contain bools, numbers,
+  full flat parameter names, binary operators (+, -, *, /, **, //, %, &, |)
+  and comparison operators.
 * `@type:<my type>`: This tag checks if the key matches the specified type `<my type>`
   after each update, even if the tag is no longer present. It supports basic types
   (except for tuples and sets, which are not handled by YAML) as well as unions
@@ -150,7 +154,7 @@ config1:
 # sub2.yaml
 config2.param@type:None|int: 2
 config3:
-  param1: 0
+  param1@def: "(config1.param2 + config2.param) / 2"
   param2: 1
 ```
 
@@ -169,7 +173,7 @@ config2:
   param: 2
 config3:
   select: config3.param1
-  param1: 0
+  param1: 1.5
   # param2 is deleted because it is not in the selection
 ```
 

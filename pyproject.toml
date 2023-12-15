@@ -62,7 +62,7 @@ select = [
     'TID',
     'W',
 ]
-ignore = ['RET504', 'COM812', 'F841', 'F401']
+ignore = ['RET504', 'COM812', 'F841', 'F401', 'PD011']
 fixable = [
     'A',
     'ARG',

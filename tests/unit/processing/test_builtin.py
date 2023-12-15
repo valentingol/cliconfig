@@ -10,6 +10,7 @@ from cliconfig.processing.builtin import (
     DefaultProcessings,
     ProcessCheckTags,
     ProcessCopy,
+    ProcessDef,
     ProcessDelete,
     ProcessMerge,
     ProcessNew,
@@ -115,7 +116,6 @@ def test_process_copy() -> None:
     flat_config.dict["config1.param1"] = 2
     flat_config = processing.postmerge(flat_config)
     check.equal(flat_config.dict, {"config1.param1": 2, "config2.param2": 2})
-    check.equal(processing.copied_keys, {"config2.param2"})
     flat_config = processing.presave(flat_config)
     check.equal(processing.current_value, {"config2.param2": 2})
     check.equal(
@@ -172,6 +172,54 @@ def test_process_copy() -> None:
         ),
     ):
         processing.postmerge(Config({"a": "c", "b": 1}, [processing]))
+
+
+def test_process_def() -> None:
+    """Test ProcessDef."""
+    processing = ProcessDef()
+    flat_dict = {
+        "a.b": 1,
+        "a.c": 2,
+        "a.b.c.d": 30,
+        "b@def": "1 + a.b * a.c**2 - a.b.c.d // 10",
+    }
+    flat_config = Config(flat_dict, [processing])
+    flat_config = processing.premerge(flat_config)
+    check.is_not_in("b@def", flat_config.dict)
+    check.equal(flat_config.b, "1 + a.b * a.c**2 - a.b.c.d // 10")
+    flat_config = processing.postmerge(flat_config)
+    check.equal(flat_config.b, 1 + 1 * 2**2 - 30 // 10)
+    check.equal(processing.exprs, {"b": "1 + a.b * a.c**2 - a.b.c.d // 10"})
+    flat_config.dict["a.b"] = 4
+    print(processing.exprs)
+    flat_config = processing.postmerge(flat_config)
+    print(processing.exprs)
+    check.equal(flat_config.b, 1 + 4 * 2**2 - 30 // 10)
+    new_dict = {"b@def": "True & a.b.c.d > 20"}
+    new_config = Config(new_dict, [processing])
+    new_config = processing.premerge(new_config)
+    config = Config({**flat_config.dict, **new_config.dict}, [processing])
+    config = processing.postmerge(config)
+    check.is_instance(config.b, bool)
+    check.is_true(config.b)
+    config_save = processing.presave(config)
+    check.equal(config_save.dict["b@def"], "True & a.b.c.d > 20")
+    config.dict["b"] = 3
+    config = processing.postmerge(config)
+    check.equal(config.b, 3)
+    check.equal(processing.exprs, {})
+
+    # Case wrong expression
+    config = Config({"a@def": 0}, [processing])
+    with pytest.raises(
+        ValueError,
+        match=(
+            "Key with '@def' tag must be associated to a string corresponding "
+            "to a math expression to evaluate. The problem occurs at key: "
+            "a@def with value: 0"
+        ),
+    ):
+        processing.premerge(config)
 
 
 def test_process_typing() -> None:
