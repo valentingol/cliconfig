@@ -18,12 +18,12 @@ def test_maths_parser() -> None:
 
     flat_dict = {"param1": 0.2, "param2": False}
     expr = (
-        "param1 if (param1 > 0.1) & (param1 <= 0.2) & "
-        "(param1 == 0.2) & (param2 | True) else 0"
+        "[param1 if (param1 > 0.1) and (param1 <= 0.2) & "
+        "(param1 == 0.2) and (param2 | True) else 0] * 2"
     )
     tree = ast.parse(expr, mode="eval")
     result = _process_node(node=tree.body, flat_dict=flat_dict)
-    check.equal(result, 0.2)
+    check.equal(result, [0.2, 0.2])
 
     # Case not valid parameter value
     flat_dict = {"param1": 2, "param2": "string"}  # type: ignore
@@ -43,10 +43,12 @@ def test_maths_parser() -> None:
         _process_node(node=tree.body, flat_dict=flat_dict)
 
     # Case invalid node
-    tree = ast.parse("param1 and True", mode="eval")
+    tree = ast.parse("lambda x: 0", mode="eval")
     with pytest.raises(
         ValueError,
-        match=re.escape("Invalid node in expression (of type <class 'ast.BoolOp'>)."),
+        match=re.escape(
+            "Not supported node in expression (of type <class 'ast.Lambda'>)."
+        ),
     ):
         _process_node(node=tree.body, flat_dict=flat_dict)
 
