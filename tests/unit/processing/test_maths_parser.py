@@ -17,11 +17,13 @@ def test_maths_parser() -> None:
     check.almost_equal(result, 7.65)
 
     flat_dict = {"param1": 0.2, "param2": False}
-    expr = "(param1 > 0.1) & (param1 <= 0.2) & (param1 == 0.2) & (param2 | True)"
+    expr = (
+        "param1 if (param1 > 0.1) & (param1 <= 0.2) & "
+        "(param1 == 0.2) & (param2 | True) else 0"
+    )
     tree = ast.parse(expr, mode="eval")
     result = _process_node(node=tree.body, flat_dict=flat_dict)
-    check.is_instance(result, bool)
-    check.is_true(result)
+    check.equal(result, 0.2)
 
     # Case not valid parameter value
     flat_dict = {"param1": 2, "param2": "string"}  # type: ignore
