@@ -25,7 +25,7 @@ isort --check-only .
 check_output "Import order checks"
 
 echo "************** Docstrings **************"
-pydocstyle --convention=numpy .
+pydocstyle --match='(?!.*_version).*\.py' --convention=numpy .
 check_output "Docstrings checks"
 
 echo "***************** PEP8 *****************"
