@@ -36,7 +36,7 @@ def test_multiple_tags() -> None:
         },
         "config3": {
             "select": "config3.param1",
-            "param1": 0,
+            "param1": 1.5,
         },
     }
     check.equal(config.dict, expected_config)
@@ -48,7 +48,7 @@ def test_multiple_tags() -> None:
     with pytest.raises(
         ValueError, match="Key previously tagged with '@type:None|int'.*"
     ):
-        config.process_list[3].endbuild(config)
+        config.process_list[4].endbuild(config)
     sys.argv = sys_argv
 
 
@@ -112,6 +112,8 @@ def test_multiple_tags2() -> None:
                 "dropout": 0.1,
                 "in_size": 512,
                 "n_blocks": 12,
+                "dim": 512,
+                "ffn_dim": 512 * 4,
             },
         },
         "data": {
@@ -160,7 +162,7 @@ def test_multiple_tags2() -> None:
     del config.dict["run_id"]
     check.equal(config.dict, expected_dict)
     with pytest.raises(ValueError, match="Key previously tagged with '@type:int.*"):
-        config.process_list[7].endbuild(
+        config.process_list[8].endbuild(
             Config({"models.vit_b16.n_blocks": 5.6}, config.process_list)
         )
     with pytest.raises(
