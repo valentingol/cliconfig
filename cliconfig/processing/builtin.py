@@ -6,6 +6,7 @@ to dict with processing routines :mod:`.process_routines`.
 They are the default processing used by the config routines :func:`.load_config`
 and :func:`.make_config`.
 """
+import ast
 from typing import Any, Dict, List, Set
 
 from cliconfig.base import Config
@@ -13,6 +14,7 @@ from cliconfig.process_routines import (
     merge_flat_paths_processing,
     merge_flat_processing,
 )
+from cliconfig.processing._maths_parser import _process_node
 from cliconfig.processing._type_parser import _isinstance, _parse_type
 from cliconfig.processing.base import Processing
 from cliconfig.tag_routines import clean_all_tags, clean_tag, dict_clean_tags, is_tag_in
@@ -171,9 +173,9 @@ class ProcessCopy(Processing):
     Tag your key with ``@copy`` and with value the name of the flat key to copy.
     The pre-merge processing removes the tag. The post-merge processing
     sets the value (if the copied key exists). The end-build processing checks
-    that the copied key exists or was already copied once. The pre-save processing
+    that the key to copy exists and copy them. The pre-save processing
     restore the tag and the key to copy to keep the information on future loads.
-    The post-merge and the end-build processings occurs after most processings to
+    The post-merge and the end-build processings occur after most processings to
     allow the user to modify or add the copied key before the copy.
     Pre-merge order: 0.0
     Post-merge order: 10.0
@@ -213,7 +215,6 @@ class ProcessCopy(Processing):
         self.endbuild_order = 10.0
         self.presave_order = 0.0
         self.keys_to_copy: Dict[str, str] = {}
-        self.copied_keys: Set[str] = set()
         self.current_value: Dict[str, Any] = {}
 
     def premerge(self, flat_config: Config) -> Config:
@@ -261,7 +262,6 @@ class ProcessCopy(Processing):
                     )
                 # Copy the value
                 flat_config.dict[key] = flat_config.dict[val]
-                self.copied_keys.add(key)
                 # Update the current value
                 self.current_value[key] = flat_config.dict[val]
         return flat_config
@@ -269,11 +269,10 @@ class ProcessCopy(Processing):
     def endbuild(self, flat_config: Config) -> Config:
         """End-build processing."""
         for key, val in self.keys_to_copy.items():
-            if key in flat_config.dict and key not in self.copied_keys:
+            if key in flat_config.dict:
                 if val in flat_config.dict:
                     # Copy the value
                     flat_config.dict[key] = flat_config.dict[val]
-                    self.copied_keys.add(key)
                 else:
                     raise ValueError(
                         "A key with '@copy' tag has been found but the key to copy "
@@ -294,6 +293,112 @@ class ProcessCopy(Processing):
                 new_key = key + "@copy"
                 del flat_config.dict[key]
                 flat_config.dict[new_key] = self.keys_to_copy[clean_key]
+        return flat_config
+
+
+class ProcessDef(Processing):
+    """Dynamically define a value from math expression with ``@def`` tag.
+
+    The expression can contain any parameter name of the configuration,
+    booleans, numbers as well as the following operators: +, -, *, /, **, %, //, &, |,
+    comparison operators (<, <=, >, >=, ==, !=), and parentheses.
+    The pre-merge processing removes the tag. The post-merge processing
+    sets the value while the presave processing restore the tag and the expression.
+    The post-merge processing occurs after most processings to
+    allow the user to modify the used keys before the calculation.
+    Pre-merge order: 0.0
+    Post-merge order: 10.0
+    Pre-save order: 0.0
+
+    Examples
+    --------
+    .. code-block:: yaml
+
+        # config.yaml
+        a:
+          b: 1
+          c: 2
+        d@def: "(a.b + a.c) * 2 > 5"
+
+    Before merging, the config is interpreted as the dict
+
+    .. code-block:: python
+
+        {'a': {'b': 1, 'c': 2}, 'd': True}
+
+    Now the parameter d is automatically updated if a.b or a.c changes
+    while also remaining editable by it-self.
+
+    Note
+    ----
+
+        * Unlike @copy processing you can change the value by setting
+          an other value or an other definition with @def.
+        * Unlike copy processing all the keys used in expression
+          must be in the config at post-merge.
+        * This processing does not use ``eval`` and is therefore safe from
+          malicious code.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.premerge_order = 0.0
+        self.postmerge_order = 10.0
+        self.endbuild_order = 0.0
+        self.exprs: Dict[str, str] = {}
+        self.values: Dict[str, Any] = {}
+
+    def calc_func(self, expr: str, config: Config) -> Any:
+        """Evaluate expression with ast."""
+        tree = ast.parse(expr, mode="eval")
+        return _process_node(node=tree.body, flat_dict=config.dict)
+
+    def premerge(self, flat_config: Config) -> Config:
+        """Pre-merge processing."""
+        items = list(flat_config.dict.items())
+        for flat_key, val in items:
+            if is_tag_in(flat_key, "def"):
+                if not isinstance(val, str):
+                    raise ValueError(
+                        "Key with '@def' tag must be associated "
+                        "to a string corresponding to a math expression to evaluate. "
+                        f"The problem occurs at key: {flat_key} with value: {val}"
+                    )
+                clean_key = clean_all_tags(flat_key)
+                # Store the expression
+                self.exprs[clean_key] = val
+                self.values[clean_key] = val
+                # Remove the tag and update the dict
+                flat_config.dict[clean_tag(flat_key, "def")] = val
+                del flat_config.dict[flat_key]
+        return flat_config
+
+    def postmerge(self, flat_config: Config) -> Config:
+        """Post-merge processing."""
+        items = list(self.exprs.items())
+        for key, expr in items:
+            if key in flat_config.dict:
+                result = self.calc_func(expr=expr, config=flat_config)
+                value = flat_config.dict[key]
+                if value != self.values[key]:
+                    # The value has changed => remove definition
+                    del self.exprs[key]
+                else:
+                    flat_config.dict[key] = result
+                    self.values[key] = result
+        return flat_config
+
+    def presave(self, flat_config: Config) -> Config:
+        """Pre-save processing."""
+        # Restore the tag with the expression to keep the information
+        # on further loading
+        keys = list(flat_config.dict.keys())
+        for key in keys:
+            clean_key = clean_all_tags(key)
+            if clean_key in self.exprs:
+                new_key = key + "@def"
+                del flat_config.dict[key]
+                flat_config.dict[new_key] = self.exprs[clean_key]
         return flat_config
 
 
@@ -493,18 +598,17 @@ class ProcessSelect(Processing):
                 self.keys_to_keep.update(keys_to_keep)
         return flat_config
 
+    def _is_in_subconfig(self, key: str, subconfig: str) -> bool:
+        """Check if a key is in a subconfig with the exact name."""
+        return key == subconfig or key.startswith(subconfig + ".")
+
     def postmerge(self, flat_config: Config) -> Config:
         """Post-merge processing."""
-
-        def _is_in_subconfig(key: str, subconfig: str) -> bool:
-            """Check if a key is in a subconfig with the exact name."""
-            return key == subconfig or key.startswith(subconfig + ".")
-
         # Delete all keys on the subconfigs except the ones to keep
         for subconfig in self.subconfigs_to_delete:
             for key in list(flat_config.dict.keys()):
-                if _is_in_subconfig(key, subconfig) and not any(
-                    _is_in_subconfig(key, key_to_keep)
+                if self._is_in_subconfig(key, subconfig) and not any(
+                    self._is_in_subconfig(key, key_to_keep)
                     for key_to_keep in self.keys_to_keep
                 ):
                     del flat_config.dict[key]
@@ -727,6 +831,7 @@ class DefaultProcessings:
             ProcessCheckTags(),
             ProcessMerge(),
             ProcessCopy(),
+            ProcessDef(),
             ProcessTyping(),
             ProcessSelect(),
             ProcessDelete(),
