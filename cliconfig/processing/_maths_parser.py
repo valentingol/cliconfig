@@ -11,32 +11,27 @@ def _process_node(node: Any, flat_dict: dict) -> ValType:
     The AST should only contain bool, numbers (int, float, complex),
     parenthesis, parameter names and following operators:
     +, -, *, /, **, //, %, |, &
-    Also support comparison operators: <, <=, ==, !=, ...
+    Also support comparison operators: <, <=, ==, !=, ... and if/else.
     """
     # Case bool or number
     if isinstance(node, ast.Constant):
         return node.n
-    # Case binary operation
-    if isinstance(node, ast.BinOp):
-        left_val = _process_node(node=node.left, flat_dict=flat_dict)
-        right_val = _process_node(node=node.right, flat_dict=flat_dict)
-        return _process_binop(node=node, left_val=left_val, right_val=right_val)
-    # Case comparator
-    if isinstance(node, ast.Compare):
-        left_val = _process_node(node=node.left, flat_dict=flat_dict)
-        right_val = _process_node(node=node.comparators[0], flat_dict=flat_dict)
-        return _process_comparator(node=node, left_val=left_val, right_val=right_val)
-    # Case parameter name
-    if isinstance(node, ast.Name):
-        return _process_param_name(node=node, flat_dict=flat_dict)
-    # Case sub-config
-    if isinstance(node, ast.Attribute):
-        return _process_subconfig(node=node, flat_dict=flat_dict)
+    functions: Dict[Any, Callable[[Any, dict], ValType]] = {
+        ast.BinOp: _process_binop,  # binary operation
+        ast.Compare: _process_comparator,  # comparison
+        ast.Name: _process_param_name,  # parameter name
+        ast.Attribute: _process_subconfig,  # sub-config
+        ast.IfExp: _process_ifexp,  # if/else
+    }
+    if isinstance(node, tuple(functions.keys())):
+        return functions[type(node)](node, flat_dict)
     raise ValueError(f"Invalid node in expression (of type {type(node)}).")
 
 
-def _process_binop(node: Any, left_val: ValType, right_val: ValType) -> ValType:
+def _process_binop(node: Any, flat_dict: dict) -> ValType:
     """Process a binary operation."""
+    left_val = _process_node(node=node.left, flat_dict=flat_dict)
+    right_val = _process_node(node=node.right, flat_dict=flat_dict)
     operators: Dict[Any, Callable[[ValType, ValType], ValType]] = {
         ast.Add: lambda x, y: x + y,
         ast.Sub: lambda x, y: x - y,
@@ -57,8 +52,10 @@ def _process_binop(node: Any, left_val: ValType, right_val: ValType) -> ValType:
     )
 
 
-def _process_comparator(node: Any, left_val: ValType, right_val: ValType) -> ValType:
+def _process_comparator(node: Any, flat_dict: dict) -> ValType:
     """Process a comparator operation."""
+    left_val = _process_node(node=node.left, flat_dict=flat_dict)
+    right_val = _process_node(node=node.comparators[0], flat_dict=flat_dict)
     operators: Dict[Any, Callable[[bool, bool], bool]] = {
         ast.Eq: lambda x, y: x == y,
         ast.NotEq: lambda x, y: x != y,
@@ -96,3 +93,14 @@ def _process_subconfig(node: Any, flat_dict: dict) -> ValType:
     param_name = f"{node.id}.{param_name}"[:-1]  # Remove last dot
     node = ast.Name(id=param_name, ctx=ast.Load())
     return _process_node(node=node, flat_dict=flat_dict)
+
+
+def _process_ifexp(node: Any, flat_dict: dict) -> ValType:
+    """Process a sub-config."""
+    # Get recursively the attribute names
+    test_val = _process_node(node=node.test, flat_dict=flat_dict)
+    return (
+        _process_node(node=node.body, flat_dict=flat_dict)
+        if test_val
+        else _process_node(node=node.orelse, flat_dict=flat_dict)
+    )
