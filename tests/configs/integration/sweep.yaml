@@ -1,0 +1,6 @@
+args:
+  a: 5
+  b: 3
+  c: True
+  d: [1, 0]
+res@def: "args.d + [args.a - 2] + ([2 * args.b] if args.c else [args.b])"

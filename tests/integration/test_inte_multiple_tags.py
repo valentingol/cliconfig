@@ -36,7 +36,7 @@ def test_multiple_tags() -> None:
         },
         "config3": {
             "select": "config3.param1",
-            "param1": 1.5,
+            "param1": [1.5, 1.5],
         },
     }
     check.equal(config.dict, expected_config)

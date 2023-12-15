@@ -299,9 +299,10 @@ class ProcessCopy(Processing):
 class ProcessDef(Processing):
     """Dynamically define a value from math expression with ``@def`` tag.
 
-    The expression can contain any parameter name of the configuration,
+    The expression can contain any parameter name of the configuration, None,
     booleans, numbers as well as the following operators: +, -, *, /, **, %, //, &, |,
-    comparison operators (<, <=, >, >=, ==, !=), and parentheses.
+    and, or, comparison operators (<, <=, >, >=, ==, !=), if/else statements, lists
+    and parentheses.
     The pre-merge processing removes the tag. The post-merge processing
     sets the value while the presave processing restore the tag and the expression.
     The post-merge processing occurs after most processings to
