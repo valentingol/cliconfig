@@ -301,7 +301,7 @@ class ProcessDef(Processing):
 
     The expression can contain any parameter name of the configuration,
     booleans, numbers as well as the following operators: +, -, *, /, **, %, //, &, |,
-    comparison operators (<, <=, >, >=, ==, !=), and parentheses.
+    comparison operators (<, <=, >, >=, ==, !=), if/else statements and parentheses.
     The pre-merge processing removes the tag. The post-merge processing
     sets the value while the presave processing restore the tag and the expression.
     The post-merge processing occurs after most processings to
