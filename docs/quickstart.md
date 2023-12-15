@@ -117,8 +117,9 @@ The default tags include:
   updates but will be updated if the copied key change during a merge.
 * `@def`: This tag evaluate a mathematic expression to define the parameter value.
   The value associated to a parameter tagged with `@def` can contain bools, numbers,
-  full flat parameter names, binary operators (+, -, *, /, **, //, %, &, |)
-  and comparison operators.
+  full flat parameter names, binary operators (+, -, *, /, **, //, %, &, |),
+  comparison operators and if / else statements. The expression is evaluated with
+  ast tree and without eval (safe to use).
 * `@type:<my type>`: This tag checks if the key matches the specified type `<my type>`
   after each update, even if the tag is no longer present. It supports basic types
   (except for tuples and sets, which are not handled by YAML) as well as unions
