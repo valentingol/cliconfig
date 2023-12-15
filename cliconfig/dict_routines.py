@@ -8,6 +8,7 @@ from typing import Any, Dict, Tuple, Union
 import yaml
 from flatten_dict import flatten as _flatten
 from flatten_dict import unflatten as _unflatten
+from yaml.parser import ParserError
 
 from cliconfig.yaml_tags._yaml_tags import get_yaml_loader, insert_tags
 
@@ -443,12 +444,15 @@ def load_dict(path: str) -> Dict[str, Any]:
         * To use multiple yaml tags, separate them with "@". E.g. ``!tag1@tag2``.
         * You can combine any number of yaml and cliconfig tags together.
     """
-    with open(path, "r", encoding="utf-8") as cfg_file:
-        file_dicts = yaml.load_all(cfg_file, Loader=get_yaml_loader())
-        out_dict: Dict[str, Any] = {}
-        for file_dict in file_dicts:
-            new_dict, _ = insert_tags(file_dict)
-            out_dict = merge_flat(out_dict, new_dict, allow_new_keys=True)
+    try:
+        with open(path, "r", encoding="utf-8") as cfg_file:
+            file_dicts = yaml.load_all(cfg_file, Loader=get_yaml_loader())
+            out_dict: Dict[str, Any] = {}
+            for file_dict in file_dicts:
+                new_dict, _ = insert_tags(file_dict)
+                out_dict = merge_flat(out_dict, new_dict, allow_new_keys=True)
+    except ParserError as exc:
+        raise ParserError(f"Error when parsing yaml file '{path}'.") from exc
     return unflatten(out_dict)
 
 
@@ -464,6 +468,7 @@ def show_dict(in_dict: Dict[str, Any], start_indent: int = 0) -> None:
     start_indent : int, optional
         The number of starting tab indent (4 spaces), by default 0.
     """
+    in_dict = unflatten(in_dict)
 
     def pretty_print(in_dict: Dict[str, Any], indent: int) -> None:
         """Pretty print the dict recursively."""
@@ -477,4 +482,4 @@ def show_dict(in_dict: Dict[str, Any], start_indent: int = 0) -> None:
             else:
                 print(value)
 
-    pretty_print(unflatten(in_dict), start_indent)
+    pretty_print(in_dict, start_indent)
