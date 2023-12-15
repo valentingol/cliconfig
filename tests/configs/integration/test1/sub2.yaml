@@ -1,4 +1,4 @@
 config2.param@type:None|int: 2
 config3:
-  param1@def: "(config1.param2 + config2.param) / 2"
+  param1@def: "[(config1.param2 + config2.param) / 2] * 2 if config2.param else None"
   param2: 1
