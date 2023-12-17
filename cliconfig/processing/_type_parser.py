@@ -158,3 +158,41 @@ def _isinstance(obj: object, types: Union[Type, Tuple]) -> bool:
     if isinstance(types[0], (type, tuple)):
         return any(_isinstance(obj, sub_types) for sub_types in types)
     raise ValueError(f"Invalid type for _isinstance: '{types}'")
+
+
+def _convert_type(obj: object, types: Union[Type, Tuple]) -> object:
+    """Try to convert an object to a type or a tuple of types.
+
+    Intended to work with the outputs of _parse_type.
+    """
+    try:
+        return _convert_type_internal(obj, types)
+    except (TypeError, ValueError):
+        return obj
+
+
+def _convert_type_internal(obj: object, types: Union[Type, Tuple]) -> object:
+    """Try to convert an object to a type or a tuple of types.
+
+    Intended to work with the outputs of _parse_type.
+    """
+    if isinstance(types, type):
+        return types(obj)
+    if types[0] == "list" and len(types) == 2:
+        return [_convert_type_internal(elem, types[1]) for elem in obj]  # type: ignore
+    if types[0] == "dict" and len(types) == 3:
+        return {
+            _convert_type_internal(key, types[1]): _convert_type_internal(
+                value, types[2]
+            )
+            for key, value in obj.items()  # type: ignore
+        }
+    if isinstance(types[0], (type, tuple)):
+        if any(_isinstance(obj, sub_types) for sub_types in types):
+            return obj
+        for sub_types in types:
+            try:
+                return _convert_type_internal(obj, sub_types)
+            except (TypeError, ValueError):
+                pass
+    raise TypeError
