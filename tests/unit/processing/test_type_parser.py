@@ -5,6 +5,7 @@ import pytest
 import pytest_check as check
 
 from cliconfig.processing._type_parser import (
+    _convert_type,
     _isinstance,
     _parse_dict,
     _parse_list,
@@ -14,24 +15,30 @@ from cliconfig.processing._type_parser import (
 )
 
 
-def test_type_parser_isinstance() -> None:
-    """Test _parse_type and _isinstance."""
+def test_type_routines() -> None:
+    """Test _parse_type, _isinstance and _convert_type."""
     type_ = _parse_type("None")
     check.equal(type_, (type(None),))
     check.is_true(_isinstance(None, type_))
     check.is_false(_isinstance([None], type_))
+    check.equal(_convert_type("unchanged", type_), "unchanged")
 
     type_ = _parse_type("List[float]")
     check.equal(type_, (("list", (float,)),))
 
-    type_ = _parse_type("list|dict")
-    check.equal(type_, (list, dict))
+    type_ = _parse_type("dict|list")
+    check.equal(type_, (dict, list))
     check.is_true(_isinstance([2.0, True], type_))
+    check.equal(_convert_type((0, 1), type_), [0, 1])
 
     type_ = _parse_type("Dict[str, List[float]]")
     check.equal(type_, (("dict", (str,), (("list", (float,)),)),))
     check.is_true(_isinstance({"a": [1.0, 2.0]}, type_))
     check.is_false(_isinstance({"a": [1.0, 2.0], "b": [1.0, 2]}, type_))
+    check.equal(
+        _convert_type({"a": [1.0, 2.0], "b": [1.0, 2]}, type_),
+        {"a": [1.0, 2.0], "b": [1.0, 2.0]},
+    )
 
     type_ = _parse_type("Dict[str|bool, int|float]")
     check.equal(type_, (("dict", (str, bool), (int, float)),))
@@ -65,7 +72,15 @@ def test_type_parser_isinstance() -> None:
     check.is_true(_isinstance({1: {"a": 2.0}}, type_))
     check.is_false(_isinstance({"a": [None, 1.0], "b": {False: 1, True: "1"}}, type_))
 
+    type_ = _parse_type("Dict[int, Optional[Dict[str, float]]]")
+    check.equal(
+        _convert_type({"0": {1: True, 2: "2.3"}, "1": {3: 3, 4: 4}}, type_),
+        {0: {"1": 1.0, "2": 2.3}, 1: {"3": 3.0, "4": 4.0}},
+    )
+    check.equal(_convert_type({"str": None}, type_), {"str": None})
+
     # Wrong type description
+    check.equal(_convert_type({"str": None}, ("list")), {"str": None})  # type: ignore
     with pytest.raises(ValueError, match="Unknown type: 'unknown'"):
         _parse_type("unknown")
     desc = "str, List[float]"

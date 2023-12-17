@@ -121,7 +121,8 @@ The default tags include:
   comparison operators, if / else statements and lists. The expression is evaluated with
   using ast tree and without eval (safe to use).
 * `@type:<my type>`: This tag checks if the key matches the specified type `<my type>`
-  after each update, even if the tag is no longer present. It supports basic types
+  after each update, even if the tag is no longer present. It tries to convert
+  the type if it is not the good one. It supports basic types
   (except for tuples and sets, which are not handled by YAML) as well as unions
   (using "Union" or "|"), optional values, nested list, and nested dict.
   For instance: `@type:List[Dict[str, int|float]]`.

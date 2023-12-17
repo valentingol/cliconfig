@@ -16,7 +16,7 @@ from cliconfig.process_routines import (
     merge_flat_processing,
 )
 from cliconfig.processing._maths_parser import _process_node
-from cliconfig.processing._type_parser import _isinstance, _parse_type
+from cliconfig.processing._type_parser import _convert_type, _isinstance, _parse_type
 from cliconfig.processing.base import Processing
 from cliconfig.tag_routines import clean_all_tags, clean_tag, dict_clean_tags, is_tag_in
 
@@ -407,8 +407,9 @@ class ProcessDef(Processing):
 
 
 class ProcessTyping(Processing):
-    """Force a type with ``@type:<mytype>`` tag. The type is then forced forever.
+    """Try to convert and force a type with ``@type:<mytype>`` tag.
 
+    The type is forced forever.
     Allow basic types (none, any, bool, int, float, str, list, dict), nested lists,
     nested dicts, unions (with Union or the '|' symbol) and Optional.
     The type description is lowercased and spaces are removed.
@@ -417,9 +418,9 @@ class ProcessTyping(Processing):
     the type to be None or a list containing dicts with str keys and int or float
     values.
 
-    The processing stores the type in pre-merge and check alls forced types on
-    end-build. It restore the tag in pre-save to keep the information on
-    future loads. The end-build processing occurs after almost all processings.
+    The processing stores the type in pre-merge and convert/check alls forced
+    types on end-build. It restore the tag in pre-save to keep the information
+    on future loads. The end-build processing occurs after almost all processings.
     Pre-merge order: 0.0
     End-build order: 20.0
     Pre-save order: 0.0
@@ -437,14 +438,17 @@ class ProcessTyping(Processing):
         in_dict = {"param@type:None|List[int|float]": None}
         dict1 = {param: [0, 1, 2.0]}  # no error
         dict2 = {param: [0, 1, 2.0, 'a']}  # error
+        dict3 = {param: [0, 1, "2"]}  # no error but convert to [0, 1, 2]
 
     Merging configs with dictionaries ``in_dict`` and ``dict1`` raises no
     error and ``param`` is forced to be None or a list of int or float forever.
-    Merging config with ``in_dict`` and ``dict3`` raises an error on post-merge
+    Merging config with ``in_dict`` and ``dict2`` raises an error on post-merge
     due to the 'a' value (which is a string).
+    Merging config with ``in_dict`` and ``dict3`` raises no error and convert
+    the value to [0, 1, 2].
 
     Note that removing "None|" in the type description of ``param`` still
-    doesn't raise an error in the first case because the type checking is
+    doesn't raise an error in those cases because the type checking is
     evaluated after the merge with ``dict2``.
     """
 
@@ -487,16 +491,20 @@ class ProcessTyping(Processing):
     def endbuild(self, flat_config: Config) -> Config:
         """End-build processing."""
         for key, expected_type in self.forced_types.items():
-            if key in flat_config.dict and not _isinstance(
-                flat_config.dict[key], expected_type
-            ):
-                type_desc = self.type_desc[key]
-                raise ValueError(
-                    f"Key previously tagged with '@type:{type_desc}' must be "
-                    f"associated to a value of type {type_desc}. Find the "
-                    f"value: {flat_config.dict[key]} of type "
-                    f"{type(flat_config.dict[key])} at key: {key}"
-                )
+            if key in flat_config.dict:
+                value = flat_config.dict[key]
+                if not _isinstance(value, expected_type):
+                    # Trying to convert the value to the expected type
+                    value = _convert_type(value, expected_type)
+                    if not _isinstance(value, expected_type):
+                        type_desc = self.type_desc[key]
+                        raise ValueError(
+                            f"Key previously tagged with '@type:{type_desc}' must be "
+                            f"associated to a value of type {type_desc}. Find the "
+                            f"value: {flat_config.dict[key]} of type "
+                            f"{type(flat_config.dict[key])} at key: {key}"
+                        )
+                    flat_config.dict[key] = value
         return flat_config
 
     def presave(self, flat_config: Config) -> Config:
@@ -779,13 +787,17 @@ class ProcessNew(Processing):
 class ProcessDict(Processing):
     """Declare a dict instead of a sub-config with ``@dict`` tag.
 
-    This is a pre-merge only processing that remove the dict and remove
-    the rest of the key after the tag. It can be used to declare a dict
-    where the keys and are not known in advance. New keys are allowed
+    This processing  can be used to declare a dict where the keys
+    are not known in advance or will be modified. New keys are allowed
     in each merge and the element are still available using the dot
     notation like ``config.subconfig.mydict.something``.
-    The pre-merge processing is applied before all other processings.
+    The pre-merge processing remove the tag and convert the dict to
+    a wrapped dict to prevent the flattening. The end-build processing
+    unwrap the dicts to a normal dict. The pre-save processing restore
+    the tag to keep the information on future loads.
     Pre-merge order: -30.0
+    End-build order: 0.0
+    Pre-save order: -30.0
 
     Examples
     --------
@@ -796,17 +808,22 @@ class ProcessDict(Processing):
         param2: 2
         sweep@dict: None
 
-        # sweep.yaml
+        # additional1.yaml
         sweep@dict:
-          metric.name: accuracy
-          metric.goal: max
+          metric: {name: accuracy, goal: maximize}
           method: bayes
           parameters:
-            param1:
-              min: 0
-              max: 50
+            param1: {min: 0, max: 50}
 
-    The ``swep`` parameter is a dict and not a sub-config.
+        # additional2.yaml
+        sweep@dict:
+          name: "random sweep"
+          method: random
+          parameters:
+            param2: {min: 0, max: 10}
+
+    The ``swep`` parameter is considered as a single dict object
+    and not as a sub-config for merging.
 
     Warning
     -------

@@ -42,7 +42,7 @@ def test_multiple_tags() -> None:
     check.equal(config.dict, expected_config)
     config = merge_flat_processing(
         config,
-        Config({"config2.param": 5.6}, []),
+        Config({"config2.param": 1 + 1j}, []),
         preprocess_first=False,
     )
     with pytest.raises(
@@ -167,7 +167,7 @@ def test_multiple_tags2() -> None:
     check.equal(config.dict, expected_dict)
     with pytest.raises(ValueError, match="Key previously tagged with '@type:int.*"):
         config.process_list[8].endbuild(
-            Config({"models.vit_b16.n_blocks": 5.6}, config.process_list)
+            Config({"models.vit_b16.n_blocks": 1 + 1j}, config.process_list)
         )
     with pytest.raises(
         ValueError, match="Found attempt to modify a key with '@copy' tag.*"
