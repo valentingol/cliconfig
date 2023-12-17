@@ -7,9 +7,10 @@ They are the default processing used by the config routines :func:`.load_config`
 and :func:`.make_config`.
 """
 import ast
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, List, Set, Tuple
 
 from cliconfig.base import Config
+from cliconfig.dict_routines import unflatten
 from cliconfig.process_routines import (
     merge_flat_paths_processing,
     merge_flat_processing,
@@ -18,6 +19,8 @@ from cliconfig.processing._maths_parser import _process_node
 from cliconfig.processing._type_parser import _isinstance, _parse_type
 from cliconfig.processing.base import Processing
 from cliconfig.tag_routines import clean_all_tags, clean_tag, dict_clean_tags, is_tag_in
+
+TypeSplitDict = Dict[str, List[Tuple[str, Any]]]
 
 
 class ProcessMerge(Processing):
@@ -773,6 +776,127 @@ class ProcessNew(Processing):
         return flat_config
 
 
+class ProcessDict(Processing):
+    """Declare a dict instead of a sub-config with ``@dict`` tag.
+
+    This is a pre-merge only processing that remove the dict and remove
+    the rest of the key after the tag. It can be used to declare a dict
+    where the keys and are not known in advance. New keys are allowed
+    in each merge and the element are still available using the dot
+    notation like ``config.subconfig.mydict.something``.
+    The pre-merge processing is applied before all other processings.
+    Pre-merge order: -30.0
+
+    Examples
+    --------
+    .. code-block:: yaml
+
+        # default.yaml
+        param1: 0
+        param2: 2
+        sweep@dict: None
+
+        # sweep.yaml
+        sweep@dict:
+          metric.name: accuracy
+          metric.goal: max
+          method: bayes
+          parameters:
+            param1:
+              min: 0
+              max: 50
+
+    The ``swep`` parameter is a dict and not a sub-config.
+
+    Warning
+    -------
+
+        * Processings are not applied in the dict keys. In particular,
+          the tags are not used and not removed.
+        * The tag ``@dict`` must be added at the key containing
+          the dict every time you want to modify the dict.
+    """
+
+    class PseudoDict:
+        """Object containing a dict that dodges flattening."""
+
+        def __init__(self, dict_: dict):
+            self.dict = dict_
+
+        def __repr__(self) -> str:
+            """Representation."""
+            return f"PseudoDict({self.dict})"
+
+        def __str__(self) -> str:
+            """Representation as string."""
+            return f"PseudoDict({self.dict})"
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.premerge_order = -30.0
+        self.endbuild_order = 0.0
+        self.presave_order = -30.0
+        self.keys_with_dict: Set[str] = set()
+
+    def premerge(self, flat_config: Config) -> Config:
+        """Pre-merge processing."""
+        keys = list(flat_config.dict.keys())
+        splitter: TypeSplitDict = {}
+        for key in keys:
+            if is_tag_in(key, "dict", full_key=True):
+                splitter = self._split_dict_key(splitter, key, flat_config.dict[key])
+                del flat_config.dict[key]
+        new_dict = {}
+        for key, values in splitter.items():
+            new_dict[key] = self.PseudoDict(unflatten(dict(values)))
+            self.keys_with_dict.add(clean_all_tags(key))
+        flat_config.dict.update(new_dict)
+        return flat_config
+
+    def endbuild(self, flat_config: Config) -> Config:
+        """End-build processing."""
+        for key in flat_config.dict:
+            if isinstance(flat_config.dict[key], self.PseudoDict):
+                flat_config.dict[key] = flat_config.dict[key].dict
+        return flat_config
+
+    def presave(self, flat_config: Config) -> Config:
+        """Pre-save processing."""
+        keys = list(flat_config.dict.keys())
+        for key in keys:
+            if key.startswith(tuple(self.keys_with_dict)):
+                for key_dict in self.keys_with_dict:
+                    # Add the tag @dict to the key to keep the information
+                    if key.startswith(key_dict):
+                        new_key = key_dict + "@dict" + key[len(key_dict) :]
+                        flat_config.dict[new_key] = flat_config.dict[key]
+                        del flat_config.dict[key]
+                        break
+        return flat_config
+
+    def _split_dict_key(
+        self,
+        splitter: TypeSplitDict,
+        flat_key: str,
+        value: Any,
+    ) -> TypeSplitDict:
+        """Split a key by @dict."""
+        split_dict = flat_key.split("@dict")
+        # Handle the case where there is another @dict in the key
+        split_dict = [split_dict[0]] + ["@dict".join(split_dict[1:])]
+        # Include the other tags in the key
+        split_dot = split_dict[1].split(".")
+        split_dot = [split_dot[0]] + [".".join(split_dot[1:])]
+
+        main_key = split_dict[0] + split_dot[0]
+        dict_key = split_dot[1]
+        if main_key not in splitter:
+            splitter[main_key] = [(dict_key, value)]
+        else:
+            splitter[main_key].append((dict_key, value))
+        return splitter
+
+
 class ProcessCheckTags(Processing):
     """Raise an error if a tag is present in a key after pre-merging processes.
 
@@ -836,5 +960,6 @@ class DefaultProcessings:
             ProcessTyping(),
             ProcessSelect(),
             ProcessDelete(),
+            ProcessDict(),
             ProcessNew(),
         ]
