@@ -5,13 +5,15 @@ import pytest
 import pytest_check as check
 
 from cliconfig.base import Config
-from cliconfig.dict_routines import flatten
+from cliconfig.dict_routines import flatten, unflatten
+from cliconfig.process_routines import merge_flat_processing
 from cliconfig.processing.builtin import (
     DefaultProcessings,
     ProcessCheckTags,
     ProcessCopy,
     ProcessDef,
     ProcessDelete,
+    ProcessDict,
     ProcessMerge,
     ProcessNew,
     ProcessSelect,
@@ -403,6 +405,50 @@ def test_process_new() -> None:
             "config3.subconfig.param4@new": 4,
         },
     )
+
+
+def test_process_dict() -> None:
+    """Test ProcessDict."""
+    processing = ProcessDict()
+    flat_dict1 = {
+        "subconfig.mydict@dict.param1": 1,
+        "subconfig.mydict@dict.param2": 2,
+        "subconfig.mydict@dict.foo.param3": 3,
+    }
+    config1 = Config(flat_dict1, [processing])
+    config1 = processing.premerge(config1)
+    config1.dict = flatten(config1.dict)
+
+    check.equal(
+        config1.dict["subconfig.mydict"].dict,
+        {"param1": 1, "param2": 2, "foo": {"param3": 3}},
+    )
+    flat_dict2 = {
+        "subconfig.mydict@dict.a": 1,
+        "subconfig.mydict@dict.b": 2,
+    }
+    config2 = Config(flat_dict2)
+    config = merge_flat_processing(config1, config2, allow_new_keys=False)
+    check.equal(
+        config.dict["subconfig.mydict"].dict,
+        {"a": 1, "b": 2},
+    )
+    config = processing.endbuild(config)
+    config.dict = unflatten(config.dict)
+    check.equal(
+        config.dict,
+        {"subconfig": {"mydict": {"a": 1, "b": 2}}},
+    )
+    config.dict = flatten(config.dict)
+    config = processing.presave(config)
+    check.equal(
+        config.dict,
+        {"subconfig.mydict@dict.a": 1, "subconfig.mydict@dict.b": 2},
+    )
+
+    pseudodict = processing.PseudoDict({"a": 1})
+    check.equal(repr(pseudodict), "PseudoDict({'a': 1})")
+    check.equal(str(pseudodict), "PseudoDict({'a': 1})")
 
 
 def test_process_check_tags() -> None:

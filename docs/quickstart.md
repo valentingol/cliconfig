@@ -133,6 +133,9 @@ The default tags include:
   present in the default config(s). It can be used for single parameter or a
   sub-config. Disclaimer: it is preferable to have exhaustive default config(s)
   instead of abusing this tag for readability and for security concerning typos.
+* `@dict`: This tag allows to have a dictionary object instead of a sub-config
+  where you can modify the keys (see the
+  [*Edge cases*](https://cliconfig.readthedocs.io/en/latest/edge_cases.html) section)
 
 The tags are applied in a particular order that ensure no conflict between them.
 

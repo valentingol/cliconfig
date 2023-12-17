@@ -17,17 +17,21 @@ as config attributes (with dots).
 In the context of this package, dictionaries are treated as sub-configurations,
 which means that modifying or adding keys directly in the additional configs may
 not be possible (because only the merge of default configuration allow adding new keys).
-If you need to modify or add keys within a dictionary, consider enclosing it in a list.
+If you need to have a dictionary object where you can modify the keys, consider
+using the `@dict` tag:
 
 For instance:
 
 ```yaml
 # default.yaml
 logging:
-  metrics: ['train loss', 'val loss']
-  styles: [{'train loss': 'red', 'val loss': 'blue'}]
+  metrics: [train loss, val loss]
+  styles@dict: {train_loss: red, val_loss: blue}
 # additional.yaml
 logging:
-  metrics: ['train loss', 'val loss', 'val acc']
-  styles: [{'train loss': 'red', 'val loss': 'blue', 'val acc': 'cyan'}]
+  metrics: [train loss, val acc]
+  styles@dict: {train_loss: red, val_acc: cyan}
 ```
+
+Like a sub-config, the dictionary can be accessed with the dot notation like this:
+`config.logging.styles.val_acc` and will return "cyan".
