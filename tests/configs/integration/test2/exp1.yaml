@@ -6,3 +6,8 @@ models.vit_b16:
   in_size: !copy@type:int data.data_size
   dim: 512
 train.n_epochs: 30
+sweep_cfg@dict:
+  method: grid
+  models.dim:
+    - 512
+    - 1024

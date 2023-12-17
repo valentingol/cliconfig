@@ -7,7 +7,6 @@ models:
   vit_b16_cfg_path@merge_add: tests/configs/integration/test2/models/vit_b16.yaml
 
 ---
-
 data:
   dataset_path@type:str: ../data
   dataset_cfg_path@merge_add: tests/configs/integration/test2/data.yaml
@@ -17,3 +16,4 @@ train:
     type@optim_type: SGD
     lr@type:float: 0.01
     momentum@type:float|int: 0.9
+sweep_cfg: None

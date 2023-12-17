@@ -2,3 +2,8 @@ data.data_size: 512
 data.dataset_path: ../../mydata
 data.augmentation: [RandomHorizontalFlip, RandomVerticalFlip]
 1@merge_add: !delete tests/configs/integration/test2/exp3.yaml
+sweep_cfg@dict:
+  method: bayes
+  data.data_size:
+    - 512
+    - 1024
