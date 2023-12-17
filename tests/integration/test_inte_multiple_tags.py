@@ -131,6 +131,10 @@ def test_multiple_tags2() -> None:
                 "momentum": 0,
             },
         },
+        "sweep_cfg": {
+            "method": "bayes",
+            "data": {"data_size": [512, 1024]},
+        },
         "metadata": {
             "exp_details": {
                 "goal": "Test multiple processings",
