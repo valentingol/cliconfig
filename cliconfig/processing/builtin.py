@@ -15,7 +15,7 @@ from cliconfig.process_routines import (
     merge_flat_paths_processing,
     merge_flat_processing,
 )
-from cliconfig.processing._maths_parser import _process_node
+from cliconfig.processing._ast_parser import _process_node
 from cliconfig.processing._type_parser import _convert_type, _isinstance, _parse_type
 from cliconfig.processing.base import Processing
 from cliconfig.tag_routines import clean_all_tags, clean_tag, dict_clean_tags, is_tag_in
@@ -302,12 +302,15 @@ class ProcessCopy(Processing):
 class ProcessDef(Processing):
     """Dynamically define a value from math expression with ``@def`` tag.
 
-    The expression can contain any parameter name of the configuration, None,
-    booleans, numbers as well as the following operators: +, -, *, /, **, %, //, &, |,
-    and, or, comparison operators (<, <=, >, >=, ==, !=), if/else statements, lists
-    and parentheses.
+    The expression can contain any parameter name of the configuration.
+    The most usefull operators and built-in functions are supported,
+    the random and math packages are also supported as well as some (safe)
+    numpy functions. If/else statements and comprehension lists are also
+    supported.
+
     The pre-merge processing removes the tag. The post-merge processing
-    sets the value while the presave processing restore the tag and the expression.
+    sets the value while the presave processing restore the tag and the
+    expression.
     The post-merge processing occurs after most processings to
     allow the user to modify the used keys before the calculation.
     Pre-merge order: 0.0
@@ -427,9 +430,12 @@ class ProcessTyping(Processing):
 
     Note
     ----
-        The type is not checked on pre-merge or ost-merge to allow the parameter
-        to be updated (by a copy or a merge for instance). The goal of this
-        processing is to ensure the type at the end of the build.
+        * The conversion into union type is from left to right. For instance,
+          ``param@type:List[str|float]: [True]`` is converted to ``["True"]``.
+        * The type is not checked on pre-merge or post-merge to allow the parameter
+          to be updated (by a copy or a merge for instance). The goal of this
+          processing is to ensure the type at the end of the build.
+
 
     Examples
     --------
