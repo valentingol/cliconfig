@@ -37,6 +37,12 @@ def test_ast_parser() -> None:
     result = _process_node(node=tree.body, flat_dict=flat_dict)
     check.equal(result, ({"list": [11, 17]}, 2))
 
+    flat_dict = {"a": {"b": 1}}
+    expr = "list(a.keys())"
+    tree = ast.parse(expr, mode="eval")
+    result = _process_node(node=tree.body, flat_dict=flat_dict)
+    check.equal(result, ["b"])
+
     flat_dict = {"elems": [1, 2, 3], "val": 5}
     expr = "np.array(elems + [random.randint(0, val)]), np.random.randint(0, 5)"
     tree = ast.parse(expr, mode="eval")

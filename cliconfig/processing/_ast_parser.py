@@ -2,6 +2,8 @@
 import ast
 from typing import Any, Callable, Dict, List
 
+import yaml
+
 
 def _process_node(node: Any, flat_dict: dict) -> Any:
     """Compute an AST from the root by replacing param name by their values.
@@ -181,11 +183,11 @@ def _process_call(node: Any, flat_dict: dict) -> Any:
         return value
 
     # ast.Attribute
-    func = _find_function(node.func)
+    func = _find_function(node=node.func, flat_dict=flat_dict)
     return func(*args, **kwargs)
 
 
-def _find_function(node: Any) -> Callable:
+def _find_function(node: Any, flat_dict: dict) -> Callable:
     """Find a function from node."""
     list_names: List[str] = []
     while isinstance(node, ast.Attribute):
@@ -193,52 +195,43 @@ def _find_function(node: Any) -> Callable:
         node = node.value
     list_names = [node.id] + list_names
 
-    list_names[0] = "numpy" if list_names[0] == "np" else list_names[0]
-    if _filter_allowed(list_names):
-        module = __import__(list_names[0])
-        for name in list_names[1:-1]:
-            module = getattr(module, name)
-        func = getattr(module, list_names[-1])
-        return func
-    raise ValueError(
-        f"Package or function not allowed or not supported: {'.'.join(list_names)}"
+    aliases = {"np": "numpy", "tf": "tensorflow"}
+    if list_names[0] in aliases:
+        list_names[0] = aliases[list_names[0]]
+    list_names = (
+        ["jax", "numpy"] + list_names[1:] if list_names[0] == "jnp" else list_names
     )
+
+    if list_names[0] in flat_dict:
+        obj = flat_dict[list_names[0]]
+    elif _filter_allowed(list_names=list_names):
+        obj = __import__(list_names[0])
+    else:
+        raise ValueError(
+            f"Package or function not allowed or not supported: {'.'.join(list_names)}"
+        )
+    for name in list_names[1:-1]:
+        obj = getattr(obj, name)
+    func = getattr(obj, list_names[-1])
+    return func
 
 
 def _filter_allowed(list_names: List[str]) -> bool:
     """Filter the allowed functions."""
+    with open(
+        "cliconfig/processing/allowed_functions.yaml", encoding="utf-8"
+    ) as yaml_file:
+        allowed_funcs = yaml.safe_load(yaml_file)
+    list_names = list_names.copy()
+    # jax and numpy share the same allowed functions, jax.random is also allowed
+    list_names = list_names[1:] if list_names[0] == "jax" else list_names
+
     if any(name.startswith("_") for name in list_names):
         return False
     if list_names[0] in ("random", "math"):
         return True
-    if list_names[0] == "numpy":
-        return list_names[1] in (
-            "random",
-            "array",
-            "zeros",
-            "ones",
-            "empty",
-            "arange",
-            "linspace",
-            "reshape",
-            "transpose",
-            "dot",
-            "sum",
-            "mean",
-            "std",
-            "max",
-            "min",
-            "argmax",
-            "argmin",
-            "ravel",
-            "squeeze",
-            "concatenate",
-            "split",
-            "vstack",
-            "hstack",
-            "isnan",
-            "interp",
-        )
+    if list_names[0] in ("numpy", "torch", "tensorflow"):
+        return list_names[1] in allowed_funcs[list_names[0]]
     return False
 
 
