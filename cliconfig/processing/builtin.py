@@ -427,9 +427,12 @@ class ProcessTyping(Processing):
 
     Note
     ----
-        The type is not checked on pre-merge or ost-merge to allow the parameter
-        to be updated (by a copy or a merge for instance). The goal of this
-        processing is to ensure the type at the end of the build.
+        * The conversion into union type is from left to right. For instance,
+          ``param@type:List[str|float]: [True]`` is converted to ``["True"]``.
+        * The type is not checked on pre-merge or post-merge to allow the parameter
+          to be updated (by a copy or a merge for instance). The goal of this
+          processing is to ensure the type at the end of the build.
+
 
     Examples
     --------
