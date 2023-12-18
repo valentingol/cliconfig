@@ -1,4 +1,4 @@
-"""Private module with type parser for processing module with type manipulation."""
+"""Private module with AST parser for safe evaluation."""
 import ast
 from typing import Any, Callable, Dict, List
 
@@ -6,10 +6,11 @@ from typing import Any, Callable, Dict, List
 def _process_node(node: Any, flat_dict: dict) -> Any:
     """Compute an AST from the root by replacing param name by their values.
 
-    The AST should only contain None, bool, numbers (int, float, complex),
-    lists, parenthesis, parameter names and following operators:
-    +, -, *, /, **, //, %, |, &, and, or
-    Also support comparison operators: <, <=, ==, !=, ... and if/else.
+    The AST can contain any parameter name of the configuration.
+    The most usefull operators and built-in functions are supported,
+    the random and math packages are also supported as well as some (safe)
+    numpy functions. If/else statements and comprehension lists are also
+    supported.
     """
     # Case None, bool or number
     if isinstance(node, ast.Constant):
@@ -200,7 +201,7 @@ def _find_function(node: Any) -> Callable:
         func = getattr(module, list_names[-1])
         return func
     raise ValueError(
-        "Package or function not allowed or " f"not supported: {'.'.join(list_names)}"
+        f"Package or function not allowed or not supported: {'.'.join(list_names)}"
     )
 
 
@@ -210,8 +211,9 @@ def _filter_allowed(list_names: List[str]) -> bool:
         return False
     if list_names[0] in ("random", "math"):
         return True
-    if list_names[0] == "np":
+    if list_names[0] == "numpy":
         return list_names[1] in (
+            "random",
             "array",
             "zeros",
             "ones",
