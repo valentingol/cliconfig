@@ -115,11 +115,12 @@ The default tags include:
 * `@copy`: This tag copies a parameter from another key. The value should be a string
   that represents the flattened key. The copied value is then protected from further
   updates but will be updated if the copied key change during a merge.
-* `@def`: This tag evaluate a mathematic expression to define the parameter value.
-  The value associated to a parameter tagged with `@def` can contain bools, numbers,
-  full flat parameter names, binary operators (+, -, *, /, **, //, %, &, |, and, or),
-  comparison operators, if / else statements and lists. The expression is evaluated with
-  using ast tree and without eval (safe to use).
+* `@def`: This tag evaluate an expression to define the parameter value.
+  The value associated to a parameter tagged with `@def` can contain
+  any parameter name of the configuration. The most usefull operators
+  and built-in functions are supported, the `random` and `math` packages
+  are also supported as well as some (safe) numpy functions.
+  If/else statements and comprehension lists are also supported.
 * `@type:<my type>`: This tag checks if the key matches the specified type `<my type>`
   after each update, even if the tag is no longer present. It tries to convert
   the type if it is not the good one. It supports basic types
