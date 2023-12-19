@@ -1,3 +1,4 @@
+# Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Routines to manipulate dictionaries with processing.
 
 Used by :mod:`.config_routines`.

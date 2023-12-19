@@ -1,3 +1,4 @@
+# Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Color utils for GitHub actions."""
 from colorsys import hsv_to_rgb
 

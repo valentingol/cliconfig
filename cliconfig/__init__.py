@@ -1,3 +1,4 @@
+# Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """CLI Config: build your configuration from CLI by merging with processing.
 
 Copyright © 2023  Valentin Goldité

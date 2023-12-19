@@ -1,3 +1,4 @@
+# Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Base class for processing.
 
 Used to make configuration object and run the routines in :mod:`.process_routines`

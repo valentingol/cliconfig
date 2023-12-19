@@ -1,3 +1,4 @@
+# Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Test ProcessBypassTyping."""
 
 from typing import Dict, Set

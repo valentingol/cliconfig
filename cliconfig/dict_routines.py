@@ -1,3 +1,4 @@
+# Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Routines to manipulate nested and flat dictionaries (and mix of both).
 
 Used by :mod:`.process_routines` and :mod:`.config_routines`.

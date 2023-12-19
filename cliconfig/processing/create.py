@@ -1,3 +1,4 @@
+# Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Functions to create new processing quickly."""
 # pylint: disable=unused-argument
 import re

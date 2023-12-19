@@ -1,3 +1,4 @@
+# Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Built-in processing classes.
 
 Built-in classes to apply pre-merge, post-merge, pre-save and post-load modifications
@@ -305,8 +306,8 @@ class ProcessDef(Processing):
     The expression can contain any parameter name of the configuration.
     The most usefull operators and built-in functions are supported,
     the random and math packages are also supported as well as some (safe)
-    numpy functions. If/else statements and comprehension lists are also
-    supported.
+    numpy, jax, tensorflow, pytorch functions. If/else statements and
+    comprehension lists are also supported.
 
     The pre-merge processing removes the tag. The post-merge processing
     sets the value while the presave processing restore the tag and the

@@ -1,3 +1,4 @@
+# Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Parser for CLI commands."""
 from typing import Any, Dict, List, Tuple
 

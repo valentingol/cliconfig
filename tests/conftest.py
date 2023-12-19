@@ -1,3 +1,4 @@
+# Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Shared pytest fixtures."""
 from typing import Any, Dict
 

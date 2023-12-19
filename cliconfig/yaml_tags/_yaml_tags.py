@@ -1,3 +1,4 @@
+# Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Module to convert yaml tags in yaml file to python dict with  cliconfig tags."""
 
 from typing import Any, Dict, Optional, Tuple

@@ -1,3 +1,4 @@
+# Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Configuration file for the Sphinx documentation builder."""
 # pylint: disable=all
 # For the full list of built-in configuration values, see the documentation:
