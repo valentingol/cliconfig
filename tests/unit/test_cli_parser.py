@@ -1,3 +1,4 @@
+# Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Test for cli_parser.py."""
 import pytest
 import pytest_check as check

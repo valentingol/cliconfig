@@ -1,3 +1,4 @@
+# Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Private module with type parser for processing module with type manipulation."""
 from pydoc import locate
 from typing import List, Optional, Tuple, Type, Union

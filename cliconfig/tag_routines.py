@@ -1,3 +1,4 @@
+# Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Routines to manipulate the tags on the keys of a dict.
 
 Used by the processing functions.

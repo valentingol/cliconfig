@@ -1,3 +1,4 @@
+# Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Base classes of Config object."""
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 

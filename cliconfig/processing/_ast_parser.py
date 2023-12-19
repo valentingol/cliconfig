@@ -1,3 +1,4 @@
+# Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Private module with AST parser for safe evaluation."""
 import ast
 from typing import Any, Callable, Dict, List
@@ -8,11 +9,11 @@ import yaml
 def _process_node(node: Any, flat_dict: dict) -> Any:
     """Compute an AST from the root by replacing param name by their values.
 
-    The AST can contain any parameter name of the configuration.
+    The AST can contain can contain any parameter name of the configuration.
     The most usefull operators and built-in functions are supported,
     the random and math packages are also supported as well as some (safe)
-    numpy functions. If/else statements and comprehension lists are also
-    supported.
+    numpy, jax, tensorflow, pytorch functions. If/else statements and
+    comprehension lists are also supported.
     """
     # Case None, bool or number
     if isinstance(node, ast.Constant):
