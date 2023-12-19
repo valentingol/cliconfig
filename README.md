@@ -78,13 +78,45 @@ python main.py --config first.yaml,second.yaml --param1=1 --subconfig.param2='fo
 See the [Edge cases](https://cliconfig.readthedocs.io/en/latest/edge_cases.html) section of
 the documentation for some edge cases due to implementation.
 
-### Some features
+## Tags
 
-Default features include automatic configs merging after reading a config file (to organize
-them on multiple files without needed to list them in the CLI), dynamically copy other parameters,
-select a sub-config among multiple ones (and delete the others), protect parameters values
-or one of their properties, specify the parameters type (as precisely as you want)
-and more.
+You can add tags `@<tag_name>` at the end of parameters name to activate some features. See the [Quick start](https://cliconfig.readthedocs.io/en/latest/quickstart.html)
+section of the documentation for a quick overview.
+
+The default tags include:
+
+* `@merge_add`, `@merge_before`, and `@merge_after`: These tags merge the dictionary
+  loaded from the specified value (which should be a YAML path) into the current
+  configuration. `@merge_add` allows only the merging of new keys and is useful for
+  splitting non-overlapping sub-configurations into multiple files. `@merge_before` merges
+  the current dictionary onto the loaded one, while `@merge_after` merges the loaded
+  dictionary onto the current one. These tags are used to organize the config files simply.
+* `@copy`: This tag copies a parameter from another key. The value should be a string
+  that represents the flattened key. The copied value is then protected from further
+  updates but will be updated if the copied key change during a merge.
+* `@def`: This tag evaluate an expression to define the parameter value.
+  The value associated to a parameter tagged with `@def` can contain any
+  parameter name of the configuration. The most useful operators and built-in
+  functions are supported, the random and math packages are also supported
+  as well as some (safe) numpy, jax, tensorflow, pytorch functions.
+  If/else statements and comprehension lists are also supported.
+* `@type:<my type>`: This tag checks if the key matches the specified type `<my type>`
+  after each update, even if the tag is no longer present. It tries to convert
+  the type if it is not the good one. It supports basic types
+  (except for tuples and sets, which are not handled by YAML) as well as unions
+  (using "Union" or "|"), optional values, nested list, and nested dict.
+  For instance: `@type:List[Dict[str, int|float]]`.
+* `@select`: This tag select sub-config(s) to keep and delete the other
+  sub-configs in the same parent config. The tagged key is not deleted if it is
+  in the parent config.
+* `@delete`: This tag deletes the key from the config before merging.
+* `@new`: This tag allows adding new key(s) to the config that are not already
+  present in the default config(s). It can be used for single parameter or a
+  sub-config. Disclaimer: it is preferable to have exhaustive default config(s)
+  instead of abusing this tag for readability and for security concerning typos.
+* `@dict`: This tag allows to have a dictionary object instead of a sub-config
+  where you can modify the keys (see the
+  [*Edge cases*](https://cliconfig.readthedocs.io/en/latest/edge_cases.html) section)
 
 It is also easy to create your own features and possibilities are endless. The way to do
 it are explained in the [*Processing*](https://cliconfig.readthedocs.io/en/latest/processing.html)
@@ -101,15 +133,6 @@ pip install -r requirements-dev.txt
 
 Everyone can contribute to CLI Config, and we value everyone’s contributions.
 Please see our [contributing guidelines](CONTRIBUTING.md) for more information 🤗
-
-## To-do
-
-* [x] Add a parameter to change the type (pre-merge, post-merge, ...) of processings
-  created by `create_processing_XXX`
-* [x] Allow the flat config to be passed as a 2nd argument of the fonctions `func` used
-  in `create_processing_XXX`
-* [x] Correct grammar and syntax errors in the documentation with LTex
-* [x] Add `no_cli` argument to `make_config` to avoid using CLI arguments
 
 ## License
 
