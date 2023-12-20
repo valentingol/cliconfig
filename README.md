@@ -85,37 +85,15 @@ section of the documentation for a quick overview.
 
 The default tags include:
 
-* `@merge_add`, `@merge_before`, and `@merge_after`: These tags merge the dictionary
-  loaded from the specified value (which should be a YAML path) into the current
-  configuration. `@merge_add` allows only the merging of new keys and is useful for
-  splitting non-overlapping sub-configurations into multiple files. `@merge_before` merges
-  the current dictionary onto the loaded one, while `@merge_after` merges the loaded
-  dictionary onto the current one. These tags are used to organize the config files simply.
-* `@copy`: This tag copies a parameter from another key. The value should be a string
-  that represents the flattened key. The copied value is then protected from further
-  updates but will be updated if the copied key change during a merge.
-* `@def`: This tag evaluate an expression to define the parameter value.
-  The value associated to a parameter tagged with `@def` can contain any
-  parameter name of the configuration. The most useful operators and built-in
-  functions are supported, the random and math packages are also supported
-  as well as some (safe) numpy, jax, tensorflow, pytorch functions.
-  If/else statements and comprehension lists are also supported.
-* `@type:<my type>`: This tag checks if the key matches the specified type `<my type>`
-  after each update, even if the tag is no longer present. It tries to convert
-  the type if it is not the good one. It supports basic types
-  (except for tuples and sets, which are not handled by YAML) as well as unions
-  (using "Union" or "|"), optional values, nested list, and nested dict.
-  For instance: `@type:List[Dict[str, int|float]]`.
-* `@select`: This tag select sub-config(s) to keep and delete the other
-  sub-configs in the same parent config. The tagged key is not deleted if it is
-  in the parent config.
-* `@delete`: This tag deletes the key from the config before merging.
-* `@new`: This tag allows adding new key(s) to the config that are not already
-  present in the default config(s). It can be used for single parameter or a
-  sub-config. Disclaimer: it is preferable to have exhaustive default config(s)
-  instead of abusing this tag for readability and for security concerning typos.
-* `@dict`: This tag allows to have a dictionary object instead of a sub-config
-  where you can modify the keys (see the
+* `@merge_add`, `@merge_before`, and `@merge_after`: merge other yaml files
+  indicating the path
+* `@copy`: copy an other parameter
+* `@def`: safely evaluate an expression to define the parameter value
+* `@type:<my type>`: try to convert and check the type
+* `@select`: target a sub-config and delete the sub-config in the parent config
+* `@delete`: delete the key from the config
+* `@new`: allow to add parameters that are not present in default config
+* `@dict`: create a dict object that is not a sub-config (see the
   [*Edge cases*](https://cliconfig.readthedocs.io/en/latest/edge_cases.html) section)
 
 It is also easy to create your own features and possibilities are endless. The way to do
@@ -134,15 +112,18 @@ pip install -r requirements-dev.txt
 Everyone can contribute to CLI Config, and we value everyone’s contributions.
 Please see our [contributing guidelines](CONTRIBUTING.md) for more information 🤗
 
-## License
+## License, usage and distribution
+
+This program is free software under the [MIT License](LICENSE).
+
+It means that:
+
+* If you use this package as a library without modifying it, there is no obligation
+  regarding this license.
+* If you modify the source code of this package, you must keep the original copyright
+  in the source code and add your own. The LICENSE file must also contain the original
+  copyright (and the original MIT license notice if not sublicensed).
+* In any case, you can use this package in open source or closed source projects and for
+  commercial or non-commercial purposes.
 
 Copyright © 2023 Valentin Goldité
-
-This program is free software: you can redistribute it and/or modify it under the
-terms of the [MIT License](LICENSE). This program is distributed in the hope that
-it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-The project is free to use for COMMERCIAL USE, MODIFICATION, DISTRIBUTION and
-PRIVATE USE as long as the original license is included as well as this copy
-right notice at the top of the modified files.
