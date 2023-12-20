@@ -71,20 +71,19 @@ Config:
 You can also manipulate your config with the following functions:
 
 ```python
-from cliconfig import load_config, save_config, show_config
-# Print the whole config
-show_config(config)
-# The configuration as a native python dict
-config.dict
-# Access the parameters or sub-config with brackets from the dict
-config.dict['letters']['letter1']
-# Access a parameter (or subconfig) directly with dots, you can also delete or set new values
-config.letters.letter1
-config.letters.letter1 = 'G'  # (be careful, the config may be less readable if you do that in the code)
-del config.letters.letter1
+from cliconfig import load_config, save_config, show_config, update_config
+show_config(config)  # print it
+config.dict  # config as native dict
+config.dict['letters']['letter1']  # access parameter via dict
+config.letters.letter1  # access parameter via dots
+config.letters.letter1 = 'G'  # modify parameter
+del config.letters.letter1  # delete parameter
+# Update config with a dict or another config
+config = update_config(config, {'letters': {'letter1': 'H'}})
 # Save the config as a yaml file
 save_config(config, 'myconfig.yaml')
-# Load the config and merge with the default configs if provided (useful if default configs were updated)
+# Load the config and merge with the default configs if provided
+# (useful if default configs were updated)
 config = load_config('myconfig.yaml', default_config_paths=['default1.yaml', 'default2.yaml'])
 ```
 
@@ -127,10 +126,11 @@ The default tags include:
   (except for tuples and sets, which are not handled by YAML) as well as unions
   (using "Union" or "|"), optional values, nested list, and nested dict.
   For instance: `@type:List[Dict[str, int|float]]`.
-* `@select`: This tag select sub-config(s) to keep and delete the other
-  sub-configs in the same parent config. The tagged key is not deleted if it is
-  in the parent config.
-* `@delete`: This tag deletes the key from the config before merging.
+* `@select`: This tag select param/sub-config(s) to keep and delete the other
+  param/sub-configs in the same parent config. The tagged key is not deleted if
+  it is in the parent config.
+* `@delete`: This tag deletes the param/sub-config from the config before merging.
+  It is usefull to trigger a processing without keeping the key in the config.
 * `@new`: This tag allows adding new key(s) to the config that are not already
   present in the default config(s). It can be used for single parameter or a
   sub-config. Disclaimer: it is preferable to have exhaustive default config(s)
@@ -150,18 +150,21 @@ It is also possible to combine multiple tags. For example:
 # main.yaml
 path_1@merge_add: sub1.yaml
 path_2@merge_add: sub2.yaml
-config3.select@select: config3.param1
+config3.selection@delete@select: config3.param1
 
 # sub1.yaml
 config1:
   param@copy@type:int: config2.param
-  param2@type:int: 1
+  param2@type:float: 1  # wrong type -> converted to float
 
 # sub2.yaml
-config2.param@type:None|int: 2
+config2.param: 2
 config3:
   param1@def: "[(config1.param2 + config2.param) / 2] * 2 if config2.param else None"
-  param2: 1
+  param2: 3
+my_dict@dict:
+  key1: 1
+  key2: 2
 ```
 
 Note that can also use YAML tags separated with "@" (like `key: !tag@tag2 value`)
@@ -174,20 +177,21 @@ path_1: sub1.yaml
 path_2: sub2.yaml
 config1:
   param: 2  # the value of config2.param
-  param2: 1
+  param2: 1.0  # converted to float
 config2:
   param: 2
 config3:
-  select: config3.param1
   param1: [1.5, 1.5]
   # param2 is deleted because it is not in the selection
+my_dict: {key1: 1, key2: 2}  # (changing the whole dict further is allowed)
 ```
 
-Then, all the parameters in `config1` and `config2` have enforced types
-(`config2.param` can also be None) and changing `config2.param` will also update
-`config1.param` accordingly (which is protected by direct update).
+Then, all the parameters in `config1` have enforced types, changing
+`config2.param` will also update `config1.param` accordingly (which is
+protected by direct update). Finally, changing `config1.param2` or `config2.param`
+will update `config3.param1` accordingly until a new value is set for `config3.param1`.
 
-These side effects are not visible in the config but stored on processing classes.
+These side effects are not visible in the config but stored on processing objects.
 They are objects that find the tags, remove them from config and apply a modification.
 These processing are powerful tools that can be used to highly customize the
 configuration at each step of the process.

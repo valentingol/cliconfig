@@ -5,7 +5,7 @@ CLI Config
 
 |
 
-.. image:: _static/logo_extend.png
+.. image:: https://github.com/valentingol/cliconfig/blob/main/docs/_static/logo_extend.png
   :align: center
   :width: 1000
   :alt: CLI config logo
@@ -22,7 +22,7 @@ The package is initially designed for machine learning experiments where the
 number of parameters is huge and a lot of them have to be set by the user between
 each experiment. If your project matches this description, this package is for you!
 
-`Pypi project <https://pypi.org/project/cliconfig/>`_
+`Documentation <https://cliconfig.readthedocs.io/en/latest/>`_
 
 `Github project <https://github.com/valentingol/cliconfig>`_
 
@@ -83,18 +83,21 @@ For instance with these config files:
     # main.yaml
     path_1@merge_add: sub1.yaml
     path_2@merge_add: sub2.yaml
-    config3.select@select: config3.param1
+    config3.selection@delete@select: config3.param1
 
     # sub1.yaml
     config1:
       param@copy@type:int: config2.param
-      param2@type:None|int: 1
+      param2@type:float: 1  # wrong type -> converted to float
 
     # sub2.yaml
-    config2.param@type:int: 2
+    config2.param: 2
     config3:
       param1@def: "[(config1.param2 + config2.param) / 2] * 2 if config2.param else None"
-      param2: 1
+      param2: 3
+    my_dict@dict:
+      key1: 1
+      key2: 2
 
 Note that can also use YAML tags separated with "@" (like `key: !tag@tag2 value`)
 to add tags instead of putting them in the parameter name (like `key@tag@tag2: value`).
@@ -107,52 +110,31 @@ Here `main.yaml` will be interpreted like:
     path_2: sub2.yaml
     config1:
       param: 2  # the value of config2.param
-      param2: 1
+      param2: 1.0  # converted to float
     config2:
       param: 2
     config3:
-      select: config3.param1
       param1: [1.5, 1.5]
       # param2 is deleted because it is not in the selection
+    my_dict: {key1: 1, key2: 2}  # (changing the whole dict further is allowed)
 
-Then, all the parameters in `config1` and `config2` have enforced types
-(`config2.param` can also be None) and changing `config2.param` will also update
-`config1.param` accordingly (which is protected by direct update).
+Then, all the parameters in `config1` have enforced types, changing
+`config2.param` will also update `config1.param` accordingly (which is
+protected by direct update). Finally, changing `config1.param2` or `config2.param`
+will update `config3.param1` accordingly until a new value is set for `config3.param1`.
 
 The default tags include:
 
-* `@merge_add`, `@merge_before`, and `@merge_after`: These tags merge the dictionary
-  loaded from the specified value (which should be a YAML path) into the current
-  configuration. `@merge_add` allows only the merging of new keys and is useful for
-  splitting non-overlapping sub-configurations into multiple files. `@merge_before` merges
-  the current dictionary onto the loaded one, while `@merge_after` merges the loaded
-  dictionary onto the current one. These tags are used to organize the config files simply.
-* `@copy`: This tag copies a parameter from another key. The value should be a string
-  that represents the flattened key. The copied value is then protected from further
-  updates but will be updated if the copied key change during a merge.
-* `@def`: This tag evaluate an expression to define the parameter value.
-  The value associated to a parameter tagged with `@def` can contain any
-  parameter name of the configuration. The most useful operators and built-in
-  functions are supported, the random and math packages are also supported
-  as well as some (safe) numpy, jax, tensorflow, pytorch functions.
-  If/else statements and comprehension lists are also supported.
-* `@type:<my type>`: This tag checks if the key matches the specified type `<my type>`
-  after each update, even if the tag is no longer present. It tries to convert
-  the type if it is not the good one. It supports basic types
-  (except for tuples and sets, which are not handled by YAML) as well as unions
-  (using "Union" or "|"), optional values, nested list, and nested dict.
-  For instance: `@type:List[Dict[str, int|float]]`.
-* `@select`: This tag select sub-config(s) to keep and delete the other
-  sub-configs in the same parent config. The tagged key is not deleted if it is
-  in the parent config.
-* `@delete`: This tag deletes the key from the config before merging.
-* `@new`: This tag allows adding new key(s) to the config that are not already
-  present in the default config(s). It can be used for single parameter or a
-  sub-config. Disclaimer: it is preferable to have exhaustive default config(s)
-  instead of abusing this tag for readability and for security concerning typos.
-* `@dict`: This tag allows to have a dictionary object instead of a sub-config
-  where you can modify the keys (see the
-  [*Edge cases*](https://cliconfig.readthedocs.io/en/latest/edge_cases.html) section)
+* `@merge_add`, `@merge_before`, and `@merge_after`: merge other yaml files
+  indicating the path
+* `@copy`: copy an other parameter
+* `@def`: safely evaluate an expression to define the parameter value
+* `@type:<my type>`: try to convert and check the type
+* `@select`: target a sub-config and delete the sub-config in the parent config
+* `@delete`: delete the key from the config
+* `@new`: allow to add parameters that are not present in default config
+* `@dict`: create a dict object that is not a sub-config (see the
+  *Edge cases* section)
 
 See *Quickstart* section of the documentation for more details and
 *Processing* section for advanced usage.
