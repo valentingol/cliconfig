@@ -648,7 +648,7 @@ class ProcessSelect(Processing):
 
 
 class ProcessDelete(Processing):
-    """Delete the parameters tagged with ``@delete`` on pre-merge.
+    """Delete the sub-configs/parameters tagged with ``@delete`` on pre-merge.
 
     This processing is useful to activate a processing without adding
     an additional parameter in the default configuration to avoid the error
@@ -683,7 +683,7 @@ class ProcessDelete(Processing):
     Warning
     -------
 
-        The parameter is deleted on pre-merge. Therefore, if the parameter
+        The sub-config/parameter is deleted on pre-merge. Therefore, if the parameter
         also exists on the other configuration during merge (without the tag),
         this parameter will be remain as it is. This processing is more used
         to delete parameter that is NOT present in the default configuration.
@@ -698,7 +698,7 @@ class ProcessDelete(Processing):
         """Pre-merge processing."""
         keys = list(flat_config.dict.keys())
         for key in keys:
-            if is_tag_in(key, "delete"):
+            if is_tag_in(key, "delete", full_key=True):
                 del flat_config.dict[key]
         return flat_config
 
