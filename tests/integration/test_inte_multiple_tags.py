@@ -30,15 +30,15 @@ def test_multiple_tags() -> None:
         "path_2": "tests/configs/integration/test1/sub2.yaml",
         "config1": {
             "param": 2,
-            "param2": 1,
+            "param2": 1.0,
         },
         "config2": {
             "param": 2,
         },
         "config3": {
-            "select": "config3.param1",
             "param1": [1.5, 1.5],
         },
+        "my_dict": {"key1": 1, "key2": 2},
     }
     check.equal(config.dict, expected_config)
     config = merge_flat_processing(
