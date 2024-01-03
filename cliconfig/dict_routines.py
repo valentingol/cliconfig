@@ -55,7 +55,7 @@ def merge_flat(
 
     Examples
     --------
-    ::
+    .. code-block:: python
 
         >>> merge_dict({'a.b': 1, 'a': {'c': 2}},  {'c': 3}, allow_new_keys=True)
         {'a.b': 1, 'a.c': 2, 'c': 3}
