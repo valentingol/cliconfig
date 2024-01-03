@@ -1,14 +1,15 @@
 .. include:: README_pypi.rst
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
    :caption: Contents:
 
    installation
    quickstart
    edge_cases
    processing
+   create_config
    sweep
-   cliconfig_api
+   api/main
    contribute
    license

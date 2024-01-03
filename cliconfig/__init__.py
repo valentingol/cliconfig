@@ -20,6 +20,8 @@ from cliconfig.config_routines import (
     unflatten_config,
     update_config,
 )
+from cliconfig.dict_routines import flatten as flatten_dict
+from cliconfig.dict_routines import unflatten as unflatten_dict
 from cliconfig.process_routines import (
     merge_flat_paths_processing,
     merge_flat_processing,
@@ -40,6 +42,7 @@ __all__ = [
     "create_processing_keep_property",
     "create_processing_value",
     "flatten_config",
+    "flatten_dict",
     "make_config",
     "load_config",
     "merge_flat_paths_processing",
@@ -47,5 +50,6 @@ __all__ = [
     "save_config",
     "show_config",
     "unflatten_config",
+    "unflatten_dict",
     "update_config",
 ]

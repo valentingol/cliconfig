@@ -9,6 +9,7 @@ import pytest_check as check
 
 from cliconfig.base import Config
 from cliconfig.config_routines import (
+    copy_config,
     flatten_config,
     load_config,
     make_config,
@@ -18,6 +19,7 @@ from cliconfig.config_routines import (
     update_config,
 )
 from cliconfig.processing.base import Processing
+from cliconfig.processing.builtin import ProcessCopy
 
 
 def test_make_config(capsys: pytest.CaptureFixture, process_add1: Processing) -> None:
@@ -203,3 +205,17 @@ def test_update_config(process_add1: Processing) -> None:
         "processing name": "ProcessAdd1",
     }
     check.equal(new_config.dict, expected_dict)
+
+
+def test_copy_config() -> None:
+    """Test copy_config."""
+    proc = ProcessCopy()
+    proc.current_value = {"d": [2, 3]}
+    config_dict = {"a": 1, "b": {"c": 2, "d": [2, 3]}, "e": "f"}
+    config = Config(config_dict, [proc])
+    new_config = copy_config(config)
+    config.a = 2
+    config.dict["e"] = "g"
+    config.process_list[0].current_value["d"][0] = [1]  # type: ignore
+    check.equal(new_config.dict, {"a": 1, "b": {"c": 2, "d": [2, 3]}, "e": "f"})
+    check.equal(new_config.process_list[0].current_value["d"][0], 2)  # type: ignore
