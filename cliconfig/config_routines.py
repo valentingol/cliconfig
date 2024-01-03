@@ -1,6 +1,7 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Functions to manipulate config as dict with yaml files and CLI."""
 import sys
+from copy import deepcopy
 from typing import Any, Dict, List, Optional, Union
 
 from cliconfig.base import Config
@@ -314,3 +315,19 @@ def update_config(
     config = end_build_processing(config)
     config = unflatten_config(config)
     return config
+
+
+def copy_config(config: Config) -> Config:
+    """Copy a config.
+
+    Parameters
+    ----------
+    config : Config
+        The config to copy.
+
+    Returns
+    -------
+    config : Config
+        The copied config.
+    """
+    return Config(deepcopy(config.dict), deepcopy(config.process_list))
