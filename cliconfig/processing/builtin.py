@@ -48,31 +48,31 @@ class ProcessMerge(Processing):
 
     Examples
     --------
-    .. code-block:: yaml
+    ```yaml
+    # config1.yaml
+    a:
+        b: 1
+        b_path@merge_after: dict2.yaml
 
-        # config1.yaml
-        a:
-          b: 1
-          b_path@merge_after: dict2.yaml
+    # config2.yaml
+    a.b: 2
+    c_path@merge_add: config3.yaml
 
-        # config2.yaml
-        a.b: 2
-        c_path@merge_add: config3.yaml
-
-        # config3.yaml
-        c: 3
+    # config3.yaml
+    c: 3
+    ```
 
     Before merging, the config1 is interpreted as the dict:
 
-    ::
-
-        {'a': {'b': 2, 'b_path': 'config2.yaml'}, 'c_path': 'config3.yaml', 'c': 3}
+    ```python
+    {'a': {'b': 2, 'b_path': 'config2.yaml'}, 'c_path': 'config3.yaml', 'c': 3}
+    ```
 
     If you replace '@merge_after' by '@merge_before', it will be:
 
-    ::
-
-        {'a': {'b': 1, 'b_path': 'config2.yaml'}, 'c_path': 'config3.yaml', 'c': 3}
+    ```python
+    {'a': {'b': 1, 'b_path': 'config2.yaml'}, 'c_path': 'config3.yaml', 'c': 3}
+    ```
 
     Finally, if you replace `@merge_after` by `@merge_add`, it will raises an
     error because the key `a.b` already exists in the dict.
@@ -188,18 +188,18 @@ class ProcessCopy(Processing):
 
     Examples
     --------
-    .. code-block:: yaml
-
-        # config.yaml
-        a:
-          b: 1
-          c@copy: a.b
+    ```yaml
+    # config.yaml
+    a:
+        b: 1
+        c@copy: a.b
+    ```
 
     Before merging, the config is interpreted as the dict
 
-    .. code-block:: python
-
-        {'a': {'b': 1, 'c': 1}}
+    ```python
+    {'a': {'b': 1, 'c': 1}}
+    ```
 
     Note
     ----
@@ -320,19 +320,19 @@ class ProcessDef(Processing):
 
     Examples
     --------
-    .. code-block:: yaml
-
-        # config.yaml
-        a:
-          b: 1
-          c: 2
-        d@def: "(a.b + a.c) * 2 > 5"
+    ```yaml
+    # config.yaml
+    a:
+        b: 1
+        c: 2
+    d@def: "(a.b + a.c) * 2 > 5"
+    ```
 
     Before merging, the config is interpreted as the dict
 
-    .. code-block:: python
-
-        {'a': {'b': 1, 'c': 2}, 'd': True}
+    ```python
+    {'a': {'b': 1, 'c': 2}, 'd': True}
+    ```
 
     Now the parameter d is automatically updated if a.b or a.c changes
     while also remaining editable by it-self.
@@ -440,12 +440,12 @@ class ProcessTyping(Processing):
 
     Examples
     --------
-    ::
-
-        in_dict = {"param@type:None|List[int|float]": None}
-        dict1 = {param: [0, 1, 2.0]}  # no error
-        dict2 = {param: [0, 1, 2.0, 'a']}  # error
-        dict3 = {param: [0, 1, "2"]}  # no error but convert to [0, 1, 2]
+    ```python
+    in_dict = {"param@type:None|List[int|float]": None}
+    dict1 = {param: [0, 1, 2.0]}  # no error
+    dict2 = {param: [0, 1, 2.0, 'a']}  # error
+    dict3 = {param: [0, 1, "2"]}  # no error but convert to [0, 1, 2]
+    ```
 
     Merging configs with dictionaries `in_dict` and `dict1` raises no
     error and `param` is forced to be None or a list of int or float forever.
@@ -543,21 +543,21 @@ class ProcessSelect(Processing):
 
     Examples
     --------
-    .. code-block:: yaml
-
-        models:
-            model_names@select: [models.model1, models.model3]
-            model1:
-                param1: 1
-                param2: 2
-            model2:
-                param1: 3
-                param2: 4
-            model3:
-                submodel:
-                    param: 5
-            model4:
-                param: 6
+    ```yaml
+    models:
+        model_names@select: [models.model1, models.model3]
+        model1:
+            param1: 1
+            param2: 2
+        model2:
+            param1: 3
+            param2: 4
+        model3:
+            submodel:
+                param: 5
+        model4:
+            param: 6
+    ```
 
     Result in deleting `models.model2` (`param1` and `param2`) and
     `models.model4.param`, and keeping the rest.
@@ -659,20 +659,20 @@ class ProcessDelete(Processing):
 
     Examples
     --------
-    .. code-block:: yaml
+    ```yaml
+    # main.yaml
+    1@select@delete: configs.config1
+    2@merge_add@delete: config1.yaml
+    3@merge_add@delete: config2.yaml
 
-        # main.yaml
-        1@select@delete: configs.config1
-        2@merge_add@delete: config1.yaml
-        3@merge_add@delete: config2.yaml
+    # config1.yaml
+    configs.config1.param: 1
+    configs.config1.param2: 2
 
-        # config1.yaml
-        configs.config1.param: 1
-        configs.config1.param2: 2
-
-        # config2.yaml
-        configs.config2.param: 3
-        configs.config2.param: 4
+    # config2.yaml
+    configs.config2.param: 3
+    configs.config2.param: 4
+    ```
 
     Here we want to merge two config files and select one sub-config.
     We use the corresponding tags but we don't have a good name for the keys
@@ -723,16 +723,16 @@ class ProcessNew(Processing):
 
     Examples
     --------
-    .. code-block:: yaml
+    ```yaml
+    # default.yaml
+    param1: 1
 
-        # default.yaml
-        param1: 1
-
-        # additional.yaml
-        param2@new: 2
-        subconfig@new.subsubconfig:
-            param3: 3
-            param4: 4
+    # additional.yaml
+    param2@new: 2
+    subconfig@new.subsubconfig:
+        param3: 3
+        param4: 4
+    ```
 
     Use default.yaml as default configuration and add additional.yaml as additional
     configuration via CLI results on the configuration containing param1, param2
@@ -808,26 +808,26 @@ class ProcessDict(Processing):
 
     Examples
     --------
-    .. code-block:: yaml
+    ```yaml
+    # default.yaml
+    param1: 0
+    param2: 2
+    sweep@dict: None
 
-        # default.yaml
-        param1: 0
-        param2: 2
-        sweep@dict: None
+    # additional1.yaml
+    sweep@dict:
+        metric: {name: accuracy, goal: maximize}
+        method: bayes
+        parameters:
+        param1: {min: 0, max: 50}
 
-        # additional1.yaml
-        sweep@dict:
-          metric: {name: accuracy, goal: maximize}
-          method: bayes
-          parameters:
-            param1: {min: 0, max: 50}
-
-        # additional2.yaml
-        sweep@dict:
-          name: "random sweep"
-          method: random
-          parameters:
-            param2: {min: 0, max: 10}
+    # additional2.yaml
+    sweep@dict:
+        name: "random sweep"
+        method: random
+        parameters:
+        param2: {min: 0, max: 10}
+    ```
 
     The `swep` parameter is considered as a single dict object
     and not as a sub-config for merging.
@@ -958,9 +958,9 @@ class DefaultProcessings:
     """Default list of built-in processings.
 
     To add these processings to a Config instance, use:
-    ::
-
-        config.process_list += DefaultProcessings().list
+    ```python
+    config.process_list += DefaultProcessings().list
+    ```
 
     The current default processing list contains:
      * ProcessCheckTags: protect against '@' in keys at the end of pre-merge)

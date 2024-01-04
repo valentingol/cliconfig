@@ -285,41 +285,41 @@ def create_processing_value(
     --------
     With the following config and 2 processings:
 
-    .. code_block: yaml
+    ```yaml
+    # config.yaml
+    neg_number1: 1
+    neg_number2: 1
+    neg_number3@add1: 1
+    ```
 
-        # config.yaml
-        neg_number1: 1
-        neg_number2: 1
-        neg_number3@add1: 1
-
-    ::
-
-        proc2 = create_processing_value(lambda val: -val, regex="neg_number.*",
-            order=0.0)
-        proc1 = create_processing_value(lambda val: val + 1, tag_name="add1",
-            order=1.0)
+    ```python
+    proc2 = create_processing_value(lambda val: -val, regex="neg_number.*",
+        order=0.0)
+    proc1 = create_processing_value(lambda val: val + 1, tag_name="add1",
+        order=1.0)
+    ```
 
     When config.yaml is merged with an other config, it will be considered
     before merging as:
 
-    ::
-
-        {'number1': -1, 'number2': -1, 'number3': 0}
+    ```python
+    {'number1': -1, 'number2': -1, 'number3': 0}
+    ```
 
     Using the config as a second argument of the function:
 
-    .. code_block: yaml
+    ```yaml
+    # config.yaml
+    param1: 1
+    param2@eval: "config.param1 + 1"
+    ```
 
-        # config.yaml
-        param1: 1
-        param2@eval: "config.param1 + 1"
-
-    ::
-
-        proc = create_processing_value(
-            lambda val, config: eval(val, {'config': config}),
-            processing_type='postmerge', tag_name='eval', persistent=False
-        )
+    ```python
+    proc = create_processing_value(
+        lambda val, config: eval(val, {'config': config}),
+        processing_type='postmerge', tag_name='eval', persistent=False
+    )
+    ```
 
     After config.yaml is merged with another config, param2 will be evaluated
     as 2 (except if config.param1 has changed with a processing before).
@@ -396,17 +396,17 @@ def create_processing_keep_property(
     A processing that enforce the types of all the parameters to be constant
     (equal to the type of the first value encountered):
 
-    ::
-
-        create_processing_keep_property(type, regex=".*", premerge_order=15.0,
-                                        postmerge_order=15.0, endbuild_order=15.0)
+    ```python
+    create_processing_keep_property(type, regex=".*", premerge_order=15.0,
+        postmerge_order=15.0, endbuild_order=15.0)
+    ```
 
     A processing that protect parameters tagged with @protect from being changed:
 
-    ::
-
-        create_processing_keep_property(lambda x: x, tag_name="protect",
-                                        premerge_order=15.0, postmerge_order=15.0)
+    ```python
+    create_processing_keep_property(lambda x: x, tag_name="protect",
+        premerge_order=15.0, postmerge_order=15.0)
+    ```
     """
     if tag_name is not None:
         if regex is not None:

@@ -75,15 +75,15 @@ def make_config(
 
     Examples
     --------
-    ::
+    ```python
+    # main.py
+    config = make_config('data.yaml', 'model.yaml', 'train.yaml')
+    ```
 
-        # main.py
-        config = make_config('data.yaml', 'model.yaml', 'train.yaml')
-
-    .. code-block:: text
-
-        $ python main.py -- config [bestmodel.yaml,mydata.yaml] \
-              --architecture.layers.hidden_dim=64
+    ```script
+    python main.py -- config [bestmodel.yaml,mydata.yaml] \
+        --architecture.layers.hidden_dim=64
+    ```
 
     """
     # Create the processing list

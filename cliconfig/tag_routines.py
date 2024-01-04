@@ -31,10 +31,10 @@ def clean_tag(flat_key: str, tag_name: str) -> str:
 
     Examples
     --------
-    ::
-
-        >>> clean_tag('abc@tag.def@tag_2.ghi@tag', 'tag')
-        abc.def@tag_2.ghi
+    ```python
+    >>> clean_tag('abc@tag.def@tag_2.ghi@tag', 'tag')
+    abc.def@tag_2.ghi
+    ```
     """
     if tag_name[0] == "@":
         tag_name = tag_name[1:]

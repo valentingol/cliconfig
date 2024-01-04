@@ -35,9 +35,9 @@ def parse_cli(sys_argv: List[str]) -> Tuple[List[str], Dict[str, Any]]:
 
     Examples
     --------
-    .. code-block:: text
-
-        $ python my_script.py --config config.yaml --foo.bar.param=[1, 2, 3]
+    ```script
+    python my_script.py --config config.yaml --foo.bar.param=[1, 2, 3]
+    ```
 
     Will be parsed as `config_paths=['config.yaml']`
     and `cli_params={'foo.bar.param': [1, 2, 3]}`.
