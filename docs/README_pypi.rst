@@ -22,7 +22,7 @@ The package is initially designed for machine learning experiments where the
 number of parameters is huge and a lot of them have to be set by the user between
 each experiment. If your project matches this description, this package is for you!
 
-`Documentation <https://cliconfig.readthedocs.io/en/latest/>`_
+`Documentation <https://valentingol.github.io/cliconfig.github.io/>`_
 
 `Github project <https://github.com/valentingol/cliconfig>`_
 
