@@ -25,7 +25,7 @@ jobs:
 
       - run: pip install -e .
       - run: pip install -r docs/requirements.txt
-      - run: pdoc -d numpy -t docs/template --logo docs/_static/logo.png --logo-link https://valentingol.github.io/cliconfig.github.io/ -o docs/build --math --search .
+      - run: pdoc -d numpy -t docs/template --logo docs/_static/logo.png --logo-link https://valentingol.github.io/cliconfig.github.io/ -o docs/build --math --search ../cliconfig
 
       - uses: actions/upload-pages-artifact@v1
         with:
