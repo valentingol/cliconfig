@@ -16,7 +16,7 @@ The package is initially designed for machine learning experiments where the
 number of parameters is huge and a lot of them have to be set by the user between
 each experiment. If your project matches this description, this package is for you!
 
-## Documentation :memo: [here](https://cliconfig.readthedocs.io/en/latest)
+## Documentation :memo: [here](https://valentingol.github.io/cliconfig.github.io/)
 
 ## Pypi :package: [here](https://pypi.org/project/cliconfig/)
 
@@ -35,7 +35,7 @@ each experiment. If your project matches this description, this package is for y
 
 [![Tests](https://github.com/valentingol/cliconfig/actions/workflows/tests.yaml/badge.svg)](https://github.com/valentingol/cliconfig/actions/workflows/tests.yaml)
 [![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/valentingol/098e9c7c53be88779ee52ef2f2bc8803/raw/cliconfig_tests.json)](https://github.com/valentingol/cliconfig/actions/workflows/tests.yaml)
-[![Documentation Status](https://readthedocs.org/projects/cliconfig/badge/?version=latest)](https://cliconfig.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://github.com/valentingol/cliconfig/actions/workflows/pdoc.yaml/badge.svg)](https://valentingol.github.io/cliconfig.github.io/)
 
 Official badge :
 [![Config](https://custom-icon-badges.demolab.com/badge/cliconfig-black?logo=cliconfig)](https://github.com/valentingol/cliconfig)
@@ -50,14 +50,11 @@ pip install cliconfig
 
 This package is OS independent and supported on Linux, macOS and Windows.
 
-## Quick start
+## Minimal example
 
-See the [Quick start](https://cliconfig.readthedocs.io/en/latest/quickstart.html) section of
-the documentation for a quick overview.
+See the *Quick start* section of the documentation for a quick overview.
 
-### Minimal example
-
-Make default config yaml file(s) in your project (configs are merged from left to right):
+First of all, make default config yaml file(s) in your project (configs are merged from left to right):
 
 ```python
 # main.py
@@ -75,13 +72,12 @@ python main.py --config first.yaml,second.yaml --param1=1 --subconfig.param2='fo
 **By default, these additional configs cannot add new parameters to the default config
 (for security and retro-compatibility reasons).**
 
-See the [Edge cases](https://cliconfig.readthedocs.io/en/latest/edge_cases.html) section of
-the documentation for some edge cases due to implementation.
+See the *Edge cases* section of the documentation for some edge cases due to implementation.
 
 ## Tags
 
-You can add tags `@<tag_name>` at the end of parameters name to activate some features. See the [Quick start](https://cliconfig.readthedocs.io/en/latest/quickstart.html)
-section of the documentation for a quick overview.
+You can add tags `@<tag_name>` at the end of parameters name to activate some features.
+See the *Quick start* section of the documentation for a quick overview.
 
 The default tags include:
 
@@ -93,12 +89,10 @@ The default tags include:
 * `@select`: target a sub-config and delete the sub-config in the parent config
 * `@delete`: delete the key from the config
 * `@new`: allow to add parameters that are not present in default config
-* `@dict`: create a dict object that is not a sub-config (see the
-  [*Edge cases*](https://cliconfig.readthedocs.io/en/latest/edge_cases.html) section)
+* `@dict`: create a dict object that is not a sub-config (see the *Edge cases* section)
 
 It is also easy to create your own features and possibilities are endless. The way to do
-it are explained in the [*Processing*](https://cliconfig.readthedocs.io/en/latest/processing.html)
-section of the documentation.
+it are explained in the *Processing* section of the documentation.
 
 ## How to contribute
 
