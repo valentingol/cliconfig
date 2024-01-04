@@ -28,8 +28,9 @@ def make_config(
 ) -> Config:
     r"""Make a config from default config(s) and CLI argument(s) with processing.
 
-    The function uses the CLI Config routines :func:`.parse_cli` to parse the CLI
-    arguments and merge them with :func:`.merge_flat_paths_processing`, applying
+    The function uses the CLI Config routines `cliconfig.cli_parser.parse_cli`
+    to parse the CLI arguments and merge them with
+    `cliconfig.process_routines.merge_flat_paths_processing`, applying
     the pre-merge and post-merge processing functions on each merge.
 
     Parameters
@@ -42,11 +43,11 @@ def make_config(
         By default None.
     add_default_processing : bool, optional
         If add_default_processing is True, the default processings
-        (found on :class:`.DefaultProcessings`) are added to the list of
-        processings. By default True.
+        (found on `cliconfig.processing.builtin.DefaultProcessings`) are added to
+        the list of processings. By default True.
     fallback : str, optional
         Path of the configuration to use if no additional config is provided
-        with ``--config``. No fallback config if empty string (default),
+        with `--config`. No fallback config if empty string (default),
         in that case, the config is the default configs plus the CLI arguments.
     no_cli : bool, optional
         If True, the CLI arguments are not parsed and the config is only
@@ -169,8 +170,8 @@ def load_config(
         If None, no processing is applied. By default None.
     add_default_processing : bool, optional
         If add_default_processing is True, the default processings
-        (found on :class:`.DefaultProcessings`) are added to the list of
-        processings. By default True.
+        (found on `cliconfig.processing.builtin.DefaultProcessings`)
+        are added to the list of processings. By default True.
 
     Returns
     -------
@@ -220,7 +221,7 @@ def load_config(
 def save_config(config: Config, path: str) -> None:
     """Save a config and apply pre-save processing before saving.
 
-    Alias for :func:`.save_processing`.
+    Alias for `cliconfig.process_routines.save_processing`.
 
     Parameters
     ----------

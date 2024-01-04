@@ -238,13 +238,13 @@ def create_processing_value(
     r"""Create a processing object that modifies a value in config using tag or regex.
 
     The processing is applied on pre-merge. It triggers when the key matches
-    the tag or the regex. The function apply ``flat_dict[key] = func(flat_dict[key])``.
+    the tag or the regex. The function apply `flat_dict[key] = func(flat_dict[key])`.
     You must only provide one of tag or regex. If tag is provided, the tag will be
     removed from the key during pre-merge.
 
     It also possible to pass the flat config as a second argument of the function
-    ``func``. In this case, the function apply
-    ``flat_dict[key] = func(flat_dict[key], flat_config)``.
+    `func`. In this case, the function apply
+    `flat_dict[key] = func(flat_dict[key], flat_config)`.
 
     Parameters
     ----------
@@ -355,13 +355,13 @@ def create_processing_keep_property(
 
     The pre-merge processing looks for keys that match the tag or the regex, apply
     the function func on the value and store the result (= the "property"):
-    ``property = func(flat_dict[key])``.
+    `property = func(flat_dict[key])`.
     The post-merge processing will check that the property is the same as the one
     stored during pre-merge. If not, it will raise a ValueError.
 
     It also possible to pass the flat config as a second argument of the function
-    ``func``. In this case, the function apply
-    ``property = func(flat_dict[key], flat_config)``.
+    `func`. In this case, the function apply
+    `property = func(flat_dict[key], flat_config)`.
 
     Parameters
     ----------

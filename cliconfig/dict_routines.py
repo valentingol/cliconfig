@@ -1,7 +1,7 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Routines to manipulate nested and flat dictionaries (and mix of both).
 
-Used by :mod:`.process_routines` and :mod:`.config_routines`.
+Used by `cliconfig.process_routines` and `cliconfig.config_routines`.
 """
 import os
 from typing import Any, Dict, Tuple, Union
@@ -45,7 +45,7 @@ def merge_flat(
         If allow_new_keys is False and dict2 has new keys that are not in dict1.
     ValueError
         If there are conflicting keys when flatten one of the dicts.
-        See last example. You may consider calling :func:`clean_pre_flat` on the input
+        See last example. You may consider calling `clean_pre_flat` on the input
         dicts in that case.
 
     Returns
@@ -113,7 +113,7 @@ def merge_flat_paths(
 ) -> Dict[str, Any]:
     """Flatten then merge two dict eventually loaded from yaml file paths.
 
-    Similar to :func:`.merge_flat` but allow passing the paths of dicts
+    Similar to `merge_flat` but allow passing the paths of dicts
     as inputs. It merges the second dict into the first one.
 
     Parameters
@@ -132,7 +132,7 @@ def merge_flat_paths(
         If allow_new_keys is False and dict2 has new keys that are not in dict1.
     ValueError
         If there are conflicting keys when flatten one of the dicts.
-        See last example. You may consider calling :func:`clean_pre_flat` on the input
+        See last example. You may consider calling `clean_pre_flat` on the input
         dicts in that case.
 
     Returns
@@ -176,7 +176,7 @@ def flatten(in_dict: Dict[str, Any]) -> Dict[str, Any]:
     Raises
     ------
     ValueError
-        If dict has some conflicting keys (like ``{'a.b': <x>, 'a': {'b': <y>}}``).
+        If dict has some conflicting keys (like `{'a.b': <x>, 'a': {'b': <y>}}`).
 
     Returns
     -------
@@ -254,8 +254,8 @@ def clean_pre_flat(in_dict: Dict[str, Any], priority: str) -> Dict[str, Any]:
         See warning section below.
     priority: str
         One of 'flat' or 'unflat', 'error'.
-        If 'flat', keys with dots at the root like ``{'a.b': ...}`` (flat keys) have
-        priority over nested keys like ``{'a': {'b': ...}}`` when there are conflicts.
+        If 'flat', keys with dots at the root like `{'a.b': ...}` (flat keys) have
+        priority over nested keys like `{'a': {'b': ...}}` when there are conflicts.
         If 'unflat', nested keys have priority over flat keys when there are conflicts.
         If 'error', raise an error when there are conflicts.
 
@@ -271,10 +271,10 @@ def clean_pre_flat(in_dict: Dict[str, Any], priority: str) -> Dict[str, Any]:
 
     Warning
     -------
-        * No flat key can contain a dict. Then, dicts like ``{'a.b': {'c': 1}}``
+        * No flat key can contain a dict. Then, dicts like `{'a.b': {'c': 1}}`
           are not supported.
         * All the keys that contain dots (the flat keys) must be at the root.
-          Then, dicts like ``{a: {'b.c': 1}}`` are not supported.
+          Then, dicts like `{a: {'b.c': 1}}` are not supported.
         * To summarize, the dict must contain only fully flat dicts
           and/or fully nested dicts.
 
@@ -341,10 +341,10 @@ def _del_key(
 
     Warning
     -------
-        * No flat key can contain a dict. Then, dicts like ``{'a.b': {'c': 1}}``
+        * No flat key can contain a dict. Then, dicts like `{'a.b': {'c': 1}}`
           are not supported.
         * All the keys that contain dots (the flat keys) must be at the root.
-          Then, dicts like ``{a: {'b.c': 1}}`` are not supported.
+          Then, dicts like `{a: {'b.c': 1}}` are not supported.
         * To summarize, the dict must contain only fully flat dicts
           and fully nested dicts.
 
@@ -442,7 +442,7 @@ def load_dict(path: str) -> Dict[str, Any]:
 
         * If multiple yaml files are in the same document, they are merged
           from the first to the last.
-        * To use multiple yaml tags, separate them with "@". E.g. ``!tag1@tag2``.
+        * To use multiple yaml tags, separate them with "@". E.g. `!tag1@tag2`.
         * You can combine any number of yaml and cliconfig tags together.
     """
     try:

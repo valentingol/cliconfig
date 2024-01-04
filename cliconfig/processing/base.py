@@ -1,8 +1,8 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Base class for processing.
 
-Used to make configuration object and run the routines in :mod:`.process_routines`
-and :mod:`.config_routines`.
+Used to make configuration object and run the routines in `cliconfig.process_routines`
+and `cliconfig.config_routines`.
 """
 from cliconfig.base import Config
 
@@ -12,8 +12,8 @@ class Processing:
 
     Each processing classes contains pre-merge, post-merge, pre-save
     and post-load processing. They are used with routines that apply
-    processing in :mod:`.process_routines` and
-    :mod:`.config_routines`.
+    processing in `cliconfig.process_routines` and
+    `cliconfig.config_routines`.
 
     That are applied in the order defined
     by the order attribute in case of multiple processing.
@@ -46,7 +46,8 @@ class Processing:
         """End-build processing.
 
         Function applied to the flat config to modify it at the end of
-        a building process (typically :func:`.make_config` or :func:`.load_config`).
+        a building process (typically `cliconfig.config_routines.make_config`
+        or `cliconfig.config_routines.load_config`).
         It takes a flat config and returns a flat config.
         """
         return flat_config
@@ -75,7 +76,7 @@ class Processing:
         """Equality operator.
 
         Two processing are equal if they are the same class and add the same
-        attributes (accessed with ``__dict__``).
+        attributes (accessed with `__dict__`).
         """
         equal = (
             isinstance(__value, self.__class__) and self.__dict__ == __value.__dict__
