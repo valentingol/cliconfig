@@ -16,7 +16,7 @@ The package is initially designed for machine learning experiments where the
 number of parameters is huge and a lot of them have to be set by the user between
 each experiment. If your project matches this description, this package is for you!
 
-## Documentation :memo: [here](https://valentingol.github.io/cliconfig.github.io/)
+## Documentation :memo: [here](https://valentingol.github.io/cliconfig)
 
 ## Pypi :package: [here](https://pypi.org/project/cliconfig/)
 
@@ -35,7 +35,7 @@ each experiment. If your project matches this description, this package is for y
 
 [![Tests](https://github.com/valentingol/cliconfig/actions/workflows/tests.yaml/badge.svg)](https://github.com/valentingol/cliconfig/actions/workflows/tests.yaml)
 [![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/valentingol/098e9c7c53be88779ee52ef2f2bc8803/raw/cliconfig_tests.json)](https://github.com/valentingol/cliconfig/actions/workflows/tests.yaml)
-[![Documentation Status](https://github.com/valentingol/cliconfig/actions/workflows/pdoc.yaml/badge.svg)](https://valentingol.github.io/cliconfig.github.io/)
+[![Documentation Status](https://github.com/valentingol/cliconfig/actions/workflows/pdoc.yaml/badge.svg)](https://valentingol.github.io/cliconfig)
 
 Official badge :
 [![Config](https://custom-icon-badges.demolab.com/badge/cliconfig-black?logo=cliconfig)](https://github.com/valentingol/cliconfig)
