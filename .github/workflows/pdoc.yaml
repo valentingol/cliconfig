@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - pdoc
+      - pdoc_dev
     # Alternative: only build for tags.
     # tags:
     #   - '*'
