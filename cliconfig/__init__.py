@@ -11,7 +11,7 @@
 """
 # CLI Config.
 
-.. include:: ../DOCUMENTATION.md
+.. include:: ../../DOCUMENTATION.md
 """
 
 from cliconfig._version import __version__, __version_tuple__
