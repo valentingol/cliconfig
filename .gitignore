@@ -23,4 +23,5 @@ run.py
 cliconfig/_version.py
 # Docs
 docs/_build
+docs/build
 build
