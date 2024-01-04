@@ -16,7 +16,7 @@ The package is initially designed for machine learning experiments where the
 number of parameters is huge and a lot of them have to be set by the user between
 each experiment. If your project matches this description, this package is for you!
 
-## Documentation :memo: [here](https://cliconfig.readthedocs.io/en/latest)
+## Documentation :memo: [here](https://valentingol.github.io/cliconfig.github.io/)
 
 ## Pypi :package: [here](https://pypi.org/project/cliconfig/)
 
