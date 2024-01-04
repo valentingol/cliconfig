@@ -1,4 +1,4 @@
-# CLI Config
+#
 
 ## *Build your experiment configurations for complex projects with robustness, flexibility and simplicity*
 
@@ -832,17 +832,3 @@ pip install -r requirements-dev.txt
 Everyone can contribute to CLI Config, and we value everyone’s contributions. Please see our
 [contributing guidelines](https://github.com/valentingol/cliconfig/blob/main/CONTRIBUTING.md)
 for more information 🤗
-
-## License
-
-Copyright © 2023 Valentin Goldité
-
-This program is free software: you can redistribute it and/or modify it
-under the terms of the `MIT License <LICENSE>`__. This program is
-distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.
-
-The project is free to use for COMMERCIAL USE, MODIFICATION,
-DISTRIBUTION and PRIVATE USE as long as the original license is included
-as well as this copy right notice at the top of the modified files.
