@@ -441,7 +441,7 @@ def load_dict(path: str) -> Dict[str, Any]:
     ----
 
         * If multiple yaml files are in the same document, they are merged
-        from the first to the last.
+          from the first to the last.
         * To use multiple yaml tags, separate them with "@". E.g. ``!tag1@tag2``.
         * You can combine any number of yaml and cliconfig tags together.
     """
