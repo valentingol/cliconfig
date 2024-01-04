@@ -246,7 +246,7 @@ See https://pdoc.dev/docs/pdoc/render_helpers.html#DefaultMacroExtension for an 
         {# We don't want to document __doc__ itself, https://github.com/mitmproxy/pdoc/issues/235 #}
     {% elif doc.kind == "variable" and doc.is_typevar and not doc.docstring %}
         {# do not document TypeVars, that only clutters the docs. #}
-    {% elif not doc.name.startswith("_") %}
+    {% elif doc.kind == "module" and not doc.name.startswith("_") %}
         {# members not starting with an underscore are considered public by default #}
         true
     {% endif %}
