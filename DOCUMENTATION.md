@@ -565,12 +565,13 @@ The key concept is that as long as we deal with processings, the elementary oper
 on the config are not actually to merge, save, and load a config, but rather:
 
 * Applying pre-merge processing, then merging, then applying post-merge processing.
+* Applying end-build processing at the end of the config building.
 * Applying pres-ave processing and then saving a config.
 * Loading a config and then applying post-load processing.
 
 These three operations are in `cliconfig.process_routines` and called
-`merge_processing`, `save_processing`, and `load_processing`, respectively. They
-take as input a Config object that contains as we see the list of processing.
+`merge_processing`, `end_build_processing`, `save_processing`, and `load_processing`,
+respectively. They take as input a Config object that contains as we see the list of processing.
 
 Now, the trick is that sometimes we want to apply these operations to the processing
 themselves, particularly when we want to modify a part of the configuration instead
