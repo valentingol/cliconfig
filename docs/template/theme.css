@@ -18,9 +18,9 @@
     --accent2: hsl(0, 0%, 27%);
 
     --nav-text: #87f1ff;
-    --nav-background: hsl(0, 0%, 7%);
-    --nav-hover: hsl(0, 0%, 12%);
-    --nav-border: hsl(0, 0%, 27%);
+    --nav-background: hsl(0, 0%, 0%);
+    --nav-hover: hsl(0, 0%, 21%);
+    --nav-border: hsl(244, 97%, 44%);
 
     --name: hsl(207, 38%, 43%);
     --def: hsl(147, 100%, 21%);
