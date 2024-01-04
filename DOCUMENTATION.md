@@ -1,9 +1,5 @@
-#
-
-## *Build your experiment configurations for complex projects with robustness, flexibility and simplicity*
-
 <p align="center">
-  <img src="https://raw.githubusercontent.com/valentingol/cliconfig/main/docs/_static/logo.png" />
+  <img src="https://raw.githubusercontent.com/valentingol/cliconfig/main/docs/_static/logo_extend.png" />
 </p>
 
 *CLI Config*: Lightweight library that provides routines to merge nested configs
@@ -16,9 +12,11 @@ The package is initially designed for machine learning experiments where the
 number of parameters is huge and a lot of them have to be set by the user between
 each experiment. If your project matches this description, this package is for you!
 
-## Documentation :memo: [here](https://valentingol.github.io/cliconfig)
+[Documentation](https://valentingol.github.io/cliconfig)
 
-## Pypi :package: [here](https://pypi.org/project/cliconfig/)
+[Pypi package](https://pypi.org/project/cliconfig/)
+
+[Source code (Github)](https://github.com/valentingol/cliconfig/)
 
 [![Release](https://img.shields.io/github/v/tag/valentingol/cliconfig?label=Pypi&logo=pypi&logoColor=yellow)](https://pypi.org/project/cliconfig/)
 ![PythonVersion](https://img.shields.io/badge/Python-3.7%20%7E%203.11-informational)
