@@ -8,7 +8,10 @@
 #    This project is free to use for COMMERCIAL USE, MODIFICATION,
 #    DISTRIBUTION and PRIVATE USE as long as the original license is
 #    include as well as this copy right notice.
-"""# CLI Config."""
+"""# CLI Config.
+
+.. include:: ../DOCUMENTATION.md
+"""
 
 from cliconfig._version import __version__, __version_tuple__
 from cliconfig.base import Config
