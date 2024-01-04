@@ -11,7 +11,7 @@
 """
 # CLI Config.
 
-.. include:: ../../DOCUMENTATION.md
+.. include:: ../DOCUMENTATION.md
 
 ## License
 
