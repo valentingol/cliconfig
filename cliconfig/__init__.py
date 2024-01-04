@@ -8,7 +8,8 @@
 #    This project is free to use for COMMERCIAL USE, MODIFICATION,
 #    DISTRIBUTION and PRIVATE USE as long as the original license is
 #    include as well as this copy right notice.
-""".. include:: ../DOCUMENTATION.md
+"""
+.. include:: ../DOCUMENTATION.md
 
 ## License
 
