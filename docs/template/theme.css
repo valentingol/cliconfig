@@ -1,6 +1,6 @@
 /* pdoc dark-mode color scheme  */
 :root {
-    --pdoc-background: #c2c2c2;
+    --pdoc-background: #e2e2e2;
 }
 
 .pdoc {
@@ -9,15 +9,15 @@
     --link: hsl(212, 100%, 67%);
     --link-hover: hsl(216, 100%, 61%);
 
-    --active: hsl(0, 0%, 91%);
+    --active: #e2e2e2;
 
-    --code: hsl(215, 21%, 95%);
+    --code: #e2e2e2;
     --code-text: hsl(0, 0%, 7%);
 
     --accent: hsl(0, 0%, 7%);
     --accent2: hsl(0, 0%, 27%);
 
-    --nav-text: #0c98f5;
+    --nav-text: #87f1ff;
     --nav-background: hsl(0, 0%, 7%);
     --nav-hover: hsl(0, 0%, 12%);
     --nav-border: hsl(0, 0%, 27%);
