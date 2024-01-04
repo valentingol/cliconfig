@@ -13,6 +13,15 @@
 .. include:: ../DOCUMENTATION.md
 """
 
+from cliconfig import (
+    base,
+    cli_parser,
+    config_routines,
+    dict_routines,
+    process_routines,
+    processing,
+    tag_routines,
+)
 from cliconfig._version import __version__, __version_tuple__
 from cliconfig.base import Config
 from cliconfig.config_routines import (
@@ -43,16 +52,23 @@ __all__ = [
     "Config",
     "DefaultProcessings",
     "Processing",
+    "base",
+    "cli_parser",
+    "config_routines",
     "create_processing_keep_property",
     "create_processing_value",
+    "dict_routines",
     "flatten_config",
     "flatten_dict",
     "make_config",
     "load_config",
     "merge_flat_paths_processing",
     "merge_flat_processing",
+    "process_routines",
+    "processing",
     "save_config",
     "show_config",
+    "tag_routines",
     "unflatten_config",
     "unflatten_dict",
     "update_config",
