@@ -1,7 +1,7 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Routines to manipulate dictionaries with processing.
 
-Used by :mod:`.config_routines`.
+Used by `cliconfig.config_routines`.
 """
 from typing import List, Optional, Union
 
@@ -107,7 +107,7 @@ def merge_flat_paths_processing(
 ) -> Config:
     """Flatten, merge and apply processing to two configs or their yaml paths.
 
-    Similar to :func:`merge_flat_processing` but allows to pass configs
+    Similar to `merge_flat_processing` but allows to pass configs
     or their yaml paths. Work even if the configs have a mix of nested and flat dicts.
     If both arguments are configs, the process lists are merged before applying
     the processing. The duplicate processings (with same internal variables)

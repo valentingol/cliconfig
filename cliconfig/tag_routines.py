@@ -27,7 +27,7 @@ def clean_tag(flat_key: str, tag_name: str) -> str:
 
     Note
     ----
-        ``tag_name`` is supposed to be the exact name of the tag.
+        `tag_name` is supposed to be the exact name of the tag.
 
     Examples
     --------
