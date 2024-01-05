@@ -6,13 +6,12 @@
   <img src="https://raw.githubusercontent.com/valentingol/cliconfig/main/docs/_static/logo_extend.png" />
 </p>
 
-*CLI Config*: Lightweight library that provides routines to merge nested configs
-and set parameters from command line. It is also provide processing functions
-that can change the whole configuration before and after each config merge, config
-saving, config loading and at the end of config building. It also contains many
-routines to manipulate the config as flatten or nested dictionaries.
+*CLI Config* is a lightweight library that provides routines to merge nested configs
+and set parameters from command line. It contains many routines to create and manipulate
+the config as flatten or nested python dictionaries. It also provides processing functions
+that can change the whole configuration before and after each config manipulation.
 
-The package is initially designed for machine learning experiments where the
+The package was initially designed for machine learning experiments where the
 number of parameters is huge and a lot of them have to be set by the user between
 each experiment. If your project matches this description, this package is for you!
 
@@ -52,9 +51,11 @@ This package is OS independent and supported on Linux, macOS and Windows.
 
 ## Minimal example
 
-See the *Quick start* section of the documentation for a quick overview.
+See the [*Quick Start*](https://valentingol.github.io/cliconfig/cliconfig.html#quick-start)
+section of the documentation for a quick overview.
 
-First of all, make default config yaml file(s) in your project (configs are merged from left to right):
+First of all, make default config yaml file(s) in your project (configs are merged from left to right).
+Then you can create a config object from these files in python:
 
 ```python
 # main.py
@@ -62,7 +63,7 @@ from cliconfig import make_config
 config = make_config('default1.yaml', 'default2.yaml')
 ```
 
-Then launch your script with additional config file(s) and individual parameters by command line.
+Now launch your script with eventually additional config file(s) and parameters by command line.
 The additional configs are merged on the default one's then the parameters are set.
 
 ```bash
@@ -72,27 +73,33 @@ python main.py --config first.yaml,second.yaml --param1=1 --subconfig.param2='fo
 **By default, these additional configs cannot add new parameters to the default config
 (for security and retro-compatibility reasons).**
 
-See the *Edge cases* section of the documentation for some edge cases due to implementation.
+See the [*Edge cases*](https://valentingol.github.io/cliconfig/cliconfig.html#edge-cases)
+section of the documentation for some edge cases due to implementation.
 
 ## Tags
 
-You can add tags `@<tag_name>` at the end of parameters name to activate some features.
-See the *Quick start* section of the documentation for a quick overview.
+You can add tags `@<tag_name>` at the end of parameters names to activate some features.
+See the [*Quick start*](https://valentingol.github.io/cliconfig/cliconfig.html#quick-start)
+section of the documentation for a quick overview.
 
 The default tags include:
 
 * `@merge_add`, `@merge_before`, and `@merge_after`: merge other yaml files
   indicating the path
-* `@copy`: copy an other parameter
-* `@def`: safely evaluate an expression to define the parameter value
+* `@copy`: copy another parameter
+* `@def`: safely evaluate an expression to define the parameter value (a lot of
+  operations and functions are available)
 * `@type:<my type>`: try to convert and check the type
 * `@select`: target a sub-config and delete the sub-config in the parent config
 * `@delete`: delete the key from the config
-* `@new`: allow to add parameters that are not present in default config
-* `@dict`: create a dict object that is not a sub-config (see the *Edge cases* section)
+* `@new`: allow adding parameters that are not present in default config
+* `@dict`: create a dict object that is not a sub-config (see the
+* [*Edge cases*](https://valentingol.github.io/cliconfig/cliconfig.html#edge-cases) section)
 
 It is also easy to create your own features and possibilities are endless. The way to do
-it are explained in the *Processing* section of the documentation.
+it are explained in the
+[*Processing*](https://valentingol.github.io/cliconfig/cliconfig.html#processing)
+section of the documentation.
 
 ## How to contribute
 

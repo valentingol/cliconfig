@@ -2,13 +2,12 @@
   <img src="https://raw.githubusercontent.com/valentingol/cliconfig/main/docs/_static/logo_extend.png" />
 </p>
 
-*CLI Config*: Lightweight library that provides routines to merge nested configs
-and set parameters from command line. It is also provide processing functions
-that can change the whole configuration before and after each config merge, config
-saving, config loading and at the end of config building. It also contains many
-routines to manipulate the config as flatten or nested dictionaries.
+*CLI Config* is a lightweight library that provides routines to merge nested configs
+and set parameters from command line. It contains many routines to create and manipulate
+the config as flatten or nested python dictionaries. It also provides processing functions
+that can change the whole configuration before and after each config manipulation.
 
-The package is initially designed for machine learning experiments where the
+The package was initially designed for machine learning experiments where the
 number of parameters is huge and a lot of them have to be set by the user between
 each experiment. If your project matches this description, this package is for you!
 
@@ -51,7 +50,7 @@ This package is OS independent and supported on Linux, macOS and Windows.
 
 ## Quick start
 
-Create yaml file(s) that contains your default configurations. All the parameters
+Create yaml file(s) that contain your default configuration. All the parameters
 should be listed (see later to organize them simply in case of big config files).
 
 ```yaml
@@ -78,12 +77,7 @@ config = make_config('default1.yaml', 'default2.yaml')
 ```
 
 Add additional config file(s) that represent your experiments. They will override
-the default values. Please note that new parameters that are not present in the
-default configs are not allowed. This restriction is in place to prevent potential
-typos in the config files from going unnoticed. It also enhances the readability
-of the default config files and ensures retro-compatibility (see later to circumnavigate
-it for particular cases). This restriction apart, the package allows a complete
-liberty of config manipulation.
+the default values.
 
 ```yaml
 # first.yaml
@@ -95,6 +89,13 @@ param1: -1
 letters.letter1: A
 ```
 
+Please note that new parameters that are not present in the
+default configs are not allowed. This restriction is in place to prevent potential
+typos in the config files from going unnoticed. It also enhances the readability
+of the default config files and ensures retro-compatibility (see later to circumnavigate
+it for particular cases). This restriction apart, the package allows a complete
+liberty of config manipulation.
+
 Run your code with the additional config files AND eventually some other parameters
 from command line. **Please respect the exact syntax for spaces and equal signs**.
 
@@ -102,28 +103,28 @@ from command line. **Please respect the exact syntax for spaces and equal signs*
 python main.py --config first.yaml,second.yaml --param2=-2 --letters.letter2='B'
 ```
 
-If you have multiple config files it is possible to pass a list with bracket.
+If you have multiple config files it is possible to pass a list with brackets.
 Be careful, using ``--config=first.yaml`` will NOT be recognized as an additional config
 file (space is important) but as a parameter called "config" with value "first.yaml"
 (it then raises an error if no "config" parameter is on the default config).
 
-```bash
 Now the config look like this:
 
+```bash
 Config:
-    param1: -1  # (overridden by second.yaml)
-    param2: -2  # (overridden by command line args)
+    param1: -1  # overridden by second.yaml
+    param2: -2  # overridden by command line args
     letters:
-        letter1: A  # (overridden by second.yaml)
-        letter2: B  # (overridden by command line args)
-        letter3: C  # (overridden by first.yaml)
+        letter1: A  # overridden by second.yaml
+        letter2: B  # overridden by command line args
+        letter3: C  # overridden by first.yaml
 ```
 
 You can also manipulate your config with the following functions:
 
 ```python
 from cliconfig import load_config, save_config, show_config, update_config
-show_config(config)  # print it
+show_config(config)  # print config
 config.dict  # config as native dict
 config.dict['letters']['letter1']  # access parameter via dict
 config.letters.letter1  # access parameter via dots
@@ -139,13 +140,15 @@ config = load_config('myconfig.yaml', default_config_paths=['default1.yaml', 'de
 ```
 
 The config object is just a wrapper around the config dict that allows to access the parameters
-via dots (and containing the list of processings, see *Processing*
+via dots (and containing the list of processings, see the
+[*Processing*](https://valentingol.github.io/cliconfig/cliconfig.html#processing)
 section for details). That's all! Therefore, the config object is
 very light and simple to use.
 
-While the config object is simple, the possibilities to manipulate the config are endless.
-See the next section for some default features. One of the core idea of this package is
-to make it easy to add your own features for your specific needs.
+While the config object is simple, the possibilities to manipulate the config via
+processings are endless. See the next section for some default features. One of the
+core idea of this package is to make it easy to add your own config features for your
+specific needs.
 
 ## Use tags
 
@@ -160,22 +163,23 @@ The default tags include:
   configuration. `@merge_add` allows only the merging of new keys and is useful for
   splitting non-overlapping sub-configurations into multiple files. `@merge_before` merges
   the current dictionary onto the loaded one, while `@merge_after` merges the loaded
-  dictionary onto the current one. These tags are used to organize the config files simply.
-* `@copy`: This tag copies a parameter from another key. The value should be a string
+  dictionary onto the current one. These tags are used to organize multiple config files.
+* `@copy`: This tag copies a parameter value from another parameter name. The value
+  associated to the parameter with this tag should be a string
   that represents the flattened key. The copied value is then protected from further
-  updates but will be updated if the copied key change during a merge.
+  updates but will be dynamically updated if the copied key change during a merge.
 * `@def`: This tag evaluate an expression to define the parameter value.
   The value associated to a parameter tagged with `@def` can contain any
   parameter name of the configuration. The most useful operators and built-in
-  functions are supported, the random and math packages are also supported
-  as well as some (safe) numpy, jax, tensorflow, pytorch functions.
+  functions are supported, the `random` and `math` packages are also supported
+  as well as some (safe) `numpy`, `jax`, `tensorflow`, `torch` functions.
   If/else statements and comprehension lists are also supported.
 * `@type:<my type>`: This tag checks if the key matches the specified type `<my type>`
   after each update, even if the tag is no longer present. It tries to convert
   the type if it is not the good one. It supports basic types
   (except for tuples and sets, which are not handled by YAML) as well as unions
   (using "Union" or "|"), optional values, nested list, and nested dict.
-  For instance: `@type:List[Dict[str, int|float]]`.
+  For instance: `my_param@type:List[Dict[str, int|float]]: [{"a": 0}]`.
 * `@select`: This tag select param/sub-config(s) to keep and delete the other
   param/sub-configs in the same parent config. The tagged key is not deleted if
   it is in the parent config.
@@ -186,12 +190,14 @@ The default tags include:
   sub-config. Disclaimer: it is preferable to have exhaustive default config(s)
   instead of abusing this tag for readability and for security concerning typos.
 * `@dict`: This tag allows to have a dictionary object instead of a sub-config
-  where you can modify the keys (see the *Edge cases* section)
+  where you can modify the keys (see the
+  [*Edge cases*](https://valentingol.github.io/cliconfig/cliconfig.html#edge-cases) section)
 
 The tags are applied in a particular order that ensure no conflict between them.
 
 Please note that the tags serve as triggers for internal processing and will be
-automatically removed from the key after processing.
+automatically removed from the key before you can use it. The tags are designed to
+give instructions to python without being visible in the config.
 
 It is also possible to combine multiple tags. For example:
 
@@ -204,7 +210,7 @@ config3.selection@delete@select: config3.param1
 # sub1.yaml
 config1:
   param@copy@type:int: config2.param
-  param2@type:float: 1  # wrong type -> converted to float
+  param2@type:float: 1  # int: wrong type -> converted to float
 
 # sub2.yaml
 config2.param: 2
@@ -247,23 +253,24 @@ configuration at each step of the process.
 
 You can easily create your own processing (associated to a tag or not).
 The way to do it and a further explanation of them is available in the
-*Processing* section of the documentation.
+[*Processing*](https://valentingol.github.io/cliconfig/cliconfig.html#processing)
+section of the documentation.
 
 ## Edge cases
 
-**Please note that YAML does not support tuples and sets**, and therefore they
-cannot be used in YAML files. If possible, consider using lists instead.
+* **Please note that YAML does not support tuples and sets**, and therefore they
+  cannot be used in YAML files. If possible, consider using lists instead.
 
-Moreover, YAML does not recognize "None" as a None object, but interprets it as a
-string. If you wish to set a None object, you can use "null" or "Null" instead.
+* Moreover, YAML does not recognize "None" as a None object, but interprets it as a
+  string. If you wish to set a None object, you can use "null" or "Null" instead.
 
-"@" is a special character used by the package to identify tags. You can't use it
-in your parameters names (but you can use it in your values). It will raise an error
-if you try to do so.
+* "@" is a special character used by the package to identify tags. You can't use it
+  in your parameters names (but you can use it in your values). It will raise an error
+  if you try to do so.
 
-"dict" and "process_list" are reserved names of attributes and should not be used
-as sub-config or parameter names. It can raise an error if you try to access them
-as config attributes (with dots).
+* "dict" and "process_list" are reserved names of attributes and should not be used
+  as sub-config or parameter names. It can raise an error if you try to access them
+  as config attributes (with dots).
 
 In the context of this package, dictionaries are treated as sub-configurations,
 which means that modifying or adding keys directly in the additional configs may
@@ -313,7 +320,7 @@ They only take a flat config as input i.e a config containing a dict of depth 1 
 dot-separated keys and return the modified flat dict (and keep it flat!).
 
 In this section, you will learn how they work and how to create your own to make
-whatever you want with the config (we hope!).
+whatever you want with the config.
 
 ### Why a flat dict?
 
@@ -378,7 +385,7 @@ Some useful ranges to choose your order:
 * if it adds new parameters: -25 < order < -5
 * if it updates a value based on itself: -5 < order < 5
 * if it updates a value based on other keys: 5 < order < 15
-* if it checkss a property on a value: 15 < order < 25
+* if it checks a property on a value: 15 < order < 25
 * if it deletes other key(s) but you want to trigger the tags before: 25 < order < 35
 * final check/modification after all processings: order > 35
 
@@ -459,16 +466,25 @@ A processing that enforce the types of all the parameters to be constant
 (equal to the type of the first value encountered):
 
 ```python
-create_processing_keep_property(type, regex=".*", premerge_order=15.0,
-                                postmerge_order=15.0, endbuild_order=15.0)
+create_processing_keep_property(
+    type,
+    regex=".*",
+    premerge_order=15.0,
+    postmerge_order=15.0,
+    endbuild_order=15.0
+)
 ```
 
 A processing that protect parameters tagged with @protect from being changed:
 
 ```python
-create_processing_keep_property(lambda x: x, tag_name="protect",
-                                premerge_order=15.0, postmerge_order=15.0,
-                                endbuild_order=15.0)
+create_processing_keep_property(
+    lambda x: x,
+    tag_name="protect",
+    premerge_order=15.0,
+    postmerge_order=15.0,
+    endbuild_order=15.0
+)
 ```
 
 Each time you choose the order `15.0` because it is a good value for processing that
@@ -817,7 +833,8 @@ sweep_id: ...
 $ wandb agent <sweep_id>
 ```
 
-This makes a bayesian search over the learning rate, the optimizer and the batch size to minimize the final validation loss.
+This makes a bayesian search over the learning rate, the optimizer and the batch size
+to minimize the final validation loss.
 
 ## How to contribute
 
