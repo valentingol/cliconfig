@@ -271,12 +271,12 @@ def clean_pre_flat(in_dict: Dict[str, Any], priority: str) -> Dict[str, Any]:
 
     Warning
     -------
-        * No flat key can contain a dict. Then, dicts like `{'a.b': {'c': 1}}`
-          are not supported.
-        * All the keys that contain dots (the flat keys) must be at the root.
-          Then, dicts like `{a: {'b.c': 1}}` are not supported.
-        * To summarize, the dict must contain only fully flat dicts
-          and/or fully nested dicts.
+    * No flat key can contain a dict. Then, dicts like `{'a.b': {'c': 1}}`
+      are not supported.
+    * All the keys that contain dots (the flat keys) must be at the root.
+      Then, dicts like `{a: {'b.c': 1}}` are not supported.
+    * To summarize, the dict must contain only fully flat dicts
+      and/or fully nested dicts.
 
     Examples
     --------
@@ -341,12 +341,12 @@ def _del_key(
 
     Warning
     -------
-        * No flat key can contain a dict. Then, dicts like `{'a.b': {'c': 1}}`
-          are not supported.
-        * All the keys that contain dots (the flat keys) must be at the root.
-          Then, dicts like `{a: {'b.c': 1}}` are not supported.
-        * To summarize, the dict must contain only fully flat dicts
-          and fully nested dicts.
+    * No flat key can contain a dict. Then, dicts like `{'a.b': {'c': 1}}`
+        are not supported.
+    * All the keys that contain dots (the flat keys) must be at the root.
+        Then, dicts like `{a: {'b.c': 1}}` are not supported.
+    * To summarize, the dict must contain only fully flat dicts
+        and fully nested dicts.
 
     Examples
     --------

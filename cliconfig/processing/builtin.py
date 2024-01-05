@@ -562,10 +562,9 @@ class ProcessSelect(Processing):
 
     Warning
     -------
-
-        For security reasons, this processing prevents from deleting
-        the configuration at the root, which is the case when the
-        selected key doesn't contain a dot. It raises an error in this case.
+    For security reasons, this processing prevents from deleting
+    the configuration at the root, which is the case when the
+    selected key doesn't contain a dot. It raises an error in this case.
     """
 
     def __init__(self) -> None:
@@ -680,11 +679,10 @@ class ProcessDelete(Processing):
 
     Warning
     -------
-
-        The sub-config/parameter is deleted on pre-merge. Therefore, if the parameter
-        also exists on the other configuration during merge (without the tag),
-        this parameter will be remain as it is. This processing is more used
-        to delete parameter that is NOT present in the default configuration.
+    The sub-config/parameter is deleted on pre-merge. Therefore, if the parameter
+    also exists on the other configuration during merge (without the tag),
+    this parameter will be remain as it is. This processing is more used
+    to delete parameter that is NOT present in the default configuration.
     """
 
     def __init__(self) -> None:
@@ -831,11 +829,10 @@ class ProcessDict(Processing):
 
     Warning
     -------
-
-        * Processings are not applied in the dict keys. In particular,
-          the tags are not used and not removed.
-        * The tag `@dict` must be added at the key containing
-          the dict every time you want to modify the dict.
+    * Processings are not applied in the dict keys. In particular,
+        the tags are not used and not removed.
+    * The tag `@dict` must be added at the key containing
+        the dict every time you want to modify the dict.
     """
 
     class PseudoDict:
