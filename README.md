@@ -3,7 +3,10 @@
 ## *Build your experiment configurations for complex projects with robustness, flexibility and simplicity*
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/valentingol/cliconfig/main/docs/_static/logo_extend_black.png" />
+  <img
+  src="https://raw.githubusercontent.com/valentingol/cliconfig/main/docs/_static/logo_extend_black.png"
+  alt="CLI-Config-logo" width="100%" height="100%"
+  />
 </p>
 
 *CLI Config* is a lightweight library that provides routines to merge nested configs
