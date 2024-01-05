@@ -4,6 +4,7 @@ name: Documentation
 on:
   push:
     branches:
+      - main
       - pdoc
       - pdoc_dev
     # Alternative: only build for tags.
