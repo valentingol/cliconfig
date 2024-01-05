@@ -27,7 +27,7 @@ def _parse_type(type_desc: str) -> Tuple:
 
     Note
     ----
-        The type description is lowercased and spaces are removed before parsing.
+    The type description is lowercased and spaces are removed before parsing.
     """
     # Clean up
     old_type_desc = type_desc

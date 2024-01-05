@@ -185,7 +185,7 @@ def flatten(in_dict: Dict[str, Any]) -> Dict[str, Any]:
 
     Note
     ----
-        Nested empty dict are ignored even if they are conflicting (see last example).
+    Nested empty dict are ignored even if they are conflicting (see last example).
 
     Examples
     --------
@@ -439,11 +439,10 @@ def load_dict(path: str) -> Dict[str, Any]:
 
     Note
     ----
-
-        * If multiple yaml files are in the same document, they are merged
-          from the first to the last.
-        * To use multiple yaml tags, separate them with "@". E.g. `!tag1@tag2`.
-        * You can combine any number of yaml and cliconfig tags together.
+    * If multiple yaml files are in the same document, they are merged
+        from the first to the last.
+    * To use multiple yaml tags, separate them with "@". E.g. `!tag1@tag2`.
+    * You can combine any number of yaml and cliconfig tags together.
     """
     try:
         with open(path, "r", encoding="utf-8") as cfg_file:
