@@ -15,10 +15,6 @@ The package was initially designed for machine learning experiments where the
 number of parameters is huge and a lot of them have to be set by the user between
 each experiment. If your project matches this description, this package is for you!
 
-## Documentation :memo: [here](https://valentingol.github.io/cliconfig)
-
-## Pypi :package: [here](https://pypi.org/project/cliconfig/)
-
 [![Release](https://img.shields.io/github/v/tag/valentingol/cliconfig?label=Pypi&logo=pypi&logoColor=yellow)](https://pypi.org/project/cliconfig/)
 ![PythonVersion](https://img.shields.io/badge/Python-3.7%20%7E%203.11-informational)
 [![License](https://img.shields.io/github/license/valentingol/cliconfig?color=999)](https://stringfixer.com/fr/MIT_license)
@@ -39,7 +35,18 @@ each experiment. If your project matches this description, this package is for y
 Official badge :
 [![Config](https://custom-icon-badges.demolab.com/badge/cliconfig-black?logo=cliconfig)](https://github.com/valentingol/cliconfig)
 
-## Installation
+## Documentation :memo:
+
+Here you can find the [documentation](https://valentingol.github.io/cliconfig) (built with pdoc3).
+
+The old documentation with readthedocs (1.3.6, not up to date) is also available
+[here](cliconfig.readthedocs.io).
+
+## Pypi :package:
+
+Here you can find the [Pypi page](https://pypi.org/project/cliconfig/).
+
+## Installation :inbox_tray:
 
 In a new virtual environment, simply install the package with:
 
@@ -49,7 +56,7 @@ pip install cliconfig
 
 This package is OS independent and supported on Linux, macOS and Windows.
 
-## Minimal example
+## Minimal example :rocket:
 
 See the [*Quick Start*](https://valentingol.github.io/cliconfig/cliconfig.html#quick-start)
 section of the documentation for a quick overview.
@@ -76,7 +83,7 @@ python main.py --config first.yaml,second.yaml --param1=1 --subconfig.param2='fo
 See the [*Edge cases*](https://valentingol.github.io/cliconfig/cliconfig.html#edge-cases)
 section of the documentation for some edge cases due to implementation.
 
-## Tags
+## Tags :label:
 
 You can add tags `@<tag_name>` at the end of parameters names to activate some features.
 See the [*Quick start*](https://valentingol.github.io/cliconfig/cliconfig.html#quick-start)
@@ -101,7 +108,7 @@ it are explained in the
 [*Processing*](https://valentingol.github.io/cliconfig/cliconfig.html#processing)
 section of the documentation.
 
-## How to contribute
+## How to contribute 👷
 
 For **development**, install the package dynamically and dev requirements with:
 
@@ -113,7 +120,7 @@ pip install -r requirements-dev.txt
 Everyone can contribute to CLI Config, and we value everyone’s contributions.
 Please see our [contributing guidelines](CONTRIBUTING.md) for more information 🤗
 
-## License, usage and distribution
+## License, usage and distribution :scroll:
 
 This program is free software under the [MIT License](LICENSE).
 
