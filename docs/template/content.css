@@ -92,16 +92,16 @@ This makes sure that the pdoc styling doesn't leak to the rest of the page when 
 }
 
 .pdoc>section:not(.module-info) h3 {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     font-weight: 500;
 }
 
 .pdoc>section:not(.module-info) h4 {
-    font-size: 1.1rem;
+    font-size: 1rem;
 }
 
 .pdoc>section:not(.module-info) h5 {
-    font-size: 1.05rem;
+    font-size: 1rem;
 }
 
 .pdoc a {
