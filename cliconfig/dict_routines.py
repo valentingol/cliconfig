@@ -1,5 +1,5 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
-"""Routines to manipulate nested and flat dictionaries (and mix of both).
+"""Low-level routines to manipulate nested and flat dictionaries (and mix of both).
 
 Used by `cliconfig.process_routines` and `cliconfig.config_routines`.
 """

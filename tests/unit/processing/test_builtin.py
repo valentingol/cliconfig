@@ -194,9 +194,7 @@ def test_process_def() -> None:
     check.equal(flat_config.b, 1 + 1 * 2**2 - 30 // 10)
     check.equal(processing.exprs, {"b": "1 + a.b * a.c**2 - a.b.c.d // 10"})
     flat_config.dict["a.b"] = 4
-    print(processing.exprs)
     flat_config = processing.postmerge(flat_config)
-    print(processing.exprs)
     check.equal(flat_config.b, 1 + 4 * 2**2 - 30 // 10)
     new_dict = {"b@def": "True & a.b.c.d > 20"}
     new_config = Config(new_dict, [processing])

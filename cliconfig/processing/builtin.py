@@ -1,11 +1,8 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Built-in processing classes.
 
-Built-in classes to apply pre-merge, post-merge, pre-save and post-load modifications
-to dict with processing routines `cliconfig.process_routines`.
-
-They are the default processing used by the config routines
-`cliconfig.config_routines.load_config` and `cliconfig.config_routines.make_config`.
+Built-in classes of the default processing used by the config routines
+`cliconfig.config_routines.make_config` and `cliconfig.config_routines.load_config`.
 """
 import ast
 from typing import Any, Dict, List, Set, Tuple
@@ -28,13 +25,10 @@ class ProcessMerge(Processing):
     """Merge dicts just in time with `@merge_after/_before/_add` tags.
 
     Tag your key with `@merge_after`, `@merge_before` or `@merge_add`
-    to load the config corresponding to the value (which is a yaml path) and
-    merge it just before or after the current config. The merged dicts will be
-    processed with pre-merge but not post-merge to ensure that merged
-    configurations are recursively processed with pre-merge before applying a
-    post-merge processing. It allows the merged configs to make references to
-    each other (typically for copy) even without containing the merge tags
-    itself.
+    to load the config corresponding to the value (which must be a yaml path) and
+    merge it just before or after the current config. The merging process
+    allows the config files to make references to each other (typically for copy)
+    even without containing the merge tags itself.
 
     * '@merge_add' merges the dict corresponding to the path by allowing ONLY new keys
       It is a security check when you want to add a dict completely new,
@@ -74,7 +68,7 @@ class ProcessMerge(Processing):
     {'a': {'b': 1, 'b_path': 'config2.yaml'}, 'c_path': 'config3.yaml', 'c': 3}
     ```
 
-    Finally, if you replace `@merge_after` by `@merge_add`, it will raises an
+    Finally, if you replace `@merge_after` by `@merge_add`, it will raise an
     error because the key `a.b` already exists in the dict.
     """
 
@@ -178,7 +172,7 @@ class ProcessCopy(Processing):
     The pre-merge processing removes the tag. The post-merge processing
     sets the value (if the copied key exists). The end-build processing checks
     that the key to copy exists and copy them. The pre-save processing
-    restore the tag and the key to copy to keep the information on future loads.
+    restores the tag and the key to copy to keep the information on future loads.
     The post-merge and the end-build processings occur after most processings to
     allow the user to modify or add the copied key before the copy.
     Pre-merge order: 0.0
@@ -793,9 +787,9 @@ class ProcessDict(Processing):
     are not known in advance or will be modified. New keys are allowed
     in each merge and the element are still available using the dot
     notation like `config.subconfig.mydict.something`.
-    The pre-merge processing remove the tag and convert the dict to
+    The pre-merge processing removes the tag and converts the dict to
     a wrapped dict to prevent the flattening. The end-build processing
-    unwrap the dicts to a normal dict. The pre-save processing restore
+    unwraps the dicts to a normal dict. The pre-save processing restores
     the tag to keep the information on future loads.
     Pre-merge order: -30.0
     End-build order: 0.0
