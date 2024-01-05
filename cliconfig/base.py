@@ -1,5 +1,5 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
-"""Base classes of Config object."""
+"""Base class of Config objects."""
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 # Imports Processing for mypy type checking only
@@ -10,9 +10,9 @@ if TYPE_CHECKING:
 class Config:
     """Class for configuration.
 
-    Config object contain the config dict and the processing list
-    and no methods except ``__init__``, ``__repr__``, ``__eq__``,
-    ``__getattribute__``, ``__setattr__`` and ``__delattr__``.
+    Config object contains the config dict and the processing list
+    and no methods except `__init__`, `__repr__`, `__eq__`,
+    `__getattribute__`, `__setattr__` and `__delattr__`.
     The Config objects are mutable and not hashable.
 
     Parameters
@@ -22,6 +22,20 @@ class Config:
     process_list : Optional[List[Processing]], optional
         The list of Processing objects. If None, an empty list is used.
         The default is None.
+
+    Examples
+    --------
+    ```python
+    >>> config = Config({"a": 1, "b": {"c": 2}})
+    >>> config.dict
+    {"a": 1, "b": {"c": 2}}
+    >>> config.process_list
+    []
+    >>> config.b
+    Config({"c": 2}, [])
+    >>> config.b.c
+    2
+    ```
     """
 
     def __init__(
@@ -64,7 +78,7 @@ class Config:
         """Get attribute, sub-configuration or parameter.
 
         The dict should be nested (unflattened). If it is not the case,
-        you can apply :func:`dict_routines.flatten` on ``config.dict``
+        you can apply `cliconfig.dict_routines.flatten` on `config.dict`
         to unflatten it.
         """
         if __name in ["dict", "process_list"]:
@@ -84,7 +98,7 @@ class Config:
         """Set attribute, sub-configuration or parameter.
 
         The dict should be nested (unflattened). If it is not the case,
-        you can apply :func:`dict_routines.flatten` on ``config.dict``
+        you can apply `cliconfig.dict_routines.flatten` on `config.dict`
         to unflatten it.
         """
         if __name in ["dict", "process_list"]:
@@ -96,7 +110,7 @@ class Config:
         """Delete attribute, sub-configuration or parameter.
 
         The dict should be nested (unflattened). If it is not the case,
-        you can apply :func:`dict_routines.flatten` on ``config.dict``
+        you can apply `cliconfig.dict_routines.flatten` on `config.dict`
         to unflatten it.
         """
         if __name in ["dict", "process_list"]:

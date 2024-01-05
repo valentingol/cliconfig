@@ -1,7 +1,7 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Routines to manipulate the tags on the keys of a dict.
 
-Used by the processing functions.
+Used by the processing objects.
 """
 import copy
 import re
@@ -27,14 +27,14 @@ def clean_tag(flat_key: str, tag_name: str) -> str:
 
     Note
     ----
-        ``tag_name`` is supposed to be the exact name of the tag.
+    `tag_name` is supposed to be the exact name of the tag.
 
     Examples
     --------
-    ::
-
-        >>> clean_tag('abc@tag.def@tag_2.ghi@tag', 'tag')
-        abc.def@tag_2.ghi
+    ```python
+    >>> clean_tag('abc@tag.def@tag_2.ghi@tag', 'tag')
+    abc.def@tag_2.ghi
+    ```
     """
     if tag_name[0] == "@":
         tag_name = tag_name[1:]

@@ -10,18 +10,224 @@ from cliconfig.processing.base import Processing
 from cliconfig.tag_routines import clean_all_tags, clean_tag, is_tag_in
 
 
-def _is_matched(key: str, tag_name: Optional[str], regex: Optional[str]) -> bool:
-    """Check if key match the regex or contain the tag."""
-    if tag_name is not None and regex is not None:
-        raise ValueError("Either regex or tag_name must be defined but not both.")
-    # Case defined with tag
+def create_processing_value(
+    func: Union[Callable[[Any], Any], Callable[[Any, Config], Any]],
+    processing_type: str = "premerge",
+    *,
+    regex: Optional[str] = None,
+    tag_name: Optional[str] = None,
+    order: float = 0.0,
+    persistent: bool = False,
+) -> Processing:
+    r"""Create a processing object that modifies a value in config using tag or regex.
+
+    The processing is applied on pre-merge. It triggers when the key matches
+    the tag or the regex. The function apply `flat_dict[key] = func(flat_dict[key])`.
+    You must only provide one of tag or regex. If tag is provided, the tag will be
+    removed from the key during pre-merge.
+
+    It also possible to pass the flat config as a second argument of the function
+    `func`. In this case, the function apply
+    `flat_dict[key] = func(flat_dict[key], flat_config)`.
+
+    Parameters
+    ----------
+    func : Callable
+        The function to apply to the value (and eventually the flat config)
+        to make the new value so that:
+        flat_dict[key] = func(flat_dict[key]) or func(flat_dict[key], flat_config)
+    processing_type : str, optional
+        One of "premerge", "postmerge", "presave", "postload" or "endbuild".
+        Timing to apply the value update. In all cases the tag is removed on pre-merge.
+        By default "premerge".
+    regex : Optional[str]
+        The regex to match the key.
+    tag_name : Optional[str]
+        The tag (without "@") to match the key. The tag is removed on pre-merge.
+    order : int, optional
+        The pre-merge order. By default 0.0.
+    persistent : bool, optional
+        If True, the processing will be applied on all keys that have already
+        matched the tag before. By nature, using regex make the processing
+        always persistent. By default, False.
+
+    Raises
+    ------
+    ValueError
+        If both tag and regex are provided or if none of them are provided.
+    ValueError
+        If the processing type is not one of "premerge", "postmerge", "presave",
+        "postload" or "endbuild".
+
+    Returns
+    -------
+    processing : Processing
+        The processing object with the pre-merge method.
+
+
+    Examples
+    --------
+    With the following config and 2 processings:
+
+    ```yaml
+    # config.yaml
+    neg_number1: 1
+    neg_number2: 1
+    neg_number3@add1: 1
+    ```
+
+    ```python
+    # main.py
+    proc2 = create_processing_value(
+        lambda val: -val,
+        regex="neg_number.*",
+        order=0.0
+    )
+    proc1 = create_processing_value(
+        lambda val: val + 1,
+        tag_name="add1",
+        order=1.0
+    )
+    ```
+
+    When config.yaml is merged with an other config, it will be considered
+    before merging as:
+
+    ```python
+    {'number1': -1, 'number2': -1, 'number3': 0}
+    ```
+
+    Using the config as a second argument of the function:
+
+    ```yaml
+    # config.yaml
+    param1: 1
+    param2@eval: "config.param1 + 1"
+    ```
+
+    ```python
+    # main.py
+    proc = create_processing_value(
+        lambda val, config: eval(val, {'config': config}),
+        processing_type='postmerge',
+        tag_name='eval',
+        persistent=False
+    )
+    ```
+
+    After config.yaml is merged with another config, param2 will be evaluated
+    as 2 (except if config.param1 has changed with a processing before).
+    """
     if tag_name is not None:
-        return is_tag_in(key, tag_name)
-    # Case defined with regex
-    if regex is not None:
-        param_name = key.split(".")[-1].split("@")[0]
-        return re.match(regex, param_name) is not None
-    raise ValueError("Either regex or tag_name must be defined.")
+        if regex is not None:
+            raise ValueError("You must provide a tag or a regex but not both.")
+    else:
+        if regex is None:
+            raise ValueError(
+                "You must provide a tag or a regex (to trigger the value update)."
+            )
+    proc = _ProcessingValue(
+        func,
+        processing_type,
+        regex=regex,
+        tag_name=tag_name,
+        order=order,
+        persistent=persistent,
+    )
+    return proc
+
+
+def create_processing_keep_property(
+    func: Callable,
+    regex: Optional[str] = None,
+    tag_name: Optional[str] = None,
+    premerge_order: float = 0.0,
+    postmerge_order: float = 0.0,
+    endbuild_order: float = 0.0,
+) -> Processing:
+    """Create a processing object that keep a property from a value using tag or regex.
+
+    The pre-merge processing looks for keys that match the tag or the regex, apply
+    the function func on the value and store the result (= the "property"):
+    `property = func(flat_dict[key])`.
+    The post-merge processing will check that the property is the same as the one
+    stored during pre-merge. If not, it will raise a ValueError.
+
+    It also possible to pass the flat config as a second argument of the function
+    `func`. In this case, the function apply
+    `property = func(flat_dict[key], flat_config)`.
+
+    Parameters
+    ----------
+    func : Callable
+        The function to apply to the value (and eventually the flat config)
+        to define the property to keep.
+        property = func(flat_dict[key]) or func(flat_dict[key], flat_config)
+    regex : Optional[str]
+        The regex to match the key.
+    tag_name : Optional[str]
+        The tag (without "@") to match the key. The values are modified when
+        triggering the pattern ".*@<tag_name>.*" and the tag is removed from the key.
+    premerge_order : float, optional
+        The pre-merge order, by default 0.0
+    postmerge_order : float, optional
+        The post-merge order, by default 0.0
+    endbuild_order : float, optional
+        The end-build order, by default 0.0
+
+    Raises
+    ------
+    ValueError
+        If both tag and regex are provided or if none of them are provided.
+
+    Returns
+    -------
+    Processing
+        The processing object with the pre-merge and post-merge methods.
+
+    Examples
+    --------
+    A processing that enforce the types of all the parameters to be constant
+    (equal to the type of the first value encountered):
+
+    ```python
+    create_processing_keep_property(
+        type,
+        regex=".*",
+        premerge_order=15.0,
+        postmerge_order=15.0,
+        endbuild_order=15.0
+    )
+    ```
+
+    A processing that protect parameters tagged with @protect from being changed:
+
+    ```python
+    create_processing_keep_property(
+        lambda x: x,
+        tag_name="protect",
+        premerge_order=15.0,
+        postmerge_order=15.0
+    )
+    ```
+    """
+    if tag_name is not None:
+        if regex is not None:
+            raise ValueError("You must provide a tag or a regex but not both.")
+    else:
+        if regex is None:
+            raise ValueError(
+                "You must provide a tag or a regex (to trigger the value update)."
+            )
+    processing = _ProcessingKeepProperty(
+        func,
+        regex=regex,
+        tag_name=tag_name,
+        premerge_order=premerge_order,
+        postmerge_order=postmerge_order,
+        endbuild_order=endbuild_order,
+    )
+    return processing
 
 
 class _ProcessingValue(Processing):
@@ -226,202 +432,15 @@ class _ProcessingKeepProperty(Processing):
         )
 
 
-def create_processing_value(
-    func: Union[Callable[[Any], Any], Callable[[Any, Config], Any]],
-    processing_type: str = "premerge",
-    *,
-    regex: Optional[str] = None,
-    tag_name: Optional[str] = None,
-    order: float = 0.0,
-    persistent: bool = False,
-) -> Processing:
-    r"""Create a processing object that modifies a value in config using tag or regex.
-
-    The processing is applied on pre-merge. It triggers when the key matches
-    the tag or the regex. The function apply ``flat_dict[key] = func(flat_dict[key])``.
-    You must only provide one of tag or regex. If tag is provided, the tag will be
-    removed from the key during pre-merge.
-
-    It also possible to pass the flat config as a second argument of the function
-    ``func``. In this case, the function apply
-    ``flat_dict[key] = func(flat_dict[key], flat_config)``.
-
-    Parameters
-    ----------
-    func : Callable
-        The function to apply to the value (and eventually the flat config)
-        to make the new value so that:
-        flat_dict[key] = func(flat_dict[key]) or func(flat_dict[key], flat_config)
-    processing_type : str, optional
-        One of "premerge", "postmerge", "presave", "postload" or "endbuild".
-        Timing to apply the value update. In all cases the tag is removed on pre-merge.
-        By default "premerge".
-    regex : Optional[str]
-        The regex to match the key.
-    tag_name : Optional[str]
-        The tag (without "@") to match the key. The tag is removed on pre-merge.
-    order : int, optional
-        The pre-merge order. By default 0.0.
-    persistent : bool, optional
-        If True, the processing will be applied on all keys that have already
-        matched the tag before. By nature, using regex make the processing
-        always persistent. By default, False.
-
-    Raises
-    ------
-    ValueError
-        If both tag and regex are provided or if none of them are provided.
-    ValueError
-        If the processing type is not one of "premerge", "postmerge", "presave",
-        "postload" or "endbuild".
-
-    Returns
-    -------
-    processing : Processing
-        The processing object with the pre-merge method.
-
-
-    Examples
-    --------
-    With the following config and 2 processings:
-
-    .. code_block: yaml
-
-        # config.yaml
-        neg_number1: 1
-        neg_number2: 1
-        neg_number3@add1: 1
-
-    ::
-
-        proc2 = create_processing_value(lambda val: -val, regex="neg_number.*",
-            order=0.0)
-        proc1 = create_processing_value(lambda val: val + 1, tag_name="add1",
-            order=1.0)
-
-    When config.yaml is merged with an other config, it will be considered
-    before merging as:
-
-    ::
-
-        {'number1': -1, 'number2': -1, 'number3': 0}
-
-    Using the config as a second argument of the function:
-
-    .. code_block: yaml
-
-        # config.yaml
-        param1: 1
-        param2@eval: "config.param1 + 1"
-
-    ::
-
-        proc = create_processing_value(
-            lambda val, config: eval(val, {'config': config}),
-            processing_type='postmerge', tag_name='eval', persistent=False
-        )
-
-    After config.yaml is merged with another config, param2 will be evaluated
-    as 2 (except if config.param1 has changed with a processing before).
-    """
+def _is_matched(key: str, tag_name: Optional[str], regex: Optional[str]) -> bool:
+    """Check if key match the regex or contain the tag."""
+    if tag_name is not None and regex is not None:
+        raise ValueError("Either regex or tag_name must be defined but not both.")
+    # Case defined with tag
     if tag_name is not None:
-        if regex is not None:
-            raise ValueError("You must provide a tag or a regex but not both.")
-    else:
-        if regex is None:
-            raise ValueError(
-                "You must provide a tag or a regex (to trigger the value update)."
-            )
-    proc = _ProcessingValue(
-        func,
-        processing_type,
-        regex=regex,
-        tag_name=tag_name,
-        order=order,
-        persistent=persistent,
-    )
-    return proc
-
-
-def create_processing_keep_property(
-    func: Callable,
-    regex: Optional[str] = None,
-    tag_name: Optional[str] = None,
-    premerge_order: float = 0.0,
-    postmerge_order: float = 0.0,
-    endbuild_order: float = 0.0,
-) -> Processing:
-    """Create a processing object that keep a property from a value using tag or regex.
-
-    The pre-merge processing looks for keys that match the tag or the regex, apply
-    the function func on the value and store the result (= the "property"):
-    ``property = func(flat_dict[key])``.
-    The post-merge processing will check that the property is the same as the one
-    stored during pre-merge. If not, it will raise a ValueError.
-
-    It also possible to pass the flat config as a second argument of the function
-    ``func``. In this case, the function apply
-    ``property = func(flat_dict[key], flat_config)``.
-
-    Parameters
-    ----------
-    func : Callable
-        The function to apply to the value (and eventually the flat config)
-        to define the property to keep.
-        property = func(flat_dict[key]) or func(flat_dict[key], flat_config)
-    regex : Optional[str]
-        The regex to match the key.
-    tag_name : Optional[str]
-        The tag (without "@") to match the key. The values are modified when
-        triggering the pattern ".*@<tag_name>.*" and the tag is removed from the key.
-    premerge_order : float, optional
-        The pre-merge order, by default 0.0
-    postmerge_order : float, optional
-        The post-merge order, by default 0.0
-    endbuild_order : float, optional
-        The end-build order, by default 0.0
-
-    Raises
-    ------
-    ValueError
-        If both tag and regex are provided or if none of them are provided.
-
-    Returns
-    -------
-    Processing
-        The processing object with the pre-merge and post-merge methods.
-
-    Examples
-    --------
-    A processing that enforce the types of all the parameters to be constant
-    (equal to the type of the first value encountered):
-
-    ::
-
-        create_processing_keep_property(type, regex=".*", premerge_order=15.0,
-                                        postmerge_order=15.0, endbuild_order=15.0)
-
-    A processing that protect parameters tagged with @protect from being changed:
-
-    ::
-
-        create_processing_keep_property(lambda x: x, tag_name="protect",
-                                        premerge_order=15.0, postmerge_order=15.0)
-    """
-    if tag_name is not None:
-        if regex is not None:
-            raise ValueError("You must provide a tag or a regex but not both.")
-    else:
-        if regex is None:
-            raise ValueError(
-                "You must provide a tag or a regex (to trigger the value update)."
-            )
-    processing = _ProcessingKeepProperty(
-        func,
-        regex=regex,
-        tag_name=tag_name,
-        premerge_order=premerge_order,
-        postmerge_order=postmerge_order,
-        endbuild_order=endbuild_order,
-    )
-    return processing
+        return is_tag_in(key, tag_name)
+    # Case defined with regex
+    if regex is not None:
+        param_name = key.split(".")[-1].split("@")[0]
+        return re.match(regex, param_name) is not None
+    raise ValueError("Either regex or tag_name must be defined.")

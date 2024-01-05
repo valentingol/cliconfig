@@ -1,11 +1,8 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Built-in processing classes.
 
-Built-in classes to apply pre-merge, post-merge, pre-save and post-load modifications
-to dict with processing routines :mod:`.process_routines`.
-
-They are the default processing used by the config routines :func:`.load_config`
-and :func:`.make_config`.
+Built-in classes of the default processing used by the config routines
+`cliconfig.config_routines.make_config` and `cliconfig.config_routines.load_config`.
 """
 import ast
 from typing import Any, Dict, List, Set, Tuple
@@ -25,16 +22,13 @@ TypeSplitDict = Dict[str, List[Tuple[str, Any]]]
 
 
 class ProcessMerge(Processing):
-    """Merge dicts just in time with ``@merge_after/_before/_add`` tags.
+    """Merge dicts just in time with `@merge_after/_before/_add` tags.
 
-    Tag your key with ``@merge_after``, ``@merge_before`` or ``@merge_add``
-    to load the config corresponding to the value (which is a yaml path) and
-    merge it just before or after the current config. The merged dicts will be
-    processed with pre-merge but not post-merge to ensure that merged
-    configurations are recursively processed with pre-merge before applying a
-    post-merge processing. It allows the merged configs to make references to
-    each other (typically for copy) even without containing the merge tags
-    itself.
+    Tag your key with `@merge_after`, `@merge_before` or `@merge_add`
+    to load the config corresponding to the value (which must be a yaml path) and
+    merge it just before or after the current config. The merging process
+    allows the config files to make references to each other (typically for copy)
+    even without containing the merge tags itself.
 
     * '@merge_add' merges the dict corresponding to the path by allowing ONLY new keys
       It is a security check when you want to add a dict completely new,
@@ -48,34 +42,34 @@ class ProcessMerge(Processing):
 
     Examples
     --------
-    .. code-block:: yaml
+    ```yaml
+    # config1.yaml
+    a:
+        b: 1
+        b_path@merge_after: dict2.yaml
 
-        # config1.yaml
-        a:
-          b: 1
-          b_path@merge_after: dict2.yaml
+    # config2.yaml
+    a.b: 2
+    c_path@merge_add: config3.yaml
 
-        # config2.yaml
-        a.b: 2
-        c_path@merge_add: config3.yaml
-
-        # config3.yaml
-        c: 3
+    # config3.yaml
+    c: 3
+    ```
 
     Before merging, the config1 is interpreted as the dict:
 
-    ::
-
-        {'a': {'b': 2, 'b_path': 'config2.yaml'}, 'c_path': 'config3.yaml', 'c': 3}
+    ```python
+    {'a': {'b': 2, 'b_path': 'config2.yaml'}, 'c_path': 'config3.yaml', 'c': 3}
+    ```
 
     If you replace '@merge_after' by '@merge_before', it will be:
 
-    ::
+    ```python
+    {'a': {'b': 1, 'b_path': 'config2.yaml'}, 'c_path': 'config3.yaml', 'c': 3}
+    ```
 
-        {'a': {'b': 1, 'b_path': 'config2.yaml'}, 'c_path': 'config3.yaml', 'c': 3}
-
-    Finally, if you replace ``@merge_after`` by ``@merge_add``, it will raises an
-    error because the key ``a.b`` already exists in the dict.
+    Finally, if you replace `@merge_after` by `@merge_add`, it will raise an
+    error because the key `a.b` already exists in the dict.
     """
 
     def __init__(self) -> None:
@@ -172,13 +166,13 @@ class ProcessMerge(Processing):
 
 
 class ProcessCopy(Processing):
-    """Copy a value with ``@copy`` tag. The copy is protected from direct updates.
+    """Copy a value with `@copy` tag. The copy is protected from direct updates.
 
-    Tag your key with ``@copy`` and with value the name of the flat key to copy.
+    Tag your key with `@copy` and with value the name of the flat key to copy.
     The pre-merge processing removes the tag. The post-merge processing
     sets the value (if the copied key exists). The end-build processing checks
     that the key to copy exists and copy them. The pre-save processing
-    restore the tag and the key to copy to keep the information on future loads.
+    restores the tag and the key to copy to keep the information on future loads.
     The post-merge and the end-build processings occur after most processings to
     allow the user to modify or add the copied key before the copy.
     Pre-merge order: 0.0
@@ -188,28 +182,27 @@ class ProcessCopy(Processing):
 
     Examples
     --------
-    .. code-block:: yaml
-
-        # config.yaml
-        a:
-          b: 1
-          c@copy: a.b
+    ```yaml
+    # config.yaml
+    a:
+        b: 1
+        c@copy: a.b
+    ```
 
     Before merging, the config is interpreted as the dict
 
-    .. code-block:: python
-
-        {'a': {'b': 1, 'c': 1}}
+    ```python
+    {'a': {'b': 1, 'c': 1}}
+    ```
 
     Note
     ----
-
-        * The copy key is protected against any modification and will raise an error
-          if you try to modify it but will be updated if the copied key is updated.
-        * If the key to copy does not exist in the config on post-merge, no error
-          is raised to let the user the possibility to add the key later via merge.
-          However, if the key still does not exist at the end of the build
-          (and the key was never copied), an error is raised.
+    * The copy key is protected against any modification and will raise an error
+        if you try to modify it but will be updated if the copied key is updated.
+    * If the key to copy does not exist in the config on post-merge, no error
+        is raised to let the user the possibility to add the key later via merge.
+        However, if the key still does not exist at the end of the build
+        (and the key was never copied), an error is raised.
     """
 
     def __init__(self) -> None:
@@ -301,7 +294,7 @@ class ProcessCopy(Processing):
 
 
 class ProcessDef(Processing):
-    """Dynamically define a value from math expression with ``@def`` tag.
+    """Dynamically define a value from math expression with `@def` tag.
 
     The expression can contain any parameter name of the configuration.
     The most usefull operators and built-in functions are supported,
@@ -320,32 +313,31 @@ class ProcessDef(Processing):
 
     Examples
     --------
-    .. code-block:: yaml
-
-        # config.yaml
-        a:
-          b: 1
-          c: 2
-        d@def: "(a.b + a.c) * 2 > 5"
+    ```yaml
+    # config.yaml
+    a:
+        b: 1
+        c: 2
+    d@def: "(a.b + a.c) * 2 > 5"
+    ```
 
     Before merging, the config is interpreted as the dict
 
-    .. code-block:: python
-
-        {'a': {'b': 1, 'c': 2}, 'd': True}
+    ```python
+    {'a': {'b': 1, 'c': 2}, 'd': True}
+    ```
 
     Now the parameter d is automatically updated if a.b or a.c changes
     while also remaining editable by it-self.
 
     Note
     ----
-
-        * Unlike @copy processing you can change the value by setting
-          an other value or an other definition with @def.
-        * Unlike copy processing all the keys used in expression
-          must be in the config at post-merge.
-        * This processing does not use ``eval`` and is therefore safe from
-          malicious code.
+    * Unlike @copy processing you can change the value by setting
+        an other value or an other definition with @def.
+    * Unlike copy processing all the keys used in expression
+        must be in the config at post-merge.
+    * This processing does not use `eval` and is therefore safe from
+        malicious code.
     """
 
     def __init__(self) -> None:
@@ -411,14 +403,14 @@ class ProcessDef(Processing):
 
 
 class ProcessTyping(Processing):
-    """Try to convert and force a type with ``@type:<mytype>`` tag.
+    """Try to convert and force a type with `@type:<mytype>` tag.
 
     The type is forced forever.
     Allow basic types (none, any, bool, int, float, str, list, dict), nested lists,
     nested dicts, unions (with Union or the '|' symbol) and Optional.
     The type description is lowercased and spaces are removed.
 
-    For instance: ``@type:None|List[Dict[str, int|float]]`` is valid and force
+    For instance: `@type:None|List[Dict[str, int|float]]` is valid and force
     the type to be None or a list containing dicts with str keys and int or float
     values.
 
@@ -431,32 +423,32 @@ class ProcessTyping(Processing):
 
     Note
     ----
-        * The conversion into union type is from left to right. For instance,
-          ``param@type:List[str|float]: [True]`` is converted to ``["True"]``.
-        * The type is not checked on pre-merge or post-merge to allow the parameter
-          to be updated (by a copy or a merge for instance). The goal of this
-          processing is to ensure the type at the end of the build.
+    * The conversion into union type is from left to right. For instance,
+        `param@type:List[str|float]: [True]` is converted to `["True"]`.
+    * The type is not checked on pre-merge or post-merge to allow the parameter
+        to be updated (by a copy or a merge for instance). The goal of this
+        processing is to ensure the type at the end of the build.
 
 
     Examples
     --------
-    ::
+    ```python
+    in_dict = {"param@type:None|List[int|float]": None}
+    dict1 = {param: [0, 1, 2.0]}  # no error
+    dict2 = {param: [0, 1, 2.0, 'a']}  # error
+    dict3 = {param: [0, 1, "2"]}  # no error but convert to [0, 1, 2]
+    ```
 
-        in_dict = {"param@type:None|List[int|float]": None}
-        dict1 = {param: [0, 1, 2.0]}  # no error
-        dict2 = {param: [0, 1, 2.0, 'a']}  # error
-        dict3 = {param: [0, 1, "2"]}  # no error but convert to [0, 1, 2]
-
-    Merging configs with dictionaries ``in_dict`` and ``dict1`` raises no
-    error and ``param`` is forced to be None or a list of int or float forever.
-    Merging config with ``in_dict`` and ``dict2`` raises an error on post-merge
+    Merging configs with dictionaries `in_dict` and `dict1` raises no
+    error and `param` is forced to be None or a list of int or float forever.
+    Merging config with `in_dict` and `dict2` raises an error on post-merge
     due to the 'a' value (which is a string).
-    Merging config with ``in_dict`` and ``dict3`` raises no error and convert
+    Merging config with `in_dict` and `dict3` raises no error and convert
     the value to [0, 1, 2].
 
-    Note that removing "None|" in the type description of ``param`` still
+    Note that removing "None|" in the type description of `param` still
     doesn't raise an error in those cases because the type checking is
-    evaluated after the merge with ``dict2``.
+    evaluated after the merge with `dict2`.
     """
 
     def __init__(self) -> None:
@@ -529,9 +521,9 @@ class ProcessTyping(Processing):
 
 
 class ProcessSelect(Processing):
-    """Select a sub-config with ``@select`` and delete the rest of its parent config.
+    """Select a sub-config with `@select` and delete the rest of its parent config.
 
-    First look in pre-merge for a parameter tagged with ``@select`` containing a
+    First look in pre-merge for a parameter tagged with `@select` containing a
     flat key corresponding to a sub-configurations to keep. The parent configuration
     is then deleted on post-merge, except the selected sub-configuration
     and eventually the tagged parameter (if it is in the same sub-configuration).
@@ -543,31 +535,30 @@ class ProcessSelect(Processing):
 
     Examples
     --------
-    .. code-block:: yaml
+    ```yaml
+    models:
+        model_names@select: [models.model1, models.model3]
+        model1:
+            param1: 1
+            param2: 2
+        model2:
+            param1: 3
+            param2: 4
+        model3:
+            submodel:
+                param: 5
+        model4:
+            param: 6
+    ```
 
-        models:
-            model_names@select: [models.model1, models.model3]
-            model1:
-                param1: 1
-                param2: 2
-            model2:
-                param1: 3
-                param2: 4
-            model3:
-                submodel:
-                    param: 5
-            model4:
-                param: 6
-
-    Result in deleting ``models.model2`` (``param1`` and ``param2``) and
-    ``models.model4.param``, and keeping the rest.
+    Result in deleting `models.model2` (`param1` and `param2`) and
+    `models.model4.param`, and keeping the rest.
 
     Warning
     -------
-
-        For security reasons, this processing prevents from deleting
-        the configuration at the root, which is the case when the
-        selected key doesn't contain a dot. It raises an error in this case.
+    For security reasons, this processing prevents from deleting
+    the configuration at the root, which is the case when the
+    selected key doesn't contain a dot. It raises an error in this case.
     """
 
     def __init__(self) -> None:
@@ -648,45 +639,44 @@ class ProcessSelect(Processing):
 
 
 class ProcessDelete(Processing):
-    """Delete the sub-configs/parameters tagged with ``@delete`` on pre-merge.
+    """Delete the sub-configs/parameters tagged with `@delete` on pre-merge.
 
     This processing is useful to activate a processing without adding
     an additional parameter in the default configuration to avoid the error
-    on merge with ``allow_new_keys=False``. This processing is applied very
+    on merge with `allow_new_keys=False`. This processing is applied very
     late on pre-merge to allow the others processing to be applied before
     deleting the parameters.
     Pre-merge order: 30.0
 
     Examples
     --------
-    .. code-block:: yaml
+    ```yaml
+    # main.yaml
+    1@select@delete: configs.config1
+    2@merge_add@delete: config1.yaml
+    3@merge_add@delete: config2.yaml
 
-        # main.yaml
-        1@select@delete: configs.config1
-        2@merge_add@delete: config1.yaml
-        3@merge_add@delete: config2.yaml
+    # config1.yaml
+    configs.config1.param: 1
+    configs.config1.param2: 2
 
-        # config1.yaml
-        configs.config1.param: 1
-        configs.config1.param2: 2
-
-        # config2.yaml
-        configs.config2.param: 3
-        configs.config2.param: 4
+    # config2.yaml
+    configs.config2.param: 3
+    configs.config2.param: 4
+    ```
 
     Here we want to merge two config files and select one sub-config.
     We use the corresponding tags but we don't have a good name for the keys
     and instead of adding a new parameter in the default configuration with
-    random names like "1", "2", "3", we use the ``@delete`` tag to delete the
+    random names like "1", "2", "3", we use the `@delete` tag to delete the
     keys after the pre-merge processing.
 
     Warning
     -------
-
-        The sub-config/parameter is deleted on pre-merge. Therefore, if the parameter
-        also exists on the other configuration during merge (without the tag),
-        this parameter will be remain as it is. This processing is more used
-        to delete parameter that is NOT present in the default configuration.
+    The sub-config/parameter is deleted on pre-merge. Therefore, if the parameter
+    also exists on the other configuration during merge (without the tag),
+    this parameter will be remain as it is. This processing is more used
+    to delete parameter that is NOT present in the default configuration.
     """
 
     def __init__(self) -> None:
@@ -704,7 +694,7 @@ class ProcessDelete(Processing):
 
 
 class ProcessNew(Processing):
-    """Allow new sub-config/parameter absent from default config with tag ``@new``.
+    """Allow new sub-config/parameter absent from default config with tag `@new`.
 
     The tagged sub-config/parameter and its value is stored during pre-merge and
     is deleted to avoid error on merge due to new key. It is then restored on
@@ -723,34 +713,33 @@ class ProcessNew(Processing):
 
     Examples
     --------
-    .. code-block:: yaml
+    ```yaml
+    # default.yaml
+    param1: 1
 
-        # default.yaml
-        param1: 1
-
-        # additional.yaml
-        param2@new: 2
-        subconfig@new.subsubconfig:
-            param3: 3
-            param4: 4
+    # additional.yaml
+    param2@new: 2
+    subconfig@new.subsubconfig:
+        param3: 3
+        param4: 4
+    ```
 
     Use default.yaml as default configuration and add additional.yaml as additional
     configuration via CLI results on the configuration containing param1, param2
     and the nested config containing param3 and param4.
-    Without the ``@new`` tag, an error is raised because param2 is not present in
+    Without the `@new` tag, an error is raised because param2 is not present in
     the default configuration.
 
     Note
     ----
-
-        * Tag a subconfig by adding ``@new`` at the end of the key containing
-          the sub-config dict in your yaml file.
-        * When a parameter is added with this processing, it is possible to modify it
-          later via config merge without the tag because the parameter is then present
-          in the current configuration.
-        * If the tagged parameter or sub-config is already present in the current
-          configuration, no error are raised and the value is still updated on
-          post-merge. It may no have influence in practice.
+    * Tag a subconfig by adding `@new` at the end of the key containing
+        the sub-config dict in your yaml file.
+    * When a parameter is added with this processing, it is possible to modify it
+        later via config merge without the tag because the parameter is then present
+        in the current configuration.
+    * If the tagged parameter or sub-config is already present in the current
+        configuration, no error are raised and the value is still updated on
+        post-merge. It may no have influence in practice.
     """
 
     def __init__(self) -> None:
@@ -792,15 +781,15 @@ class ProcessNew(Processing):
 
 
 class ProcessDict(Processing):
-    """Declare a dict instead of a sub-config with ``@dict`` tag.
+    """Declare a dict instead of a sub-config with `@dict` tag.
 
     This processing  can be used to declare a dict where the keys
     are not known in advance or will be modified. New keys are allowed
     in each merge and the element are still available using the dot
-    notation like ``config.subconfig.mydict.something``.
-    The pre-merge processing remove the tag and convert the dict to
+    notation like `config.subconfig.mydict.something`.
+    The pre-merge processing removes the tag and converts the dict to
     a wrapped dict to prevent the flattening. The end-build processing
-    unwrap the dicts to a normal dict. The pre-save processing restore
+    unwraps the dicts to a normal dict. The pre-save processing restores
     the tag to keep the information on future loads.
     Pre-merge order: -30.0
     End-build order: 0.0
@@ -808,37 +797,36 @@ class ProcessDict(Processing):
 
     Examples
     --------
-    .. code-block:: yaml
+    ```yaml
+    # default.yaml
+    param1: 0
+    param2: 2
+    sweep@dict: None
 
-        # default.yaml
-        param1: 0
-        param2: 2
-        sweep@dict: None
+    # additional1.yaml
+    sweep@dict:
+        metric: {name: accuracy, goal: maximize}
+        method: bayes
+        parameters:
+        param1: {min: 0, max: 50}
 
-        # additional1.yaml
-        sweep@dict:
-          metric: {name: accuracy, goal: maximize}
-          method: bayes
-          parameters:
-            param1: {min: 0, max: 50}
+    # additional2.yaml
+    sweep@dict:
+        name: "random sweep"
+        method: random
+        parameters:
+        param2: {min: 0, max: 10}
+    ```
 
-        # additional2.yaml
-        sweep@dict:
-          name: "random sweep"
-          method: random
-          parameters:
-            param2: {min: 0, max: 10}
-
-    The ``swep`` parameter is considered as a single dict object
+    The `swep` parameter is considered as a single dict object
     and not as a sub-config for merging.
 
     Warning
     -------
-
-        * Processings are not applied in the dict keys. In particular,
-          the tags are not used and not removed.
-        * The tag ``@dict`` must be added at the key containing
-          the dict every time you want to modify the dict.
+    * Processings are not applied in the dict keys. In particular,
+        the tags are not used and not removed.
+    * The tag `@dict` must be added at the key containing
+        the dict every time you want to modify the dict.
     """
 
     class PseudoDict:
@@ -958,9 +946,9 @@ class DefaultProcessings:
     """Default list of built-in processings.
 
     To add these processings to a Config instance, use:
-    ::
-
-        config.process_list += DefaultProcessings().list
+    ```python
+    config.process_list += DefaultProcessings().list
+    ```
 
     The current default processing list contains:
      * ProcessCheckTags: protect against '@' in keys at the end of pre-merge)

@@ -1,0 +1,28 @@
+/* pdoc dark-mode color scheme  */
+:root {
+    --pdoc-background: #ffffff;
+}
+
+.pdoc {
+    --text: hsl(0, 0%, 0%);
+    --muted: hsl(0, 0%, 52%);
+    --link: hsl(212, 100%, 67%);
+    --link-hover: hsl(216, 100%, 61%);
+
+    --active: #ffffff;
+
+    --code: #ffffff;
+    --code-text: hsl(0, 0%, 7%);
+
+    --accent: hsl(0, 0%, 7%);
+    --accent2: hsl(0, 0%, 27%);
+
+    --nav-text: #cccccc;
+    --nav-background: hsl(0, 0%, 22%);
+    --nav-hover: hsl(0, 0%, 32%);
+    --nav-border: hsl(0, 0%, 61%);
+
+    --name: hsl(207, 38%, 43%);
+    --def: hsl(147, 100%, 21%);
+    --annotation: hsl(137, 100%, 38%);
+}

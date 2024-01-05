@@ -11,14 +11,14 @@ def _parse_type(type_desc: str) -> Tuple:
     nested dicts, unions (with Union or the '|' symbol) and Optional.
 
     Examples of representation:
-     * "str" -> (str,)
-     * "None|Any" -> (type(None), object)
-     * "list|float" -> (list, float)
-     * "List[float]" -> (("list", (float,)),)
-     * "Dict[str, Any]" -> (("dict", (str,), (object,)),)
-     * "Dict[str, List[float]]" -> (("dict", (str,), ((("list", (float,)),),)),)
-     * "Dict[str|bool, int|float]" -> (("dict", (str, bool), (int, float)),)
-     * ...
+    * "str" -> (str,)
+    * "None|Any" -> (type(None), object)
+    * "list|float" -> (list, float)
+    * "List[float]" -> (("list", (float,)),)
+    * "Dict[str, Any]" -> (("dict", (str,), (object,)),)
+    * "Dict[str, List[float]]" -> (("dict", (str,), ((("list", (float,)),),)),)
+    * "Dict[str|bool, int|float]" -> (("dict", (str, bool), (int, float)),)
+    * ...
 
     Raises
     ------
@@ -27,7 +27,7 @@ def _parse_type(type_desc: str) -> Tuple:
 
     Note
     ----
-        The type description is lowercased and spaces are removed before parsing.
+    The type description is lowercased and spaces are removed before parsing.
     """
     # Clean up
     old_type_desc = type_desc

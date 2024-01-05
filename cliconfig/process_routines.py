@@ -1,7 +1,7 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
-"""Routines to manipulate dictionaries with processing.
+"""Low-level routines to manipulate config while triggering processing.
 
-Used by :mod:`.config_routines`.
+Used by `cliconfig.config_routines`.
 """
 from typing import List, Optional, Union
 
@@ -26,7 +26,7 @@ def merge_flat_processing(
     preprocess_second: bool = True,
     postprocess: bool = True,
 ) -> Config:
-    """Flatten, merge config2 into config1 and apply pre and post processing.
+    """Flatten and merge config2 into config1 and apply pre and post processing.
 
     Work even if the config dicts have a mix of nested and flat dictionaries.
     If both arguments are configs, the process lists are merged before applying
@@ -107,7 +107,7 @@ def merge_flat_paths_processing(
 ) -> Config:
     """Flatten, merge and apply processing to two configs or their yaml paths.
 
-    Similar to :func:`merge_flat_processing` but allows to pass configs
+    Similar to `merge_flat_processing` but allows to pass configs
     or their yaml paths. Work even if the configs have a mix of nested and flat dicts.
     If both arguments are configs, the process lists are merged before applying
     the processing. The duplicate processings (with same internal variables)
@@ -229,6 +229,9 @@ def load_processing(path: str, process_list: List[Processing]) -> Config:
 
 def end_build_processing(flat_config: Config) -> Config:
     """Apply end-build processings to a flat config.
+
+    Typically used after operations that provide a usable config.
+    This fonction doesn't unflatten the dict.
 
     Parameters
     ----------

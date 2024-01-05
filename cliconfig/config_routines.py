@@ -1,5 +1,5 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
-"""Functions to manipulate config as dict with yaml files and CLI."""
+"""Low-level and high-level functions to manipulate config."""
 import sys
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Union
@@ -28,8 +28,9 @@ def make_config(
 ) -> Config:
     r"""Make a config from default config(s) and CLI argument(s) with processing.
 
-    The function uses the CLI Config routines :func:`.parse_cli` to parse the CLI
-    arguments and merge them with :func:`.merge_flat_paths_processing`, applying
+    The function uses the CLI Config routines `cliconfig.cli_parser.parse_cli`
+    to parse the CLI arguments and merge them with
+    `cliconfig.process_routines.merge_flat_paths_processing`, applying
     the pre-merge and post-merge processing functions on each merge.
 
     Parameters
@@ -42,11 +43,11 @@ def make_config(
         By default None.
     add_default_processing : bool, optional
         If add_default_processing is True, the default processings
-        (found on :class:`.DefaultProcessings`) are added to the list of
-        processings. By default True.
+        (found on `cliconfig.processing.builtin.DefaultProcessings`) are added to
+        the list of processings. By default True.
     fallback : str, optional
         Path of the configuration to use if no additional config is provided
-        with ``--config``. No fallback config if empty string (default),
+        with `--config`. No fallback config if empty string (default),
         in that case, the config is the default configs plus the CLI arguments.
     no_cli : bool, optional
         If True, the CLI arguments are not parsed and the config is only
@@ -67,22 +68,21 @@ def make_config(
 
     Note
     ----
-
-        Setting additional arguments from CLI that are not in default configs
-        does NOT raise an error but only a warning. This ensures the compatibility
-        with other CLI usage (e.g notebook, argparse, etc.)
+    Setting additional arguments from CLI that are not in default configs
+    does NOT raise an error but only a warning. This ensures the compatibility
+    with other CLI usage (e.g notebook, argparse, etc.)
 
     Examples
     --------
-    ::
+    ```python
+    # main.py
+    config = make_config('data.yaml', 'model.yaml', 'train.yaml')
+    ```
 
-        # main.py
-        config = make_config('data.yaml', 'model.yaml', 'train.yaml')
-
-    .. code-block:: text
-
-        $ python main.py -- config [bestmodel.yaml,mydata.yaml] \
-              --architecture.layers.hidden_dim=64
+    ```script
+    python main.py -- config [bestmodel.yaml,mydata.yaml] \
+        --architecture.layers.hidden_dim=64
+    ```
 
     """
     # Create the processing list
@@ -169,8 +169,8 @@ def load_config(
         If None, no processing is applied. By default None.
     add_default_processing : bool, optional
         If add_default_processing is True, the default processings
-        (found on :class:`.DefaultProcessings`) are added to the list of
-        processings. By default True.
+        (found on `cliconfig.processing.builtin.DefaultProcessings`)
+        are added to the list of processings. By default True.
 
     Returns
     -------
@@ -181,10 +181,9 @@ def load_config(
 
     Note
     ----
-
-        If default configs are provided, the function does not allow new keys
-        for the loaded config. This is for helping the user to see how to
-        adapt the config file if the default configs have changed.
+    If default configs are provided, the function does not allow new keys
+    for the loaded config. This is for helping the user to see how to
+    adapt the config file if the default configs have changed.
     """
     # Crate process_list
     process_list_: List[Processing] = [] if process_list is None else process_list
@@ -220,7 +219,7 @@ def load_config(
 def save_config(config: Config, path: str) -> None:
     """Save a config and apply pre-save processing before saving.
 
-    Alias for :func:`.save_processing`.
+    Alias for `cliconfig.process_routines.save_processing`.
 
     Parameters
     ----------
