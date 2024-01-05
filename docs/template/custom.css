@@ -1,17 +1,23 @@
 .pdoc h1,
 .pdoc h2,
-.pdoc h3 {
+.pdoc h3,
+.pdoc h4 {
     font-weight: 500;
+
 }
 
 h1 {
-    color: #0122F5;
+    color: #57178b;
 }
 
 h2 {
-    color: #0C75F5;
+    color: #af1488;
 }
 
 h3 {
-    color: #0CF5E1;
+    color: #ff004c;
+}
+
+h4 {
+    color: #000000;
 }

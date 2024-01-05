@@ -1,5 +1,5 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
-"""Functions to manipulate config as dict with yaml files and CLI."""
+"""Low-level and high-level functions to manipulate config."""
 import sys
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Union
@@ -68,22 +68,21 @@ def make_config(
 
     Note
     ----
-
-        Setting additional arguments from CLI that are not in default configs
-        does NOT raise an error but only a warning. This ensures the compatibility
-        with other CLI usage (e.g notebook, argparse, etc.)
+    Setting additional arguments from CLI that are not in default configs
+    does NOT raise an error but only a warning. This ensures the compatibility
+    with other CLI usage (e.g notebook, argparse, etc.)
 
     Examples
     --------
-    ::
+    ```python
+    # main.py
+    config = make_config('data.yaml', 'model.yaml', 'train.yaml')
+    ```
 
-        # main.py
-        config = make_config('data.yaml', 'model.yaml', 'train.yaml')
-
-    .. code-block:: text
-
-        $ python main.py -- config [bestmodel.yaml,mydata.yaml] \
-              --architecture.layers.hidden_dim=64
+    ```script
+    python main.py -- config [bestmodel.yaml,mydata.yaml] \
+        --architecture.layers.hidden_dim=64
+    ```
 
     """
     # Create the processing list
@@ -182,10 +181,9 @@ def load_config(
 
     Note
     ----
-
-        If default configs are provided, the function does not allow new keys
-        for the loaded config. This is for helping the user to see how to
-        adapt the config file if the default configs have changed.
+    If default configs are provided, the function does not allow new keys
+    for the loaded config. This is for helping the user to see how to
+    adapt the config file if the default configs have changed.
     """
     # Crate process_list
     process_list_: List[Processing] = [] if process_list is None else process_list

@@ -5,22 +5,22 @@
 
 .pdoc {
     --text: hsl(0, 0%, 0%);
-    --muted: hsl(0, 0%, 47%);
+    --muted: hsl(0, 0%, 52%);
     --link: hsl(212, 100%, 67%);
     --link-hover: hsl(216, 100%, 61%);
 
-    --active: hsl(0, 0%, 91%);
+    --active: #ffffff;
 
-    --code: hsl(215, 21%, 95%);
+    --code: #ffffff;
     --code-text: hsl(0, 0%, 7%);
 
     --accent: hsl(0, 0%, 7%);
     --accent2: hsl(0, 0%, 27%);
 
-    --nav-text: #aeccb6;
-    --nav-background: hsl(0, 0%, 7%);
-    --nav-hover: hsl(0, 0%, 12%);
-    --nav-border: hsl(0, 0%, 27%);
+    --nav-text: #cccccc;
+    --nav-background: hsl(0, 0%, 22%);
+    --nav-hover: hsl(0, 0%, 32%);
+    --nav-border: hsl(0, 0%, 61%);
 
     --name: hsl(207, 38%, 43%);
     --def: hsl(147, 100%, 21%);
