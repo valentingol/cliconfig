@@ -5,7 +5,7 @@
 
 .pdoc {
     --text: hsl(0, 0%, 0%);
-    --muted: hsl(0, 0%, 37%);
+    --muted: hsl(0, 0%, 52%);
     --link: hsl(212, 100%, 67%);
     --link-hover: hsl(216, 100%, 61%);
 
@@ -17,10 +17,10 @@
     --accent: hsl(0, 0%, 7%);
     --accent2: hsl(0, 0%, 27%);
 
-    --nav-text: #87f1ff;
-    --nav-background: hsl(0, 0%, 0%);
-    --nav-hover: hsl(0, 0%, 19%);
-    --nav-border: hsl(0, 0%, 32%);
+    --nav-text: #ff5100;
+    --nav-background: hsl(0, 0%, 21%);
+    --nav-hover: hsl(0, 0%, 32%);
+    --nav-border: hsl(0, 0%, 61%);
 
     --name: hsl(207, 38%, 43%);
     --def: hsl(147, 100%, 21%);
