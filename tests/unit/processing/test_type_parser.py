@@ -9,8 +9,8 @@ from cliconfig.processing._type_parser import (
     _convert_type,
     _isinstance,
     _parse_dict,
-    _parse_list,
     _parse_optional,
+    _parse_set_list,
     _parse_type,
     _parse_union,
 )
@@ -23,6 +23,16 @@ def test_type_routines() -> None:
     check.is_true(_isinstance(None, type_))
     check.is_false(_isinstance([None], type_))
     check.equal(_convert_type("unchanged", type_), "unchanged")
+
+    check.is_true(_isinstance(obj=False,  types=_parse_type("bool")))
+    check.is_true(_isinstance(2.3,  _parse_type("float")))
+    check.is_true(_isinstance((1, 2),  _parse_type("tuple")))
+    check.is_true(_isinstance({1, 2},  _parse_type("set")))
+    check.equal(a=_convert_type(0,  _parse_type("bool")), b=False)
+    check.equal(_convert_type(2.3,  _parse_type("int")), 2)
+    check.equal(_convert_type([[1, 2]], _parse_type("dict")), {1: 2})
+    check.equal(_convert_type([1, 2], _parse_type("tuple")), (1, 2))
+    check.equal(_convert_type((1, 1), _parse_type("set")), {1})
 
     type_ = _parse_type("List[float]")
     check.equal(type_, (("list", (float,)),))
@@ -43,6 +53,24 @@ def test_type_routines() -> None:
 
     type_ = _parse_type("Dict[str|bool, int|float]")
     check.equal(type_, (("dict", (str, bool), (int, float)),))
+
+    type_ = _parse_type("Dict[str, Set[float]]")
+    check.equal(type_, (("dict", (str,), (("set", (float,)),)),))
+    check.is_true(_isinstance({"a": {1.0, 2.0}}, type_))
+    check.equal(
+        _convert_type({"a": [1.0, 2.0], "b": [1.0, 2]}, type_),
+        {"a": {1.0, 2.0}, "b": {1.0, 2.0}},
+    )
+
+    type_ = _parse_type("Dict[str, Tuple[float, str]]")
+    check.equal(type_, (("dict", (str,), (("tuple", (float,), (str,)),)),))
+    check.is_true(_isinstance({"a": (0.2, "a")}, type_))
+    check.is_false(_isinstance({"a": [0.2, "a"]}, type_))
+    check.is_false(_isinstance({"a": [2, "a"]}, type_))
+    check.equal(
+        _convert_type({"a": {1, 2}, "b": [1, 2]}, type_),
+        {"a": (1.0, "2"), "b": (1, "2")},
+    )
 
     type_ = _parse_type("Union[Optional[float], Any]")
     check.equal(type_, ((type(None), float), object))
@@ -90,6 +118,9 @@ def test_type_routines() -> None:
     desc = "None||float"
     with pytest.raises(ValueError, match=f"Unknown type: '{desc}'"):
         _parse_type(desc)
+    desc = "Unknown[float]"
+    with pytest.raises(ValueError, match=re.escape(f"Unknown type: '{desc}'")):
+        _parse_type(desc)
     desc = (
         "Dict[str, Union[List[None|float], Dict[bool, Optionnal[int]]]]|List[Any]|"
         "Dict[List[int], Optional[Dict[str, float]]]|float"
@@ -118,7 +149,7 @@ def test_type_routines() -> None:
 def test_errors_in_parse() -> None:
     """Test error raised in _parse_X functions."""
     with pytest.raises(ValueError, match="Invalid List type:.*"):
-        _parse_list("List[bool, str]")
+        _parse_set_list("list", "List[bool, str]")
 
     with pytest.raises(ValueError, match="Invalid Dict type:.*"):
         _parse_dict("Dict[str, bool, int]]")
