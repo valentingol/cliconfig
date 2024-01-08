@@ -1,5 +1,6 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Low-level and high-level functions to manipulate config."""
+import logging
 import sys
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Union
@@ -66,8 +67,8 @@ def make_config(
         the processing list (config.process_list) which can be used to apply
         further processing routines.
 
-    Note
-    ----
+    Notes
+    -----
     Setting additional arguments from CLI that are not in default configs
     does NOT raise an error but only a warning. This ensures the compatibility
     with other CLI usage (e.g notebook, argparse, etc.)
@@ -124,20 +125,24 @@ def make_config(
             del cli_params_dict[key]
     if new_keys:
         new_keys_message = "  - " + "\n  - ".join(new_keys)
-        print(
+        message = (
             "[CONFIG] Warning: New keys found in CLI parameters "
             f"that will not be merged:\n{new_keys_message}"
         )
+        logging.warning(message)
+        print(message)
     # Merge CLI parameters
     cli_params_config = Config(cli_params_dict, [])
     config = merge_flat_processing(
         config, cli_params_config, allow_new_keys=False, preprocess_first=False
     )
-    print(
+    message = (
         f"[CONFIG] Info: Merged {len(default_config_paths)} default config(s), "
         f"{len(additional_config_paths)} additional config(s) and "
         f"{len(cli_params_dict)} CLI parameter(s)."
     )
+    logging.info(message)
+    print(message)
     config = end_build_processing(config)
     config.dict = unflatten(config.dict)
     return config
@@ -179,8 +184,8 @@ def load_config(
         the processing list (config.process_list) which can be used to apply
         further processing routines.
 
-    Note
-    ----
+    Notes
+    -----
     If default configs are provided, the function does not allow new keys
     for the loaded config. This is for helping the user to see how to
     adapt the config file if the default configs have changed.
