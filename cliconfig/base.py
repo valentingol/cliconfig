@@ -25,7 +25,6 @@ class Config:
 
     Examples
     --------
-    ```python
     >>> config = Config({"a": 1, "b": {"c": 2}})
     >>> config.dict
     {"a": 1, "b": {"c": 2}}
@@ -35,7 +34,6 @@ class Config:
     Config({"c": 2}, [])
     >>> config.b.c
     2
-    ```
     """
 
     def __init__(

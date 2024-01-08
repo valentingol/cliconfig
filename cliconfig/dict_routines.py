@@ -55,7 +55,6 @@ def merge_flat(
 
     Examples
     --------
-    ```python
     >>> merge_dict({'a.b': 1, 'a': {'c': 2}},  {'c': 3}, allow_new_keys=True)
     {'a.b': 1, 'a.c': 2, 'c': 3}
     >>> merge_dict({'a.b': 1, 'a': {'c': 2}},  {'c': 3}, allow_new_keys=False)
@@ -64,7 +63,6 @@ def merge_flat(
     ValueError: duplicated key 'a.b'.
     The above exception was the direct cause of the following exception:
     ValueError: You may consider calling 'clean_pre_flat' on dict 1 before merging.
-    ```
     """
     # Flatten dicts
     flat_dict1, flat_dict2 = _flat_before_merge(dict1, dict2)
@@ -162,11 +160,8 @@ def flatten(in_dict: Dict[str, Any]) -> Dict[str, Any]:
     Work even if in_dict is a mix of nested and flat dictionaries.
     For instance like this:
 
-    ```python
     >>> flatten({'a.b': {'c': 1}, 'a': {'b.d': 2}, 'a.e': {'f.g': 3}})
     {'a.b.c': 1, 'a.b.d': 2, 'a.e.f.g': 3}
-    ```
-
 
     Parameters
     ----------
@@ -183,8 +178,8 @@ def flatten(in_dict: Dict[str, Any]) -> Dict[str, Any]:
     flat_dict : Dict[str, Any]
         The flattened dict.
 
-    Note
-    ----
+    Notes
+    -----
     Nested empty dict are ignored even if they are conflicting (see last example).
 
     Examples
@@ -226,13 +221,11 @@ def unflatten(flat_dict: Dict[str, Any]) -> Dict[str, Any]:
 
     Examples
     --------
-    ```python
     >>> unflatten({'a.b': 1, 'a.c': 2, 'c': 3})
     {'a': {'b': 1, 'c': 2}, 'c': 3}
     >>> unflatten({'a.b': 1, 'a': {'c': 2}})
     ValueError: duplicated key 'a'
     The dict must be flatten before calling unflatten function.
-    ```
     """
     try:
         unflat_dict = _unflatten(flat_dict, splitter="dot")
@@ -269,8 +262,8 @@ def clean_pre_flat(in_dict: Dict[str, Any], priority: str) -> Dict[str, Any]:
     Dict[str, Any]
         The cleansed dict.
 
-    Warning
-    -------
+    Warns
+    -----
     * No flat key can contain a dict. Then, dicts like `{'a.b': {'c': 1}}`
       are not supported.
     * All the keys that contain dots (the flat keys) must be at the root.
@@ -280,14 +273,12 @@ def clean_pre_flat(in_dict: Dict[str, Any], priority: str) -> Dict[str, Any]:
 
     Examples
     --------
-    ```python
     >>> clean_pre_flat({'a.b': 1, 'a': {'b': 2}, 'c': 3}, priority='flat')
     {'a.b': 1, 'c': 3}
     >>> clean_pre_flat({'a.b': 1, 'a': {'b': 2}, 'c': 3}, priority='unflat')
     {'a': {'b': 2}, 'c': 3}
     >>> clean_pre_flat({'a.b': 1, 'a': {'b': 2}, 'c': 3}, priority='error')
     ValueError: duplicated key 'a.b'
-    ```
     """
     if priority in ("flat", "unflat"):
         # Check that there are no conflicts
@@ -339,8 +330,8 @@ def _del_key(
     ValueError
         If the key is not found in the dict.
 
-    Warning
-    -------
+    Warns
+    -----
     * No flat key can contain a dict. Then, dicts like `{'a.b': {'c': 1}}`
         are not supported.
     * All the keys that contain dots (the flat keys) must be at the root.
@@ -350,7 +341,6 @@ def _del_key(
 
     Examples
     --------
-    ```python
     >>> in_dict = {'a': {'b': {'c': 1}, 'd': 2}, 'a.b.c': 4}
     >>> _del_key(in_dict, 'a.b.c'); in_dict
     {'a': {'d': 2}}
@@ -362,7 +352,6 @@ def _del_key(
     ValueError: Key 'a.b.z' not found in dict.
     >>> _del_key(in_dict, 'a.z.c')
     ValueError: Key 'a.z.c' not found in dict.
-    ```
     """
     found_key = False
     if not keep_flat and flat_key in in_dict:
@@ -437,8 +426,8 @@ def load_dict(path: str) -> Dict[str, Any]:
     out_dict : Dict[str, Any]
         The nested (unflatten) loaded dict.
 
-    Note
-    ----
+    Notes
+    -----
     * If multiple yaml files are in the same document, they are merged
         from the first to the last.
     * To use multiple yaml tags, separate them with "@". E.g. `!tag1@tag2`.
