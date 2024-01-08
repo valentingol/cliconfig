@@ -260,25 +260,29 @@ section of the documentation.
 
 ## Edge cases
 
-* **Please note that YAML does not support tuples and sets**, and therefore they
-  cannot be used in YAML files. If possible, consider using lists instead.
+* **YAML does not recognize "None" as a None object**, but interprets it as a
+  string. If you wish to set a None object, you can **use "null" or "Null" instead**.
 
-* Moreover, YAML does not recognize "None" as a None object, but interprets it as a
-  string. If you wish to set a None object, you can use "null" or "Null" instead.
+* **Please note that YAML does not natively support tuples and sets**, and therefore they
+  cannot be used directly in YAML files. However, you can use either cliconfig type conversion
+  (with `@type:<tuple/set>` followed by a list) or cliconfig definition
+  (with `@def` followed by a string) to define a set or a tuple. Example:
 
-* "@" is a special character used by the package to identify tags. You can't use it
-  in your parameters names (but you can use it in your values). It will raise an error
-  if you try to do so.
+```yaml
+# config.yaml
+my_tuple@type:tuple: [1, 2, 3]
+my_tuple2@def: "(1, 2, 3)"
+my_set@type:set: [1, 2, 3]
+my_set2@def: "{1, 2, 3}"
+```
 
-* "dict" and "process_list" are reserved names of attributes and should not be used
-  as sub-config or parameter names. It can raise an error if you try to access them
-  as config attributes (with dots).
+Note that with `@def` you can also create lists, sets and dicts by comprehension.
 
-In the context of this package, dictionaries are treated as sub-configurations,
-which means that modifying or adding keys directly in the additional configs may
-not be possible (because only the merge of default configuration allow adding new keys).
-If you need to have a dictionary object where you can modify the keys, consider
-using the `@dict` tag:
+* In the context of this package, **dictionaries** are treated as sub-configurations,
+which means that modifying or adding keys directly in additional configs may
+not be possible (because only default configurations allow adding new keys).
+If you need to have a dictionary object where you want to modify the keys, **consider
+using the `@dict` tag**:
 
 For instance:
 
@@ -293,8 +297,18 @@ logging:
   styles@dict: {train_loss: red, val_acc: cyan}
 ```
 
-Like a sub-config, the dictionary can be accessed with the dot notation like this:
-`config.logging.styles.val_acc` and will return "cyan".
+This will not raises an error with the tag `@dict`.
+
+The dictionary can be accessed with the dot notation like this:
+`config.logging.styles.val_acc` like a sub-config (and will return "cyan" here).
+
+* "@" is a special character used by the package to identify tags. You can't use it
+  in your parameters names if there are not intended to be tags (but you can use it
+  in your values). It will raise an error if you try to do so.
+
+* "dict" and "process_list" are reserved names of config attributes and should not be used
+  as sub-configs or parameters names. If you try to do so, you will not able to access
+  them via dots (`config.<something>`).
 
 ## Processing
 
