@@ -67,12 +67,6 @@ def make_config(
         the processing list (config.process_list) which can be used to apply
         further processing routines.
 
-    Notes
-    -----
-    Setting additional arguments from CLI that are not in default configs
-    does NOT raise an error but only a warning. This ensures the compatibility
-    with other CLI usage (e.g notebook, argparse, etc.)
-
     Examples
     --------
     ```python
@@ -85,6 +79,10 @@ def make_config(
         --architecture.layers.hidden_dim=64
     ```
 
+    .. note::
+        Setting additional arguments from CLI that are not in default configs
+        does NOT raise an error but only a warning. This ensures the compatibility
+        with other CLI usage (e.g notebook, argparse, etc.)
     """
     # Create the processing list
     process_list_: List[Processing] = [] if process_list is None else process_list
@@ -184,11 +182,10 @@ def load_config(
         the processing list (config.process_list) which can be used to apply
         further processing routines.
 
-    Notes
-    -----
-    If default configs are provided, the function does not allow new keys
-    for the loaded config. This is for helping the user to see how to
-    adapt the config file if the default configs have changed.
+    .. note::
+        If default configs are provided, the function does not allow new keys
+        for the loaded config. This is for helping the user to see how to
+        adapt the config file if the default configs have changed.
     """
     # Crate process_list
     process_list_: List[Processing] = [] if process_list is None else process_list
