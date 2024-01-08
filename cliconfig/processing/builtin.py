@@ -823,10 +823,11 @@ class ProcessDict(Processing):
 
     Warns
     -----
-    - Processings are not applied in the dict keys. In particular,
-      the tags are not used and not removed.
-    - The tag `@dict` must be added at the key containing
-      the dict every time you want to modify the dict.
+    Processings are not applied in the dict keys. In particular,
+    the tags are not used and not removed.
+
+    The tag `@dict` must be added at the key containing
+    the dict every time you want to modify the dict.
     """
 
     class PseudoDict:
