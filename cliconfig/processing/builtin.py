@@ -406,9 +406,9 @@ class ProcessTyping(Processing):
     """Try to convert and force a type with `@type:<mytype>` tag.
 
     The type is forced forever.
-    Allow basic types (none, any, bool, int, float, str, list, dict), nested lists,
-    nested dicts, unions (with Union or the '|' symbol) and Optional.
-    The type description is lowercased and spaces are removed.
+    Allow basic types (none, any, bool, int, float, str, list, set, tuple, dict),
+    nested lists/sets/dicts, unions (with Union or the '|' symbol) and Optional.
+    The type description is automatically lowercased and spaces are removed.
 
     For instance: `@type:None|List[Dict[str, int|float]]` is valid and force
     the type to be None or a list containing dicts with str keys and int or float
@@ -823,10 +823,11 @@ class ProcessDict(Processing):
 
     Warns
     -----
-    - Processings are not applied in the dict keys. In particular,
-      the tags are not used and not removed.
-    - The tag `@dict` must be added at the key containing
-      the dict every time you want to modify the dict.
+    Processings are not applied in the dict keys. In particular,
+    the tags are not used and not removed.
+
+    The tag `@dict` must be added at the key containing
+    the dict every time you want to modify the dict.
     """
 
     class PseudoDict:

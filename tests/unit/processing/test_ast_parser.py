@@ -27,16 +27,16 @@ def test_ast_parser() -> None:
     result = _process_node(node=tree.body, flat_dict=flat_dict)
     check.equal(result, (0.2, 0.2))
 
-    expr = "sum([1 for _ in range(2)])"
+    expr = "sum([1 for _ in range(2)]), {i for i in range(3)}, {i: 0 for i in range(3)}"
     tree = ast.parse(expr, mode="eval")
     result = _process_node(node=tree.body, flat_dict=flat_dict)
-    check.equal(result, 2)
+    check.equal(result, (2, {0, 1, 2}, {0: 0, 1: 0, 2: 0}))
 
     flat_dict = {"elems": [(1, 2), (3, 4), (5, 6)], "val": 2}
-    expr = "{'list': [i+2*j for i, j in elems if i > val]}, val"
+    expr = "{'list': [i+2*j for i, j in elems if i > val]}, {val}"
     tree = ast.parse(expr, mode="eval")
     result = _process_node(node=tree.body, flat_dict=flat_dict)
-    check.equal(result, ({"list": [11, 17]}, 2))
+    check.equal(result, ({"list": [11, 17]}, {2}))
 
     flat_dict = {"a": {"b": 1}}
     expr = "list(a.keys())"

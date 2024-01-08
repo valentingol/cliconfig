@@ -25,11 +25,14 @@ def _process_node(node: Any, flat_dict: dict) -> Any:
         ast.Name: _process_param_name,  # parameter name
         ast.Attribute: _process_subconfig,  # sub-config
         ast.IfExp: _process_ifexp,  # if/else
-        ast.List: _process_ltd,  # list
-        ast.Tuple: _process_ltd,  # tuple
-        ast.Dict: _process_ltd,  # dict
+        ast.List: _process_ltsd,  # list
+        ast.Tuple: _process_ltsd,  # tuple
+        ast.Set: _process_ltsd,  # set
+        ast.Dict: _process_ltsd,  # dict
         ast.Call: _process_call,  # function
-        ast.ListComp: _process_listcomp,  # comprehension list
+        ast.ListComp: _process_lsdcomp,  # comprehension list/set/dict
+        ast.SetComp: _process_lsdcomp,  # comprehension list/set/dict
+        ast.DictComp: _process_lsdcomp,  # comprehension list/set/dict
         ast.comprehension: _process_comprehension,  # comprehension
     }
     if isinstance(node, tuple(functions.keys())):
@@ -131,8 +134,8 @@ def _process_ifexp(node: Any, flat_dict: dict) -> Any:
     )
 
 
-def _process_ltd(node: Any, flat_dict: dict) -> Any:
-    """Process a list, a tuple or a dict node."""
+def _process_ltsd(node: Any, flat_dict: dict) -> Any:
+    """Process a list, a tuple, a set or a dict node."""
     if isinstance(node, ast.List):
         # List
         return [
@@ -143,6 +146,11 @@ def _process_ltd(node: Any, flat_dict: dict) -> Any:
         return tuple(
             _process_node(node=element, flat_dict=flat_dict) for element in node.elts
         )
+    if isinstance(node, ast.Set):
+        # Set
+        return {
+            _process_node(node=element, flat_dict=flat_dict) for element in node.elts
+        }
     # Dict
     return {
         _process_node(node=key, flat_dict=flat_dict): _process_node(
@@ -236,14 +244,22 @@ def _filter_allowed(list_names: List[str]) -> bool:
     return False
 
 
-def _process_listcomp(node: Any, flat_dict: dict) -> Any:
-    """Process comprehension list node."""
-    elt = node.elt
+def _process_lsdcomp(node: Any, flat_dict: dict) -> Any:
+    """Process comprehension list, set or dict node."""
     generator = node.generators[0]
-    result = []
+    if isinstance(node, (ast.ListComp, ast.SetComp)):
+        elt = node.elt
+        result = []
+        for variables in _process_node(generator, flat_dict=flat_dict):
+            result.append(_process_node(elt, flat_dict=variables))
+        return result if isinstance(node, ast.ListComp) else set(result)
+    # DictComp
+    dict_result: Dict = {}
     for variables in _process_node(generator, flat_dict=flat_dict):
-        result.append(_process_node(elt, flat_dict=variables))
-    return result
+        key = _process_node(node.key, flat_dict=variables)
+        value = _process_node(node.value, flat_dict=variables)
+        dict_result[key] = value
+    return dict_result
 
 
 def _process_comprehension(node: Any, flat_dict: dict) -> Any:
