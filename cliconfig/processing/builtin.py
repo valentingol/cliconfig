@@ -195,8 +195,8 @@ class ProcessCopy(Processing):
     {'a': {'b': 1, 'c': 1}}
     ```
 
-    Note
-    ----
+    Notes
+    -----
     * The copy key is protected against any modification and will raise an error
         if you try to modify it but will be updated if the copied key is updated.
     * If the key to copy does not exist in the config on post-merge, no error
@@ -330,8 +330,8 @@ class ProcessDef(Processing):
     Now the parameter d is automatically updated if a.b or a.c changes
     while also remaining editable by it-self.
 
-    Note
-    ----
+    Notes
+    -----
     * Unlike @copy processing you can change the value by setting
         an other value or an other definition with @def.
     * Unlike copy processing all the keys used in expression
@@ -421,8 +421,8 @@ class ProcessTyping(Processing):
     End-build order: 20.0
     Pre-save order: 0.0
 
-    Note
-    ----
+    Notes
+    -----
     * The conversion into union type is from left to right. For instance,
         `param@type:List[str|float]: [True]` is converted to `["True"]`.
     * The type is not checked on pre-merge or post-merge to allow the parameter
@@ -554,8 +554,8 @@ class ProcessSelect(Processing):
     Result in deleting `models.model2` (`param1` and `param2`) and
     `models.model4.param`, and keeping the rest.
 
-    Warning
-    -------
+    Warns
+    -----
     For security reasons, this processing prevents from deleting
     the configuration at the root, which is the case when the
     selected key doesn't contain a dot. It raises an error in this case.
@@ -671,8 +671,8 @@ class ProcessDelete(Processing):
     random names like "1", "2", "3", we use the `@delete` tag to delete the
     keys after the pre-merge processing.
 
-    Warning
-    -------
+    Warns
+    -----
     The sub-config/parameter is deleted on pre-merge. Therefore, if the parameter
     also exists on the other configuration during merge (without the tag),
     this parameter will be remain as it is. This processing is more used
@@ -730,8 +730,8 @@ class ProcessNew(Processing):
     Without the `@new` tag, an error is raised because param2 is not present in
     the default configuration.
 
-    Note
-    ----
+    Notes
+    -----
     * Tag a subconfig by adding `@new` at the end of the key containing
         the sub-config dict in your yaml file.
     * When a parameter is added with this processing, it is possible to modify it
@@ -821,8 +821,8 @@ class ProcessDict(Processing):
     The `swep` parameter is considered as a single dict object
     and not as a sub-config for merging.
 
-    Warning
-    -------
+    Warns
+    -----
     * Processings are not applied in the dict keys. In particular,
         the tags are not used and not removed.
     * The tag `@dict` must be added at the key containing
