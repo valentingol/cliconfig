@@ -26,9 +26,8 @@ def _parse_type(type_desc: str) -> Tuple:
     ValueError
         If the type description is not valid or not recognized.
 
-    Notes
-    -----
-    The type description is lowercased and spaces are removed before parsing.
+    .. note::
+        The type description is lowercased and spaces are removed before parsing.
     """
     # Clean up
     old_type_desc = type_desc

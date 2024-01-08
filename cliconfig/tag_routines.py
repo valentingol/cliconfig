@@ -25,14 +25,13 @@ def clean_tag(flat_key: str, tag_name: str) -> str:
     flat_key : str
         The cleaned flat key.
 
-    Notes
-    -----
-    `tag_name` is supposed to be the exact name of the tag.
-
     Examples
     --------
     >>> clean_tag('abc@tag.def@tag_2.ghi@tag', 'tag')
     abc.def@tag_2.ghi
+
+    .. note::
+        `tag_name` is supposed to be the exact name of the tag.
     """
     if tag_name[0] == "@":
         tag_name = tag_name[1:]

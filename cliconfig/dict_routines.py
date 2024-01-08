@@ -178,10 +178,6 @@ def flatten(in_dict: Dict[str, Any]) -> Dict[str, Any]:
     flat_dict : Dict[str, Any]
         The flattened dict.
 
-    Notes
-    -----
-    Nested empty dict are ignored even if they are conflicting (see last example).
-
     Examples
     --------
     ```python
@@ -194,7 +190,8 @@ def flatten(in_dict: Dict[str, Any]) -> Dict[str, Any]:
     >>> flatten({'a.b': 1, 'a': {'c': {}}, 'a.c': 3})
     {'a.b': 1, 'a.c': 3}
     ```
-
+    .. note::
+        Nested empty dict are ignored even if they are conflicting (see last example).
     """
     flat_dict = _flatten(in_dict, reducer="dot")
     return flat_dict
@@ -262,17 +259,6 @@ def clean_pre_flat(in_dict: Dict[str, Any], priority: str) -> Dict[str, Any]:
     Dict[str, Any]
         The cleansed dict.
 
-    Warns
-    -----
-    No flat key can contain a dict. Then, dicts like `{'a.b': {'c': 1}}`
-    are not supported.
-
-    All the keys that contain dots (the flat keys) must be at the root.
-    Then, dicts like `{a: {'b.c': 1}}` are not supported.
-
-    To summarize, the dict must contain only fully flat dicts
-    and/or fully nested dicts.
-
     Examples
     --------
     >>> clean_pre_flat({'a.b': 1, 'a': {'b': 2}, 'c': 3}, priority='flat')
@@ -281,6 +267,16 @@ def clean_pre_flat(in_dict: Dict[str, Any], priority: str) -> Dict[str, Any]:
     {'a': {'b': 2}, 'c': 3}
     >>> clean_pre_flat({'a.b': 1, 'a': {'b': 2}, 'c': 3}, priority='error')
     ValueError: duplicated key 'a.b'
+
+    .. warning::
+        No flat key can contain a dict. Then, dicts like `{'a.b': {'c': 1}}`
+        are not supported.
+
+        All the keys that contain dots (the flat keys) must be at the root.
+        Then, dicts like `{a: {'b.c': 1}}` are not supported.
+
+        To summarize, the dict must contain only fully flat dicts
+        and/or fully nested dicts.
     """
     if priority in ("flat", "unflat"):
         # Check that there are no conflicts
@@ -332,17 +328,6 @@ def _del_key(
     ValueError
         If the key is not found in the dict.
 
-    Warns
-    -----
-    No flat key can contain a dict. Then, dicts like `{'a.b': {'c': 1}}`
-    are not supported.
-
-    All the keys that contain dots (the flat keys) must be at the root.
-    Then, dicts like `{a: {'b.c': 1}}` are not supported.
-
-    To summarize, the dict must contain only fully flat dicts
-    and fully nested dicts.
-
     Examples
     --------
     >>> in_dict = {'a': {'b': {'c': 1}, 'd': 2}, 'a.b.c': 4}
@@ -356,6 +341,16 @@ def _del_key(
     ValueError: Key 'a.b.z' not found in dict.
     >>> _del_key(in_dict, 'a.z.c')
     ValueError: Key 'a.z.c' not found in dict.
+
+    .. warning::
+        No flat key can contain a dict. Then, dicts like `{'a.b': {'c': 1}}`
+        are not supported.
+
+        All the keys that contain dots (the flat keys) must be at the root.
+        Then, dicts like `{a: {'b.c': 1}}` are not supported.
+
+        To summarize, the dict must contain only fully flat dicts
+        and/or fully nested dicts.
     """
     found_key = False
     if not keep_flat and flat_key in in_dict:
@@ -430,12 +425,13 @@ def load_dict(path: str) -> Dict[str, Any]:
     out_dict : Dict[str, Any]
         The nested (unflatten) loaded dict.
 
-    Notes
-    -----
-    - If multiple yaml files are in the same document, they are merged
-      from the first to the last.
-    - To use multiple yaml tags, separate them with "@". E.g. `!tag1@tag2`.
-    - You can combine any number of yaml and cliconfig tags together.
+    .. note::
+        If multiple yaml files are in the same document, they are merged
+        from the first to the last.
+
+        To use multiple yaml tags, separate them with "@". E.g. `!tag1@tag2`.
+
+        You can combine any number of yaml and cliconfig tags together.
     """
     try:
         with open(path, "r", encoding="utf-8") as cfg_file:
