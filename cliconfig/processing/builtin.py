@@ -197,12 +197,12 @@ class ProcessCopy(Processing):
 
     Notes
     -----
-    * The copy key is protected against any modification and will raise an error
-        if you try to modify it but will be updated if the copied key is updated.
-    * If the key to copy does not exist in the config on post-merge, no error
-        is raised to let the user the possibility to add the key later via merge.
-        However, if the key still does not exist at the end of the build
-        (and the key was never copied), an error is raised.
+    - The copy key is protected against any modification and will raise an error
+      if you try to modify it but will be updated if the copied key is updated.
+    - If the key to copy does not exist in the config on post-merge, no error
+      is raised to let the user the possibility to add the key later via merge.
+      However, if the key still does not exist at the end of the build
+      (and the key was never copied), an error is raised.
     """
 
     def __init__(self) -> None:
@@ -332,12 +332,12 @@ class ProcessDef(Processing):
 
     Notes
     -----
-    * Unlike @copy processing you can change the value by setting
-        an other value or an other definition with @def.
-    * Unlike copy processing all the keys used in expression
-        must be in the config at post-merge.
-    * This processing does not use `eval` and is therefore safe from
-        malicious code.
+    - Unlike @copy processing you can change the value by setting
+      an other value or an other definition with @def.
+    - Unlike copy processing all the keys used in expression
+      must be in the config at post-merge.
+    - This processing does not use `eval` and is therefore safe from
+      malicious code.
     """
 
     def __init__(self) -> None:
@@ -423,11 +423,11 @@ class ProcessTyping(Processing):
 
     Notes
     -----
-    * The conversion into union type is from left to right. For instance,
-        `param@type:List[str|float]: [True]` is converted to `["True"]`.
-    * The type is not checked on pre-merge or post-merge to allow the parameter
-        to be updated (by a copy or a merge for instance). The goal of this
-        processing is to ensure the type at the end of the build.
+    - The conversion into union type is from left to right. For instance,
+      `param@type:List[str|float]: [True]` is converted to `["True"]`.
+    - The type is not checked on pre-merge or post-merge to allow the parameter
+      to be updated (by a copy or a merge for instance). The goal of this
+      processing is to ensure the type at the end of the build.
 
 
     Examples
@@ -732,14 +732,14 @@ class ProcessNew(Processing):
 
     Notes
     -----
-    * Tag a subconfig by adding `@new` at the end of the key containing
-        the sub-config dict in your yaml file.
-    * When a parameter is added with this processing, it is possible to modify it
-        later via config merge without the tag because the parameter is then present
-        in the current configuration.
-    * If the tagged parameter or sub-config is already present in the current
-        configuration, no error are raised and the value is still updated on
-        post-merge. It may no have influence in practice.
+    - Tag a subconfig by adding `@new` at the end of the key containing
+      the sub-config dict in your yaml file.
+    - When a parameter is added with this processing, it is possible to modify it
+      later via config merge without the tag because the parameter is then present
+      in the current configuration.
+    - If the tagged parameter or sub-config is already present in the current
+      configuration, no error are raised and the value is still updated on
+      post-merge. It may no have influence in practice.
     """
 
     def __init__(self) -> None:
@@ -823,10 +823,10 @@ class ProcessDict(Processing):
 
     Warns
     -----
-    * Processings are not applied in the dict keys. In particular,
-        the tags are not used and not removed.
-    * The tag `@dict` must be added at the key containing
-        the dict every time you want to modify the dict.
+    - Processings are not applied in the dict keys. In particular,
+      the tags are not used and not removed.
+    - The tag `@dict` must be added at the key containing
+      the dict every time you want to modify the dict.
     """
 
     class PseudoDict:

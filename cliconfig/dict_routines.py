@@ -264,11 +264,11 @@ def clean_pre_flat(in_dict: Dict[str, Any], priority: str) -> Dict[str, Any]:
 
     Warns
     -----
-    * No flat key can contain a dict. Then, dicts like `{'a.b': {'c': 1}}`
+    - No flat key can contain a dict. Then, dicts like `{'a.b': {'c': 1}}`
       are not supported.
-    * All the keys that contain dots (the flat keys) must be at the root.
+    - All the keys that contain dots (the flat keys) must be at the root.
       Then, dicts like `{a: {'b.c': 1}}` are not supported.
-    * To summarize, the dict must contain only fully flat dicts
+    - To summarize, the dict must contain only fully flat dicts
       and/or fully nested dicts.
 
     Examples
@@ -332,12 +332,12 @@ def _del_key(
 
     Warns
     -----
-    * No flat key can contain a dict. Then, dicts like `{'a.b': {'c': 1}}`
-        are not supported.
-    * All the keys that contain dots (the flat keys) must be at the root.
-        Then, dicts like `{a: {'b.c': 1}}` are not supported.
-    * To summarize, the dict must contain only fully flat dicts
-        and fully nested dicts.
+    - No flat key can contain a dict. Then, dicts like `{'a.b': {'c': 1}}`
+      are not supported.
+    - All the keys that contain dots (the flat keys) must be at the root.
+      Then, dicts like `{a: {'b.c': 1}}` are not supported.
+    - To summarize, the dict must contain only fully flat dicts
+      and fully nested dicts.
 
     Examples
     --------
@@ -428,10 +428,10 @@ def load_dict(path: str) -> Dict[str, Any]:
 
     Notes
     -----
-    * If multiple yaml files are in the same document, they are merged
-        from the first to the last.
-    * To use multiple yaml tags, separate them with "@". E.g. `!tag1@tag2`.
-    * You can combine any number of yaml and cliconfig tags together.
+    - If multiple yaml files are in the same document, they are merged
+      from the first to the last.
+    - To use multiple yaml tags, separate them with "@". E.g. `!tag1@tag2`.
+    - You can combine any number of yaml and cliconfig tags together.
     """
     try:
         with open(path, "r", encoding="utf-8") as cfg_file:
