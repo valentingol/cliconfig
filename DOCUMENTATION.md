@@ -179,9 +179,8 @@ The default tags include:
   If/else statements and comprehension lists are also supported.
 * `@type:<my type>`: This tag checks if the key matches the specified type `<my type>`
   after each update, even if the tag is no longer present. It tries to convert
-  the type if it is not the good one. It supports basic types
-  (except for tuples and sets, which are not handled by YAML) as well as unions
-  (using "Union" or "|"), optional values, nested list, and nested dict.
+  the type if it is not the good one. It supports basic types as well as unions
+  (using either "Union" or "|"), optional values, nested list/set/tuple/dict.
   For instance: `my_param@type:List[Dict[str, int|float]]: [{"a": 0}]`.
 * `@select`: This tag select param/sub-config(s) to keep and delete the other
   param/sub-configs in the same parent config. The tagged key is not deleted if
