@@ -1,14 +1,15 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Private module with type parser for processing module with type manipulation."""
+from functools import partial
 from pydoc import locate
-from typing import List, Optional, Tuple, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
 
 def _parse_type(type_desc: str) -> Tuple:
     """Parse a type description.
 
-    Allow basic types (none, any, bool, int, float, str, list, dict), nested lists,
-    nested dicts, unions (with Union or the '|' symbol) and Optional.
+    Allow basic types (none, any, bool, int, float, str, list, set, tuple, dict),
+    nested lists/sets/dicts, unions (with Union or the '|' symbol) and Optional.
 
     Examples of representation:
     * "str" -> (str,)
@@ -41,16 +42,21 @@ def _parse_type(type_desc: str) -> Tuple:
         blocks = _split_brackets(type_desc, delimiter="|")
         types: Tuple = ()
         for block in blocks:
-            if block[:5] == "list[":
-                types += _parse_list(block)
-            elif block[:5] == "dict[":
-                types += _parse_dict(block)
-            elif block[:9] == "optional[":
-                types += _parse_optional(block)
-            elif block[:6] == "union[":
-                types += _parse_union(block)
+            if "[" in block:
+                kind = block[: block.index("[")]
+                parsing_funcs: Dict[str, Callable] = {
+                    "list": partial(_parse_set_list, kind="list"),
+                    "set": partial(_parse_set_list, kind="set"),
+                    "dict": _parse_dict,
+                    "tuple": _parse_tuple,
+                    "optional": _parse_optional,
+                    "union": _parse_union,
+                }
+                if kind not in parsing_funcs:
+                    raise ValueError(f"Unknown type: '{block}'")
+                types += parsing_funcs[kind](type_desc=block)
             else:  # Should be a base type
-                base_type = _parse_base_type(block)
+                base_type = _parse_base_type(type_desc=block)
                 if base_type is not None:
                     types += (base_type,)
                 else:
@@ -72,17 +78,17 @@ def _parse_base_type(type_desc: str) -> Optional[Type]:
     if type_desc == "any":
         # Match any type
         return object
-    if type_desc in ("bool", "int", "float", "str", "list", "dict"):
+    if type_desc in ("bool", "int", "float", "str", "list", "set", "tuple", "dict"):
         return locate(type_desc)  # type: ignore
     return None
 
 
-def _parse_list(type_desc: str) -> Tuple:
-    """Parse a "list" type description."""
-    sub_desc = type_desc[5:-1]
+def _parse_set_list(kind: str, type_desc: str) -> Tuple:
+    """Parse a "list" or a "set" type description."""
+    sub_desc = type_desc[5:-1] if kind == "list" else type_desc[4:-1]
     if len(_split_brackets(sub_desc, delimiter=",")) > 1:
-        raise ValueError(f"Invalid List type: '{type_desc}'")
-    return (("list",) + (_parse_type(sub_desc),),)
+        raise ValueError(f"Invalid {kind.capitalize()} type: '{type_desc}'")
+    return ((kind,) + (_parse_type(sub_desc),),)
 
 
 def _parse_dict(type_desc: str) -> Tuple:
@@ -94,6 +100,16 @@ def _parse_dict(type_desc: str) -> Tuple:
     key_type = _parse_type(sub_blocks[0])
     value_type = _parse_type(sub_blocks[1])
     return (("dict",) + (key_type,) + ((value_type),),)
+
+
+def _parse_tuple(type_desc: str) -> Tuple:
+    """Parse a "tuple" type description."""
+    sub_desc = type_desc[6:-1]
+    sub_blocks = _split_brackets(sub_desc, delimiter=",")
+    types: Tuple = ()
+    for sub_block in sub_blocks:
+        types += (_parse_type(sub_block),)
+    return (("tuple",) + types,)
 
 
 def _parse_optional(type_desc: str) -> Tuple:
@@ -150,18 +166,26 @@ def _isinstance(obj: object, types: Union[Type, Tuple]) -> bool:
         return isinstance(obj, list) and all(
             _isinstance(elem, types[1]) for elem in obj
         )
+    if types[0] == "set" and len(types) == 2:
+        return isinstance(obj, set) and all(
+            _isinstance(elem, types[1]) for elem in obj
+        )
     if types[0] == "dict" and len(types) == 3:
         return (
             isinstance(obj, dict)
             and all(_isinstance(key, types[1]) for key in obj)
             and all(_isinstance(value, types[2]) for value in obj.values())
         )
+    if types[0] == "tuple" and len(types) >= 2:
+        return isinstance(obj, tuple) and all(
+            _isinstance(elem, types[i + 1]) for i, elem in enumerate(obj)
+        )
     if isinstance(types[0], (type, tuple)):
         return any(_isinstance(obj, sub_types) for sub_types in types)
     raise ValueError(f"Invalid type for _isinstance: '{types}'")
 
 
-def _convert_type(obj: object, types: Union[Type, Tuple]) -> object:
+def _convert_type(obj: Any, types: Union[Type, Tuple]) -> Any:
     """Try to convert an object to a type or a tuple of types.
 
     Intended to work with the outputs of _parse_type.
@@ -172,22 +196,29 @@ def _convert_type(obj: object, types: Union[Type, Tuple]) -> object:
         return obj
 
 
-def _convert_type_internal(obj: object, types: Union[Type, Tuple]) -> object:
+def _convert_type_internal(obj: Any, types: Union[Type, Tuple]) -> Any:
     """Try to convert an object to a type or a tuple of types.
 
     Intended to work with the outputs of _parse_type.
     """
     if isinstance(types, type):
         return types(obj)
-    if types[0] == "list" and len(types) == 2:
-        return [_convert_type_internal(elem, types[1]) for elem in obj]  # type: ignore
+    if types[0] in ("list", "set") and len(types) == 2:
+        type_to_use = locate(types[0])  # list or set
+        return type_to_use(
+            _convert_type_internal(elem, types[1]) for elem in obj
+        )  # type: ignore
     if types[0] == "dict" and len(types) == 3:
         return {
             _convert_type_internal(key, types[1]): _convert_type_internal(
                 value, types[2]
             )
-            for key, value in obj.items()  # type: ignore
+            for key, value in obj.items()
         }
+    if types[0] == "tuple" and len(types) >= 2:
+        return tuple(
+            _convert_type_internal(elem, types[i + 1]) for i, elem in enumerate(obj)
+        )
     if isinstance(types[0], (type, tuple)):
         if any(_isinstance(obj, sub_types) for sub_types in types):
             return obj
