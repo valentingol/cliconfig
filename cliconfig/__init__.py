@@ -12,8 +12,8 @@
 
 .. include:: ../DOCUMENTATION.md
 """
-
 from cliconfig import (
+    _logger,
     base,
     cli_parser,
     config_routines,
@@ -22,6 +22,7 @@ from cliconfig import (
     processing,
     tag_routines,
 )
+from cliconfig._logger import create_logger
 from cliconfig._version import __version__, __version_tuple__
 from cliconfig.base import Config
 from cliconfig.config_routines import (
@@ -46,9 +47,13 @@ from cliconfig.processing.create import (
     create_processing_value,
 )
 
+_CLICONFIG_LOGGER = create_logger()
+
 __all__ = [
     "__version__",
     "__version_tuple__",
+    "_CLICONFIG_LOGGER",
+    "_logger",
     "Config",
     "DefaultProcessings",
     "Processing",

@@ -1,10 +1,10 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Low-level and high-level functions to manipulate config."""
-import logging
 import sys
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Union
 
+import cliconfig
 from cliconfig.base import Config
 from cliconfig.cli_parser import parse_cli
 from cliconfig.dict_routines import flatten, show_dict, unflatten
@@ -84,6 +84,7 @@ def make_config(
         does NOT raise an error but only a warning. This ensures the compatibility
         with other CLI usage (e.g notebook, argparse, etc.)
     """
+    logger = cliconfig._CLICONFIG_LOGGER  # pylint: disable=W0212
     # Create the processing list
     process_list_: List[Processing] = [] if process_list is None else process_list
     if add_default_processing:
@@ -124,23 +125,21 @@ def make_config(
     if new_keys:
         new_keys_message = "  - " + "\n  - ".join(new_keys)
         message = (
-            "[CONFIG] Warning: New keys found in CLI parameters "
+            "[CONFIG] New keys found in CLI parameters "
             f"that will not be merged:\n{new_keys_message}"
         )
-        logging.warning(message)
-        print(message)
+        logger.warning(message)
     # Merge CLI parameters
     cli_params_config = Config(cli_params_dict, [])
     config = merge_flat_processing(
         config, cli_params_config, allow_new_keys=False, preprocess_first=False
     )
     message = (
-        f"[CONFIG] Info: Merged {len(default_config_paths)} default config(s), "
+        f"[CONFIG] Merged {len(default_config_paths)} default config(s), "
         f"{len(additional_config_paths)} additional config(s) and "
         f"{len(cli_params_dict)} CLI parameter(s)."
     )
-    logging.info(message)
-    print(message)
+    logger.info(message)
     config = end_build_processing(config)
     config.dict = unflatten(config.dict)
     return config

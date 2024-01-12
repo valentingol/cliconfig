@@ -22,7 +22,10 @@ from cliconfig.processing.base import Processing
 from cliconfig.processing.builtin import ProcessCopy
 
 
-def test_make_config(capsys: pytest.CaptureFixture, process_add1: Processing) -> None:
+def test_make_config(
+    caplog: pytest.LogCaptureFixture,
+    process_add1: Processing,
+) -> None:
     """Test make_config."""
     sys_argv = sys.argv.copy()
     sys.argv = [
@@ -33,15 +36,13 @@ def test_make_config(capsys: pytest.CaptureFixture, process_add1: Processing) ->
         "--param2@add1=6",
         "--unknown2=8",  # check that not error but a warning in console
     ]
-    capsys.readouterr()  # Clear stdout and stderr
+    caplog.clear()
     config = make_config(
         "tests/configs/default1.yaml",
         "tests/configs/default2.yaml",
         process_list=[process_add1],
         fallback="tests/configs/fallback.yaml",
     )
-    captured = capsys.readouterr()
-    out = captured.out
     expected_config = {
         "param1": 4,
         "param2": 7,
@@ -54,15 +55,18 @@ def test_make_config(capsys: pytest.CaptureFixture, process_add1: Processing) ->
         },
         "processing name": "ProcessAdd1",
     }
-    expected_out = (
-        "[CONFIG] Warning: New keys found in CLI parameters that will not be merged:\n"
+    expected_out1 = (
+        "[CONFIG] New keys found in CLI parameters that will not be merged:\n"
         "  - unknown\n"
         "  - unknown2\n"
-        "[CONFIG] Info: Merged 2 default config(s), "
-        "2 additional config(s) and 1 CLI parameter(s).\n"
+    )
+    expected_out2 = (
+        "[CONFIG] Merged 2 default config(s), 2 additional config(s) "
+        "and 1 CLI parameter(s)."
     )
     check.equal(config.dict, expected_config)
-    check.equal(out, expected_out)
+    check.is_in(expected_out1, caplog.text)
+    check.is_in(expected_out2, caplog.text)
 
     # No additional configs and fallback
     sys.argv = [
