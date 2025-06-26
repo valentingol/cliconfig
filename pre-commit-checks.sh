@@ -21,7 +21,7 @@ mypy .
 check_output "Typing checks"
 
 echo "************* Import order *************"
-isort --check-only .
+isort --check-only --skip cliconfig/_version.py .
 check_output "Import order checks"
 
 echo "************** Docstrings **************"
