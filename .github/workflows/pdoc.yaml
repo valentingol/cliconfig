@@ -29,7 +29,7 @@ jobs:
       - run: pip install -r docs/requirements.txt
       - run: pdoc -d numpy -t docs/template --logo https://raw.githubusercontent.com/valentingol/cliconfig/main/docs/_static/logo.png --no-include-undocumented -o docs/build --math --search cliconfig
 
-      - uses: actions/upload-pages-artifact@v1
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: docs/build
 
