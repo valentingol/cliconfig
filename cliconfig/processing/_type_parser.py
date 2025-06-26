@@ -1,5 +1,6 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Private module with type parser for processing module with type manipulation."""
+
 from functools import partial
 from pydoc import locate
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
@@ -166,9 +167,7 @@ def _isinstance(obj: object, types: Union[Type, Tuple]) -> bool:
             _isinstance(elem, types[1]) for elem in obj
         )
     if types[0] == "set" and len(types) == 2:
-        return isinstance(obj, set) and all(
-            _isinstance(elem, types[1]) for elem in obj
-        )
+        return isinstance(obj, set) and all(_isinstance(elem, types[1]) for elem in obj)
     if types[0] == "dict" and len(types) == 3:
         return (
             isinstance(obj, dict)
@@ -205,8 +204,9 @@ def _convert_type_internal(obj: Any, types: Union[Type, Tuple]) -> Any:
     if types[0] in ("list", "set") and len(types) == 2:
         type_to_use = locate(types[0])  # list or set
         return type_to_use(
-            _convert_type_internal(elem, types[1]) for elem in obj
-        )  # type: ignore
+            _convert_type_internal(elem, types[1])
+            for elem in obj  # type: ignore
+        )
     if types[0] == "dict" and len(types) == 3:
         return {
             _convert_type_internal(key, types[1]): _convert_type_internal(

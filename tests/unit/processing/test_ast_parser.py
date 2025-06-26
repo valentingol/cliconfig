@@ -1,5 +1,6 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Test the AST parser module."""
+
 import ast
 import re
 

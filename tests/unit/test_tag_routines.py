@@ -7,13 +7,13 @@ import pytest_check as check
 from cliconfig.tag_routines import clean_all_tags, clean_tag, dict_clean_tags, is_tag_in
 
 
-@pytest.fixture()
+@pytest.fixture
 def key1() -> str:
     """Return a key with many tags."""
     return "abc@tag.def@tag_2.ghi@tag"
 
 
-@pytest.fixture()
+@pytest.fixture
 def key2() -> str:
     """Return a key with many many tags."""
     return "abc@hashtag@tagg@tag@tag 2@tag@ag.def@tag _.jkl@tag.mno@tag"

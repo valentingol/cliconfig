@@ -1,5 +1,6 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Integration test for sweep updates."""
+
 import pytest_check as check
 
 from cliconfig import make_config, update_config

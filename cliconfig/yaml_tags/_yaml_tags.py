@@ -24,7 +24,9 @@ def tagged_constructor(
     if isinstance(node, yaml.SequenceNode):
         return TaggedNode(loader.construct_sequence(node), tag_suffix, is_config=False)
     return TaggedNode(
-        loader.construct_mapping(node), tag_suffix, is_config=True  # type: ignore
+        loader.construct_mapping(node),  # type: ignore
+        tag_suffix,
+        is_config=True,
     )
 
 

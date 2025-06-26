@@ -1,5 +1,6 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Private module with AST parser for safe evaluation."""
+
 import ast
 from typing import Any, Callable, Dict, List
 
@@ -17,7 +18,7 @@ def _process_node(node: Any, flat_dict: dict) -> Any:
     """
     # Case None, bool or number
     if isinstance(node, ast.Constant):
-        return node.n
+        return node.value
     functions: Dict[Any, Callable[[Any, dict], Any]] = {
         ast.BinOp: _process_binop,  # binary operation
         ast.BoolOp: _process_boolop,  # boolean operation

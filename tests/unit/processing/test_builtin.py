@@ -1,5 +1,6 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Test built-in processing classes."""
+
 import re
 
 import pytest
@@ -470,8 +471,7 @@ def test_process_check_tags() -> None:
         with pytest.raises(
             ValueError,
             match=(
-                "Keys with tags are encountered at the end of "
-                "the pre-merge process.*"
+                "Keys with tags are encountered at the end of the pre-merge process.*"
             ),
         ):
             processing.premerge(Config(flat_dict, [processing]))

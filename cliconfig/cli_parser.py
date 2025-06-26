@@ -1,5 +1,6 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Parsing functions from CLI."""
+
 from typing import Any, Dict, List, Tuple
 
 import yaml

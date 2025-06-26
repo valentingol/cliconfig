@@ -1,5 +1,6 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Test the type parser module."""
+
 import re
 
 import pytest
@@ -24,12 +25,12 @@ def test_type_routines() -> None:
     check.is_false(_isinstance([None], type_))
     check.equal(_convert_type("unchanged", type_), "unchanged")
 
-    check.is_true(_isinstance(obj=False,  types=_parse_type("bool")))
-    check.is_true(_isinstance(2.3,  _parse_type("float")))
-    check.is_true(_isinstance((1, 2),  _parse_type("tuple")))
-    check.is_true(_isinstance({1, 2},  _parse_type("set")))
-    check.equal(a=_convert_type(0,  _parse_type("bool")), b=False)
-    check.equal(_convert_type(2.3,  _parse_type("int")), 2)
+    check.is_true(_isinstance(obj=False, types=_parse_type("bool")))
+    check.is_true(_isinstance(2.3, _parse_type("float")))
+    check.is_true(_isinstance((1, 2), _parse_type("tuple")))
+    check.is_true(_isinstance({1, 2}, _parse_type("set")))
+    check.equal(a=_convert_type(0, _parse_type("bool")), b=False)
+    check.equal(_convert_type(2.3, _parse_type("int")), 2)
     check.equal(_convert_type([[1, 2]], _parse_type("dict")), {1: 2})
     check.equal(_convert_type([1, 2], _parse_type("tuple")), (1, 2))
     check.equal(_convert_type((1, 1), _parse_type("set")), {1})
