@@ -3,6 +3,7 @@
 
 Used by `cliconfig.config_routines`.
 """
+
 from typing import List, Optional, Union
 
 from cliconfig.base import Config

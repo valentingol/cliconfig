@@ -1,5 +1,6 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Low-level and high-level functions to manipulate config."""
+
 import sys
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Union

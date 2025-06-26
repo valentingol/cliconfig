@@ -19,7 +19,7 @@ number of parameters is huge and a lot of them have to be set by the user betwee
 each experiment. If your project matches this description, this package is for you!
 
 [![Release](https://img.shields.io/github/v/tag/valentingol/cliconfig?label=Pypi&logo=pypi&logoColor=yellow)](https://pypi.org/project/cliconfig/)
-![PythonVersion](https://img.shields.io/badge/Python-3.7%20%7E%203.11-informational)
+![PythonVersion](https://img.shields.io/badge/Python-3.7%20%7E%203.13-informational)
 [![License](https://img.shields.io/github/license/valentingol/cliconfig?color=999)](https://stringfixer.com/fr/MIT_license)
 
 [![Ruff_logo](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v1.json)](https://github.com/charliermarsh/ruff)

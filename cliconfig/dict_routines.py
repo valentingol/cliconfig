@@ -3,6 +3,7 @@
 
 Used by `cliconfig.process_routines` and `cliconfig.config_routines`.
 """
+
 import os
 from typing import Any, Dict, Tuple, Union
 
@@ -72,8 +73,7 @@ def merge_flat(
         for key in flat_dict2:
             if key not in flat_dict1:
                 raise ValueError(
-                    f"New parameter found '{key}' in that is not in the original "
-                    "dict."
+                    f"New parameter found '{key}' in that is not in the original dict."
                 )
     # Merge flat dicts
     flat_dict = {**flat_dict1, **flat_dict2}

@@ -1,5 +1,6 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Base class of Config objects."""
+
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 # Imports Processing for mypy type checking only

@@ -1,5 +1,6 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Shared pytest fixtures."""
+
 from typing import Any, Dict
 
 import pytest
@@ -68,13 +69,13 @@ class ProcessKeep(Processing):
         return flat_config
 
 
-@pytest.fixture()
+@pytest.fixture
 def process_add1() -> ProcessAdd1:
     """Return a processing object that adds 1 on tag "@add1"."""
     return ProcessAdd1()
 
 
-@pytest.fixture()
+@pytest.fixture
 def process_keep() -> ProcessKeep:
     """Return a processing object that keep a value unchanged after the merge."""
     return ProcessKeep()

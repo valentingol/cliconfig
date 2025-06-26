@@ -1,5 +1,6 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Test helpers to create processing functions."""
+
 import re
 
 import pytest
@@ -81,7 +82,9 @@ def test_create_processing_value() -> None:
     proc1 = create_processing_value(type, "endbuild", tag_name="get_type")
     proc2 = create_processing_value(str, "presave", tag_name="to_str")
     proc3 = create_processing_value(
-        lambda *args: 0, "postload", tag_name="zero"  # noqa
+        lambda *args: 0,  # noqa
+        "postload",
+        tag_name="zero",
     )
     in_dict2 = {
         "type1@get_type@to_str@zero": 1,

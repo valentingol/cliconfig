@@ -1,5 +1,6 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Integration test for multiple tags."""
+
 import random
 import shutil
 import sys

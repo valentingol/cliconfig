@@ -1,5 +1,6 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Manage Pydocstyle output on workflow."""
+
 import sys
 
 

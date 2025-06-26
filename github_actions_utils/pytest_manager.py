@@ -1,5 +1,6 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Manage Pytest-cov output on workflow."""
+
 import sys
 
 from github_actions_utils.color import score_to_hex_color

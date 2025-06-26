@@ -1,5 +1,6 @@
 # Copyright (c) 2023 Valentin Goldite. All Rights Reserved.
 """Tests for dict routines."""
+
 import pytest
 import pytest_check as check
 

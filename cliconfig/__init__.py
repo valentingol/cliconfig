@@ -12,6 +12,7 @@
 
 .. include:: ../DOCUMENTATION.md
 """
+
 from cliconfig import (
     _logger,
     base,
